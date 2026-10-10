@@ -15,6 +15,7 @@ button,input,textarea,select{font:inherit;border:1px solid var(--line);backgroun
 button{cursor:pointer;font-weight:700}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #ff2d95;outline-offset:2px}
 button.p{background:#ff2d95;border-color:#ff2d95;color:#fff}
 input{flex:1;min-width:200px;font-family:Consolas,Menlo,monospace;font-size:13px}
+#hp{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 16px;margin:0 0 16px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:8px}#hp label{display:flex;flex-direction:column;gap:4px;font-size:13px}#hp input[type=range]{width:100%;padding:0}
 .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .t{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;text-align:left;color:inherit}
 .t[aria-pressed=true]{border-color:#ff2d95;box-shadow:0 0 0 2px #ff2d95}
@@ -28,9 +29,8 @@ svg{width:100%;height:auto;display:block}
 .tb td{padding:4px 8px;border-bottom:1px solid var(--line)}
 </style></head><body>
 <h1>Pixel sushi LED</h1>
-<p class="s">An 11×11 sushi robot. The filling stays in its original spot and runs light-show patterns. Every piece is one self-contained animated SVG: 12 frames, no scripts. All traits come from one seed string, standing in for a Tezos operation hash.</p>
+<p class="s"><b>Hop test:</b> every piece hops. Use the sliders for the timing between poses. An 11×11 sushi robot. The filling stays in its original spot and runs light-show patterns. Every piece is one self-contained animated SVG: 12 frames, no scripts. All traits come from one seed string, standing in for a Tezos operation hash.</p>
 <div class="bar">
-<select id="pal" aria-label="Palette set"><option value="mix">Neon mix (with mono)</option><option value="neonOnly">Neon only (no mono)</option></select>
 <button class="p" id="mint">Mint 12 new</button>
 <input id="seed" aria-label="Seed" placeholder="paste any seed, e.g. ooABC...">
 <button id="go">Render seed</button>
@@ -38,6 +38,19 @@ svg{width:100%;height:auto;display:block}
 <button id="gt">Render with text</button>
 </div>
 <p class="s" id="plan"></p>
+<div id="hp">
+<label><span id="l-s">Squash hold</span> <b id="v-s"></b><input type="range" id="r-s" min="100" max="1500" step="10"></label>
+<label><span id="l-up">Lift up</span> <b id="v-up"></b><input type="range" id="r-up" min="40" max="400" step="10"></label>
+<label><span id="l-t">Stretch hold</span> <b id="v-t"></b><input type="range" id="r-t" min="100" max="1500" step="10"></label>
+<label><span id="l-down">Lift down</span> <b id="v-down"></b><input type="range" id="r-down" min="40" max="400" step="10"></label>
+<label>Motion style <select id="style"><option value="hop">Hop: tapered feet, 3 poses</option><option value="bob">Bob 1px: no press down</option><option value="land">Land: air, impact, rice lip</option></select></label>
+<label>Filling <select id="fill"><option value="delay">Follows 1 step late</option><option value="with">Moves with body</option><option value="still">Stays still</option></select></label>
+<label>Filling lag <b id="v-lag"></b><input type="range" id="r-lag" min="40" max="400" step="10"></label>
+<label>Eyes <select id="eyes"><option value="stretch">Stretch taller</option><option value="follow">Move, don't stretch</option><option value="frozen">Frozen (don't move)</option></select></label>
+<label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="calm" style="min-width:0;flex:none"> Calm eyes (no look, no blink)</label>
+<div style="grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap" id="pre"></div>
+<div style="grid-column:1/-1;font-size:13px" id="cyc"></div>
+</div>
 <div id="d"><div id="big"></div><div style="flex:1;min-width:240px"><div id="dt"></div><div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="p" id="dl">Download animated SVG</button><span id="dls" class="s" style="margin:0;font-size:13px"></span></div><textarea id="src" readonly aria-label="SVG source"></textarea></div></div>
 <div class="g" id="grid"></div>
 <table class="tb" id="tb"></table>
@@ -45,7 +58,7 @@ svg{width:100%;height:auto;display:block}
 const P={pink:"#ff2d95",green:"#00c853",lime:"#b0ee00",red:"#ff3b30",orange:"#ff9500",yellow:"#fdd60a"};
 const K=Object.keys(P),FR=12,LIMIT=32768;
 const RAMP=[["random",30],["trio",25],["mirror",20],["duo",15],["accent",7],["spectrum",3]];
-const PAT=[["scroll-h",15],["diagonal",11],["ripple",10],["chase",8],["checker",6],["sparkle",7],["squiggle",9],["rapid squiggle",5],["squiggle flow",10],["text",14]];
+const PAT=[["scroll-h",15],["diagonal",11],["ripple",10],["chase",8],["checker",6],["sparkle",7],["squiggle",9],["rapid squiggle",5],["squiggle flow",10],["maki types",9],["text",14]];
 const MSG=[["ANTS",34],["TEZOS",33],["PAUL HBD",33]];
 const DIR=[["forward",1,50],["reverse",-1,50]];
 const SPD=[["normal",130,62],["slow",210,30],["fast",85,8]];
@@ -55,6 +68,9 @@ const RICE=[["white","#ffffff",75],["cream","#f6eed9",25]];
 const EYE=[["match rice",null,60],["white","#ffffff",40]];
 const SHAPE=[["original",1,75],["tall",2,25]];
 const LOOK=[["fixed",null,45],["glance",[0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,1],40],["shifty",[0,0,0,1,2,2,2,1,0,0,0,0],15]];
+const STRETCH=[["none",null,35],["gentle",[2400,.45],25],["lively",[1400,.5],15],["hop","hop",25]],TEST={motion:"hop",calm:true},HOP={s:320,up:80,t:320,down:160,eyes:"follow",style:"hop",fill:"with",lag:130},ESTRETCH=[["no",0,60],["yes",1,40]];
+const MAKI=[["cucumber",4,5,4],["tuna",0,1,1],["negi toro",1,0,5],["salmon",0,2,2],["tamago",2,3,3],["spicy tuna",0,1,2],["avocado",5,4,3],["ebi",2,0,1]];
+const ORIGL={"3,2":0,"4,2":1,"5,2":2,"6,2":1,"7,2":3,"2,3":0,"3,3":4,"4,3":5,"5,3":5,"6,3":5,"7,3":0,"8,3":3,"3,4":3,"4,4":0,"5,4":3,"6,4":0,"7,4":4};
 const BLK=[["none",0,50],["blink",1,35],["wink",2,15]];
 const RATE=[["calm",4200,30],["normal",2800,50],["nervous",1700,20]];
 const FILL=[];for(let y=2;y<=4;y++)for(let x=3;x<=7;x++)FILL.push([x,y]);FILL.push([2,3],[8,3]);
@@ -82,7 +98,7 @@ const rcc=(h,s)=>RCH[(h+24)%24].c[s-1],rcn=(h,s)=>RCH[(h+24)%24].n+"-"+s;
 function neonOf(h){const a=hue(rcc(h,VIV[h])),l=a<20||a>=340?.6:a<45?.52:a<65?.5:a<85?.47:a<160?.43:a<200?.46:a<245?.6:a<285?.66:.6;return hsl(a,1,l)}
 const NNO=["#000000","#222222","#062800","#001a39","#3a004f"],NNN=["black","charcoal","shiso","navy","plum"];
 const RCT=[["tint",1,45],["pastel",2,45],["vivid",3,10]],RCN=[["black",0,72],["charcoal",1,12],["shiso",2,8],["navy",3,4],["plum",4,4]],RCR=[["white",0,60],["gray-1",1,15],["cream",2,15],["hue-1",3,10]],MONOSCALE=[["tints",.9,.62,35],["full",.86,.38,40],["shades",.7,.32,25]],MONOSC=[["filling only",0,55],["whole art",1,45]];
-const MIXN=[["neon",70],["neonwheel",30]],MIX=[["neon",52],["neonwheel",30],["mono",18]],ROLL=[["maki",0,92],["uramaki",1,8]];
+const MIX=[["neon",52],["neonwheel",30],["mono",18]],ROLL=[["maki",0,92],["uramaki",1,8]];
 function rcRoles(mode,R){const pk=()=>Math.floor(R()*24),w=x=>(x%24+24)%24,shf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const m=pk(),sd=R()<.5?1:-1;let H;
 if(mode==="duo"){let b=w(m+sd*3);for(let t=0;t<14;t++){b=w(m+sd*(3+Math.floor(R()*6)));if(contrast(neonOf(m),neonOf(b))>=1.4)break}H=[m,b,m,b,m,b]}
@@ -127,14 +143,17 @@ let o="";for(const col in by){const cs=by[col].sort((a,b)=>a[1]-b[1]||a[0]-b[0])
 const clean=t=>t.toUpperCase().split("").filter(c=>c===" "||FONT[c]).join("");
 const adv=t=>t.split("").reduce((a,c)=>a+(c===" "?2:4),0);
 function gen(seed,opt){opt=opt||{};const R=rng(seed);
-let cp=PAL.cur,pmix=1;if(cp==="mix"||cp==="neonOnly"){const[m,q]=wp(R,cp==="mix"?MIX:MIXN);cp=m[0];pmix=q}
+let cp=PAL.cur,pmix=1;if(cp==="mix"){const[m,q]=wp(R,MIX);cp=m[0];pmix=q}
 const I=false,Q=cp!=="neon",[rm,p0]=wp(R,RAMP);let C=ramp(rm[0],R);
-let[pt,pp]=wp(R,rm[0]==="duo"||rm[0]==="accent"?PAT.filter(x=>x[0]!=="squiggle flow"):PAT);let[ms,pm]=wp(R,MSG);const[di,pd]=wp(R,DIR);let[sp,ps]=wp(R,SPD);
+let[pt,pp]=wp(R,rm[0]==="duo"||rm[0]==="accent"?PAT.filter(x=>x[0]!=="squiggle flow"&&(cp==="neon"||x[0]!=="maki types")):PAT);let[ms,pm]=wp(R,MSG);const[di,pd]=wp(R,DIR);let[sp,ps]=wp(R,SPD);
 let[tn,p1]=wp(R,TONE),[no,p2]=wp(R,Q?[["-","#000000",1]]:NORI),[ri,p3]=wp(R,Q?[["-","#ffffff",1]]:RICE),[ey,p4]=wp(R,Q?[["-",null,1]]:EYE);
-const[sh,p5]=wp(R,SHAPE),[bk,p6]=wp(R,BLK),[rt,p7]=wp(R,RATE),[lk,p8]=wp(R,LOOK),[ro,p9]=wp(R,ROLL);
+let[sh,p5]=wp(R,SHAPE),[bk,p6]=wp(R,BLK),[rt,p7]=wp(R,RATE),[lk,p8]=wp(R,LOOK),[ro,p9]=wp(R,ROLL),[stt,p10]=wp(R,STRETCH),[est,p11]=wp(R,ESTRETCH);
+if(TEST.motion!=="mix")stt=TEST.motion==="hop"?STRETCH[3]:TEST.motion==="none"?STRETCH[0]:(stt[1]&&stt[1]!=="hop"?stt:STRETCH[1]);
+if(stt[1]==="hop")bk=BLK[0];
+if(TEST.calm&&stt[1]){lk=LOOK[0];bk=BLK[0]}
 let QB=null;if(Q){QB=cp==="mono"?monoRoles(R):rcRoles(rm[0],R,cp==="neonwheel"?"neon":cp);no=[QB.noriN,QB.nori];ri=[QB.riceN,QB.rice];ey=["match rice",null];p1=1;p2=QB.pr;p3=p4=1;C=QB.C;tn=[QB.tone,null]}
 
-if(pt[0]==="squiggle flow"&&new Set(C).size<3)pt=PAT.find(x=>x[0]==="scroll-h");
+if((pt[0]==="squiggle flow"||(pt[0]==="maki types"&&cp!=="neon"))&&new Set(C).size<3)pt=PAT.find(x=>x[0]==="scroll-h");
 if((["checker","sparkle"].includes(pt[0])||rm[0]==="duo"||rm[0]==="accent")&&sp[1]<210)sp=SPD[1];
 if(pt[0]==="text"&&sp[1]<130)sp=SPD[0];
 let msg=ms[0];if(opt.text){pt=["text"];msg=clean(opt.text)||"HI";pp=1;pm=1}
@@ -156,9 +175,19 @@ for(let k=0;k<steps;k++)v.push("-"+k+" 0");info.message=msg}
 else{const fq=pt[0]==="rapid squiggle"?2:1;steps=12;let py=null;
 for(let c=0;c<19;c++){const w=Math.sin(2*Math.PI*fq*c/12),y=3+(w>.4?1:w<-.4?-1:0),x=2+c;M[x+","+y]=C[c%6];if(py!==null&&Math.abs(y-py)>1)M[x+",3"]=C[c%6];py=y}
 for(let k=0;k<steps;k++)v.push("-"+k+" 0")}
-if(di[1]<0&&pt[0]!=="text")v.reverse();
+if(di[1]<0&&pt[0]!=="text")v=[v[0]].concat(v.slice(1).reverse());
 body='<svg x="2" y="2" width="7" height="3" viewBox="2 2 7 3"><path fill="'+no[1]+'" d="M3 2h5v3h-5zM2 3h1v1h-1zM8 3h1v1h-1z"/><g><animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+v.join(";")+'" dur="'+steps*sp[1]+'ms" repeatCount="indefinite"/>'+paths(M)+'</g></svg><path fill="'+ringC+'" d="M2 2h1v1h-1zM2 4h1v1h-1zM8 2h1v1h-1zM8 4h1v1h-1z"/>';
 info.steps=steps+" ("+(steps*sp[1]/1000).toFixed(1)+"s loop)"}
+else if(pt[0]==="maki types"){const q=rng(seed+"mk"),u=[...new Set(C)],cyc=Array.from({length:6},(_,i)=>u[i%u.length]),SEM=cp==="neon"?[P.pink,P.red,P.orange,P.yellow,P.lime,P.green]:cyc,OC=cp==="neon"?[P.pink,P.green,P.lime,P.red,P.orange,P.yellow]:cyc;
+const rk=(x,y)=>x===2||x===8?3:x===3||x===7?2:(x===5&&y===3)?0:1,orig={};for(const k in ORIGL)orig[k]=OC[ORIGL[k]];
+const ix=[0,1,2,3,4,5,6,7];for(let i=7;i>0;i--){const j=Math.floor(q()*(i+1));[ix[i],ix[j]]=[ix[j],ix[i]]}const ord=ix.slice(0,3);
+const tm=n=>{const e=SEM[MAKI[n][1]],d=SEM[MAKI[n][3]];let kk=MAKI[n][2],k=SEM[kk],g=0;while(k===e&&g<6){kk++;g++;k=SEM[kk%6]}const m={};FILL.forEach(([x,y])=>{const r=rk(x,y);m[x+","+y]=r===0?d:r===1?k:e});return m};
+const mix=(a,b,t)=>{const m={};FILL.forEach(([x,y])=>{const k=x+","+y;m[k]=rk(x,y)<=t?b[k]:a[k]});return m};
+const seq=[];let cur=orig;for(let i=0;i<3;i++)seq.push(cur);
+ord.forEach(n=>{const nx=tm(n);for(let t=0;t<3;t++)seq.push(mix(cur,nx,t));seq.push(nx,nx);cur=nx});for(let t=0;t<3;t++)seq.push(mix(cur,orig,t));
+const N=seq.length,st=sp[1],Tt=N*st;
+seq.forEach((m,f)=>{body+='<g visibility="'+(f?"hidden":"visible")+'"><animate attributeName="visibility" calcMode="discrete" values="visible;hidden;hidden" keyTimes="0;'+(1/N).toFixed(4)+';1" begin="'+f*st+'ms" dur="'+Tt+'ms" repeatCount="indefinite"/>'+paths(m)+'</g>'});
+info.order="original, "+ord.map(n=>MAKI[n][0]).join(", ");info.steps=N+" ("+(Tt/1000).toFixed(1)+"s loop)"}
 else{const kt=Array.from({length:FR+1},(_,i)=>(i/FR).toFixed(4)).join(";"),fl=pt[0]==="squiggle flow";let SHP=[];
 if(fl){const q=rng(seed+"flow"),tf=[0,1,2,3,4,5,6].map(c=>c>0&&c<6&&q()<.5);if(tf.filter(Boolean).length<2){tf[2]=true;tf[4]=true}let py=null;
 for(let c=0;c<7;c++){const w=Math.sin(2*Math.PI*c/6),y=3+(w>.4?1:w<-.4?-1:0),cells=[y];if(py!==null&&Math.abs(y-py)>1)cells.push(3);
@@ -171,30 +200,62 @@ if(!fl){const vs=FILL.map(c=>M[c[0]+","+c[1]]);if(new Set(vs).size<2){const o=C.
 if(pt[0]==="sparkle"){const r2=rng(seed+"s"+f);for(let k=0;k<3;k++){const c=FILL[Math.floor(r2()*FILL.length)];M[c[0]+","+c[1]]=lite}}
 const vals=Array.from({length:FR+1},(_,i)=>i%FR===f?"visible":"hidden").join(";");
 body+='<g visibility="'+(f?"hidden":"visible")+'"><animate attributeName="visibility" calcMode="discrete" values="'+vals+'" keyTimes="'+kt+'" dur="'+FR*sp[1]+'ms" repeatCount="indefinite"/>'+paths(M)+'</g>'}}
+const HP=stt[1]==="hop",S2=stt[1]&&!HP?{d:stt[1][0],up:stt[1][1]}:null,SL=HP&&HOP.style==="bob",LD=HP&&HOP.style==="land",HT=SL?HOP.s+HOP.t:HOP.s+HOP.up+HOP.t+HOP.down,hs=SL?["R","P","R"]:LD?["R","A","I","B","R"]:["T","M","S","M","T"],hkn=(SL?[0,HOP.s,HT]:LD?[0,HOP.s,HOP.s+HOP.up,HOP.s+HOP.up+HOP.t,HT]:[0,HOP.t,HOP.t+HOP.down,HOP.t+HOP.down+HOP.s,HT]),hk=hkn.map(v=>(v/HT).toFixed(4)).join(";"),hd=HT,hv=f=>hs.map(f).join(";"),kts=S2?"0;"+(1-S2.up).toFixed(3)+";1":"";
 let eyes='<g>';if(lk[1])eyes+='<animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+lk[1].map(p=>p+" 0").join(";")+'" dur="'+lk[1].length*160+'ms" repeatCount="indefinite"/>';
-eyes+='<path fill="'+eyeC+'" d="M2 '+top+'h1v'+H+'h-1zM6 '+top+'h1v'+H+'h-1z"/>';
+if(HP&&HOP.eyes!=="frozen"){[2,6].forEach(x=>{eyes+='<rect x="'+x+'" y="'+top+'" width="1" height="'+H+'" fill="'+eyeC+'"><animate attributeName="y" calcMode="discrete" values="'+hv(c=>({S:top+1,M:top,T:HOP.eyes==="stretch"?top-1:top,R:top,P:top-1,A:top,I:top+1,B:top})[c])+'" keyTimes="'+hk+'" dur="'+hd+'ms" repeatCount="indefinite"/><animate attributeName="height" calcMode="discrete" values="'+hv(c=>(c==="T"||c==="P")&&HOP.eyes==="stretch"?H+1:H)+'" keyTimes="'+hk+'" dur="'+hd+'ms" repeatCount="indefinite"/></rect>'})}
+else if(S2&&est[1]){[2,6].forEach(x=>{eyes+='<rect x="'+x+'" y="'+top+'" width="1" height="'+H+'" fill="'+eyeC+'"><animate attributeName="y" calcMode="discrete" values="'+top+";"+(top-1)+";"+top+'" keyTimes="'+kts+'" dur="'+S2.d+'ms" repeatCount="indefinite"/><animate attributeName="height" calcMode="discrete" values="'+H+";"+(H+1)+";"+H+'" keyTimes="'+kts+'" dur="'+S2.d+'ms" repeatCount="indefinite"/></rect>'})}
+else eyes+='<path fill="'+eyeC+'" d="M2 '+top+'h1v'+H+'h-1zM6 '+top+'h1v'+H+'h-1z"/>';
 if(bk[1]>0){const hold=110,k1=(1-hold/rt[1]).toFixed(4);(bk[1]===2?[2]:[2,6]).forEach(x=>{eyes+='<rect x="'+x+'" y="'+top+'" width="1" height="0" fill="'+bodyC+'" shape-rendering="geometricPrecision"><animate attributeName="height" calcMode="discrete" values="0;'+H*.75+';0" keyTimes="0;'+k1+';1" dur="'+rt[1]+'ms" repeatCount="indefinite"/></rect>'})}
 eyes+='</g>';
-const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 11" width="512" height="512" shape-rendering="crispEdges"><rect width="11" height="11" fill="'+bodyC+'"/>'+paths(S)+body+eyes+'</svg>';
-const odds=opt.text?0:1/(pmix*p0*pp*(pt[0]==="text"?1:pd)*ps*p1*p2*p3*p4*p5*p6*(bk[1]?p7:1)*p8*p9*(pt[0]==="text"?pm:1));
+const Sup={},Slo={};for(const k in S){(+k.split(",")[1]<=5?Sup:Slo)[k]=S[k]}
+const RB={},cid='k'+hash(seed)[0].toString(36);FILL.forEach(([x,y])=>{RB[x+","+y]=ringC});
+const rof=c=>({S:2,M:1,T:0,R:0,P:-1,A:0,I:1,B:0})[c];let fillG='';
+if(HP&&HOP.fill!=="with"){const n=hs.length-1,ev=[];for(let i=0;i<n;i++){const off=rof(hs[i]),pv=rof(hs[(i+n-1)%n]),t0=hkn[i],d=hkn[i+1]-t0;
+if(HOP.fill==="still")ev.push([t0,-off]);else{const L=Math.min(HOP.lag,d);if(off!==pv&&L>0){ev.push([t0,pv-off]);ev.push([t0+L,0])}else ev.push([t0,0])}}
+const tm=ev.map(e=>e[0]).concat([HT]),vl=ev.map(e=>"0 "+e[1]);vl.push(vl[0]);
+fillG='<animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+vl.join(";")+'" keyTimes="'+tm.map(v=>(v/HT).toFixed(4)).join(";")+'" dur="'+HT+'ms" repeatCount="indefinite"/>'}
+const topG='<g>'+(HP?'<animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+hv(c=>"0 "+({S:2,M:1,T:0,R:0,P:-1,A:0,I:1,B:0})[c])+'" keyTimes="'+hk+'" dur="'+hd+'ms" repeatCount="indefinite"/>':S2?'<animateTransform attributeName="transform" type="translate" calcMode="discrete" values="0 0;0 -1;0 0" keyTimes="'+kts+'" dur="'+S2.d+'ms" repeatCount="indefinite"/>':'')+'<rect width="11" height="6" fill="'+bodyC+'"/>'+paths(Sup)+(fillG?paths(RB)+'<g clip-path="url(#'+cid+')"><g>'+fillG+body+'</g></g>':body)+'</g>';
+const ovl=HP&&!SL?[0,10].map(x=>'<rect x="'+x+'" y="10" width="1" height="1" fill="'+bodyC+'" visibility="hidden"><animate attributeName="visibility" calcMode="discrete" values="'+hv(c=>c==="S"||c==="I"?"visible":"hidden")+'" keyTimes="'+hk+'" dur="'+hd+'ms" repeatCount="indefinite"/></rect>').join(''):'';
+const inner='<rect y="5" width="11" height="6" fill="'+bodyC+'"/>'+paths(Slo)+ovl+topG+eyes;
+const shC=lum(bgCol)<.08?"#"+rgb(bgCol).map(v=>Math.round((v+(1-v)*.3)*255).toString(16).padStart(2,"0")).join(""):"#"+rgb(bgCol).map(v=>Math.round(v*.65*255).toString(16).padStart(2,"0")).join("");
+const vis=(f,x)=>'<animate attributeName="visibility" calcMode="discrete" values="'+hv(f)+'" keyTimes="'+hk+'" dur="'+hd+'ms" repeatCount="indefinite"/>';
+const shadow=LD?'<rect x="2" y="10" width="7" height="1" fill="'+shC+'" visibility="hidden">'+vis(c=>c==="A"?"visible":"hidden")+'</rect>':'';
+const wrapA=LD?'<animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+hv(c=>"0 "+(c==="A"?-1:0))+'" keyTimes="'+hk+'" dur="'+hd+'ms" repeatCount="indefinite"/>':'';
+const spill=LD?'<g visibility="hidden">'+vis(c=>c==="B"?"visible":"hidden")+'<path fill="'+ringC+'" d="M2 5h1v1h-1zM8 5h1v1h-1zM3 6h1v1h-1zM7 6h1v1h-1z"/></g>':'';
+const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="512" height="512" shape-rendering="crispEdges">'+(fillG?'<defs><clipPath id="'+cid+'"><path d="M3 1h5v1h-5zM1 2h9v3h-9zM3 5h5v1h-5z"/></clipPath></defs>':'')+'<rect width="13" height="13" fill="'+bgCol+'"/><g transform="translate(1,2)">'+(LD?shadow+'<g>'+wrapA+inner+'</g>'+spill:inner)+'</g></svg>';
+const odds=opt.text?0:1/(pmix*p0*pp*(pt[0]==="text"?1:pd)*ps*p1*p2*p3*p4*p5*p6*(bk[1]?p7:1)*p8*p9*p10*(S2?p11:1)*(pt[0]==="text"?pm:1));
 const cn=QB&&QB.CN?QB.CN:C.map(x=>Q?(RN[x]||x):Object.keys(P).find(k=>P[k]===x));
-const tr={palette:cp,pattern:pt[0]};Object.assign(tr,info);Object.assign(tr,{direction:pt[0]==="text"?"right to left (fixed)":di[0],colors:rm[0]+": "+[...new Set(cn)].join(", "),speed:sp[0]+" ("+sp[1]+"ms/step)",roll:ro[0]==="maki"?"maki (nori outside)":"uramaki (rice outside)",background:Q?tn[0]+" / bg "+bgCol:(bgc.neutral?"neutral":"complement "+tn[0])+" ("+bgc.h+"°)",nori:no[0],rice:ri[0],eyes:eyeN,"eye shape":sh[0],look:lk[0],blink:bk[0]+(bk[1]?" ("+rt[0]+", 1 frame)":"")});
+const tr={palette:cp,pattern:pt[0]};Object.assign(tr,info);Object.assign(tr,{direction:pt[0]==="text"?"right to left (fixed)":di[0],colors:rm[0]+": "+[...new Set(cn)].join(", "),speed:sp[0]+" ("+sp[1]+"ms/step)",roll:ro[0]==="maki"?"maki (nori outside)":"uramaki (rice outside)",background:Q?tn[0]+" / bg "+bgCol:(bgc.neutral?"neutral":"complement "+tn[0])+" ("+bgc.h+"°)",nori:no[0],rice:ri[0],eyes:eyeN,"eye shape":sh[0],look:lk[0],stretch:stt[0]+(HP?" ("+HOP.style+", eyes: "+HOP.eyes+")":"")+(S2&&est[1]?" + taller eyes":"")+(TEST.calm&&stt[1]?" (calm eyes)":""),blink:bk[0]+(bk[1]?" ("+rt[0]+", 1 frame)":"")});
 return{svg,mode:pt[0],odds,tr}}
 const fmt=n=>n>=1e4?Math.round(n/1e3)+"k":n>=1e3?(n/1e3).toFixed(1)+"k":Math.round(n);
 const A="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const newSeed=()=>{let s="oo";for(let i=0;i<49;i++)s+=A[Math.floor(Math.random()*A.length)];return s};
 const grid=document.getElementById("grid");
 let CUR=null;
-function show(seed,res){CUR={seed,res};document.getElementById("seed").value=seed;document.getElementById("big").innerHTML=res.svg;
+function show(seed,res){CUR={seed,res};SEL=seed;document.getElementById("seed").value=seed;document.getElementById("big").innerHTML=res.svg;
 document.getElementById("dt").innerHTML=Object.entries(res.tr).map(([k,v])=>k+": <b>"+v+"</b>").join("<br>")+"<br>odds: <b>"+(res.odds?"1 in "+fmt(res.odds):"custom")+"</b><br>size: <b>"+res.svg.length+" bytes</b>";
 document.getElementById("src").value=res.svg;
 grid.querySelectorAll(".t").forEach(t=>t.setAttribute("aria-pressed",t.dataset.s===seed))}
 function add(seed){const r=gen(seed),b=document.createElement("button");b.className="t";b.dataset.s=seed;b.setAttribute("aria-pressed","false");
 b.innerHTML=r.svg+'<div class="m"><b>'+r.mode+"</b> 1 in "+fmt(r.odds)+"</div>";
 b.onclick=()=>show(seed,r);grid.appendChild(b);return r}
-function mint(){grid.innerHTML="";let f;for(let i=0;i<12;i++){const s=newSeed(),r=add(s);if(!f)f=[s,r]}show(f[0],f[1])}
+let SEEDS=[],SEL=null;
+function render(){grid.innerHTML="";let f=null;SEEDS.forEach(sd=>{const r=add(sd);if(!f||sd===SEL)f=[sd,r]});show(f[0],f[1])}
+function mint(){SEEDS=Array.from({length:12},newSeed);SEL=null;render()}
 document.getElementById("mint").onclick=mint;
-document.getElementById("pal").onchange=e=>{PAL.cur=e.target.value;table();mint()};
+const PRE={land:[["Land",700,200,120,200],["Heavy",600,260,220,260],["Quick",500,120,90,140],["Float",800,340,120,260]],hop:[["Favorite",320,80,320,160],["Previous default",650,130,520,130],["Snappy",400,90,300,130],["Bounce",300,85,260,170],["Slow breathe",900,260,700,260],["Pop and hold",800,60,600,200]],bob:[["Even",600,0,600,0],["Short up",900,0,300,0],["Long up",400,0,800,0],["Quick pulse",700,0,200,0]]};
+function presets(){const el=document.getElementById("pre");el.innerHTML="";PRE[HOP.style].forEach(([n,a,b,c,d])=>{const bt=document.createElement("button");bt.textContent=n;bt.onclick=()=>{HOP.s=a;HOP.up=b;HOP.t=c;HOP.down=d;sync();render()};el.appendChild(bt)})}
+function sync(){const SL=HOP.style==="bob",LD=HOP.style==="land";document.getElementById("style").value=HOP.style;document.getElementById("calm").checked=TEST.calm;document.getElementById("fill").value=HOP.fill;document.getElementById("eyes").value=HOP.eyes;document.getElementById("r-lag").value=HOP.lag;document.getElementById("v-lag").textContent=HOP.lag+" ms";document.getElementById("r-lag").disabled=HOP.fill!=="delay";document.getElementById("l-s").textContent=SL||LD?"Rest hold":"Squash hold";document.getElementById("l-up").textContent=LD?"Air hold":"Lift up";document.getElementById("l-down").textContent=LD?"Rebound hold":"Lift down";document.getElementById("l-t").textContent=SL?"Up (1px) hold":LD?"Impact hold":"Stretch hold";
+for(const k of ["s","up","t","down"]){document.getElementById("r-"+k).value=HOP[k];document.getElementById("v-"+k).textContent=HOP[k]+" ms"}["up","down"].forEach(k=>document.getElementById("r-"+k).disabled=SL);
+const T=SL?HOP.s+HOP.t:HOP.s+HOP.up+HOP.t+HOP.down;document.getElementById("cyc").textContent="Cycle "+T+" ms ("+(1000/T).toFixed(2)+"/s) · "+(SL?"rest "+HOP.s+" / up "+HOP.t+" · eyes "+HOP.eyes:(LD?"rest "+HOP.s+" / air "+HOP.up+" / impact "+HOP.t+" / rebound "+HOP.down:"squash "+HOP.s+" / up "+HOP.up+" / stretch "+HOP.t+" / down "+HOP.down)+" · eyes "+HOP.eyes+" · filling "+HOP.fill+(HOP.fill==="delay"?" ("+HOP.lag+" ms)":""))+" · calm eyes "+(TEST.calm?"on":"off")+(T<700?"  ⚠ fast: may feel jittery":"")}
+["s","up","t","down"].forEach(k=>{document.getElementById("r-"+k).oninput=e=>{HOP[k]=+e.target.value;sync();render()}});
+document.getElementById("fill").onchange=e=>{HOP.fill=e.target.value;sync();render()};
+document.getElementById("r-lag").oninput=e=>{HOP.lag=+e.target.value;sync();render()};
+document.getElementById("eyes").onchange=e=>{HOP.eyes=e.target.value;sync();render()};
+document.getElementById("calm").onchange=e=>{TEST.calm=e.target.checked;sync();render()};
+document.getElementById("style").onchange=e=>{HOP.style=e.target.value;presets();if(HOP.style==="bob"){HOP.s=700;HOP.t=500}else if(HOP.style==="land"){HOP.s=700;HOP.up=200;HOP.t=120;HOP.down=200}else{HOP.s=320;HOP.up=80;HOP.t=320;HOP.down=160}sync();render()};
+presets();
+sync();
 document.getElementById("dl").onclick=async()=>{if(!CUR)return;const st=document.getElementById("dls"),fn="pixel-sushi-"+CUR.seed.slice(2,10)+".svg",data='<?xml version="1.0" encoding="UTF-8"?>\n'+CUR.res.svg;st.textContent="";
 try{const d=window.claude&&claude.use?await claude.use("downloads"):null;
 if(d){await d.save({filename:fn,data});st.textContent="Saved "+fn}
@@ -207,8 +268,8 @@ const sz=n=>gen("plan",{text:"ANTSTEZOSPAUL".repeat(3).slice(0,n)}).svg.length;
 const b4=sz(4),b16=sz(16),slope=(b16-b4)/12,base=b4-4*slope,maxc=Math.floor((LIMIT-base)/slope);
 document.getElementById("plan").innerHTML="Text costs about <b>"+Math.round(slope)+" bytes per character</b> (+"+Math.round(base)+" fixed), so the 32,768-byte ceiling is not the limit (it allows ~"+maxc+" characters). Readability is: each character is <b>4 steps</b> (+8), so <b>12 characters is about 7 s</b> per loop at normal speed. Recommended max: 12.";
 const tr=(n,l,i)=>"<tr><td colspan=2><b>"+n+"</b></td></tr>"+l.map(m=>"<tr><td>"+m[0]+"</td><td>"+(wt(m)/sum(l)*100).toFixed(0)+"%</td></tr>").join("");
-const ct=()=>tr("palette set",PAL.cur==="mix"?MIX:MIXN)+tr("neon nori",NORI)+tr("neon rice",RICE)+tr("neon eyes",EYE)+tr("mono scale",MONOSCALE)+tr("mono scope",MONOSC);
-function table(){const I=PAL.cur==="iro";document.getElementById("tb").innerHTML=tr("pattern",PAT)+tr("message (text pattern)",MSG)+tr("direction",DIR)+tr("color ramp",RAMP)+tr("speed",SPD)+ct()+tr("eye shape",SHAPE)+tr("roll",ROLL)+tr("look",LOOK)+tr("blink",BLK)+tr("blink rate",RATE)}
+const ct=()=>tr("palette set",MIX)+tr("neon nori",NORI)+tr("neon rice",RICE)+tr("neon eyes",EYE)+tr("mono scale",MONOSCALE)+tr("mono scope",MONOSC);
+function table(){const I=PAL.cur==="iro";document.getElementById("tb").innerHTML=tr("pattern",PAT)+tr("message (text pattern)",MSG)+tr("direction",DIR)+tr("color ramp",RAMP)+tr("speed",SPD)+ct()+tr("eye shape",SHAPE)+tr("roll",ROLL)+tr("body motion",STRETCH)+tr("eyes stretch",ESTRETCH)+tr("look",LOOK)+tr("blink",BLK)+tr("blink rate",RATE)}
 table();
 mint();
 </script></body></html>
