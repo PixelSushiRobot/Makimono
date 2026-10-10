@@ -52,14 +52,13 @@ svg{width:100%;height:auto;display:block}
 const P={pink:"#ff2d95",green:"#00c853",lime:"#b0ee00",red:"#ff3b30",orange:"#ff9500",yellow:"#fdd60a"};
 const K=Object.keys(P),FR=12,LIMIT=32768;
 const RAMP=[["random",30],["trio",25],["mirror",20],["duo",15],["accent",7],["spectrum",3]];
-const PAT=[["scroll-h",15],["diagonal",11],["ripple",10],["chase",8],["checker",6],["sparkle",7],["squiggle",9],["rapid squiggle",5],["squiggle flow",10],["maki types",9],["text",14]];
-const MSG=[["ANTS",25],["TEZOS",25],["PAUL HBD",25],["YOLO",25]];
-const DIR=[["forward",1,50],["reverse",-1,50]];
+const PAT=[["scroll_h",15],["diagonal",11],["ripple",10],["chase",8],["checker",6],["sparkle",7],["wave_1",9],["wave_2",5],["chromie",10],["filling_cycle",9],["text_ants",3.5],["text_tezos",3.5],["text_paul_hbd",3.5],["text_yolo",3.5]];
+const MSGOF={text_ants:"ANTS",text_tezos:"TEZOS",text_paul_hbd:"PAUL HBD",text_yolo:"YOLO"};/* message content per Type-pattern id; the message is folded into the Pattern trait, not a separate trait */
+const DIR=[["reverse",1,50],["forward",-1,50]];/* right-to-left = Reverse (sign +1, no frame reversal); left-to-right = Forward (sign -1). Slots/weights unchanged, only the labels, so token->motion associations are preserved. */
 const SPD=[["normal",130,62],["slow",210,30],["fast",85,8]];
 const TONE=[["pastel",.6,.9,40],["soft",.55,.8,30],["vivid",.9,.6,20],["tint",.5,.95,10]];
 const NORI=[["black","#000000",74],["charcoal","#1a1a1a",10],["shiso green","#0e3b2c",8],["deep navy","#0c1633",4],["deep plum","#2a0f26",4]];
 const RICE=[["white","#ffffff",75],["cream","#f6eed9",25]];
-const EYE=[["match rice",null,60],["white","#ffffff",40]];
 const SHAPE=[["original",1,75],["tall",2,25]];
 const HOP={s:320,up:80,t:320,down:160};
 const MAKI=[["cucumber",4,5,4],["tuna",0,1,1],["negi toro",1,0,5],["salmon",0,2,2],["tamago",2,3,3],["spicy tuna",0,1,2],["avocado",5,4,3],["ebi",2,0,1]];
@@ -87,9 +86,26 @@ const VIV=[3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3];
 const RN={};RCH.forEach(h=>h.c.forEach((c,i)=>RN[c]=h.n+"-"+(i+1)));GRAY.forEach((c,i)=>RN[c]="gray-"+(i+1));
 const rcc=(h,s)=>RCH[(h+24)%24].c[s-1],rcn=(h,s)=>RCH[(h+24)%24].n+"-"+s;
 function neonOf(h){const a=hue(rcc(h,VIV[h])),l=a<20||a>=340?.6:a<45?.52:a<65?.5:a<85?.47:a<160?.43:a<200?.46:a<245?.6:a<285?.66:.6;return hsl(a,1,l)}
-const NNO=["#000000","#222222","#062800","#001a39","#3a004f"],NNN=["black","charcoal","shiso","navy","plum"];
+const MONOFAM=["Pink","Pink","Red","Orange","Orange","Yellow","Yellow","Lime","Lime","Green","Green","Teal","Teal","Cyan","Cyan","Blue","Blue","Blue","Blue","Purple","Purple","Purple","Pink","Pink"];/* mono hue (RCH index 0-23) -> broad color family, used to name Sumi/Shari e.g. "Green Sumi" */
 const RCT=[["tint",1,45],["pastel",2,45],["vivid",3,10]],RCN=[["black",0,72],["charcoal",1,12],["shiso",2,8],["navy",3,4],["plum",4,4]],RCR=[["white",0,60],["gray-1",1,15],["cream",2,15],["hue-1",3,10]],MONOSCALE=[["tints",.9,.62,35],["full",.86,.38,40],["shades",.7,.32,25]],MONOSC=[["filling only",0,55],["whole art",1,45]];
-const MIX=[["neon",52],["neonwheel",30],["mono",18]],ROLL=[["maki",0,92],["uramaki",1,8]];
+const MIX=[["classic",52],["neon",30],["mono",18]],ROLL=[["maki",0,92],["uramaki",1,8]];
+/* Display-name mapping: internal ids/weights are kept unchanged; these map ids to the exposed trait values. */
+const DNAME={
+pattern:{"scroll_h":"Scroll","diagonal":"Diagonal","ripple":"Ripple","chase":"Chase","checker":"Checker","sparkle":"Sparkle","wave_1":"Wiggle","wave_2":"Turbo Wiggle","chromie":"Squiggle","filling_cycle":"Maki","text_ants":"Type ANTS","text_tezos":"Type TEZOS","text_paul_hbd":"Type PAUL HBD","text_yolo":"Type YOLO","text_custom":"Type"},
+palette:{"classic":"Classic","neon":"Neon","mono":"Mono"},
+direction:{"forward":"Forward","reverse":"Reverse"},
+ramp:{"random":"Random","trio":"Trio","mirror":"Mirror","duo":"Duo","accent":"Accent","spectrum":"Spectrum"},
+speed:{"normal":"Normal","slow":"Slow","fast":"Fast"},
+roll:{"maki":"Maki","uramaki":"Uramaki"},
+nori:{"black":"Black","charcoal":"Charcoal","shiso green":"Shiso Green","shiso":"Shiso Green","deep navy":"Bluefin","navy":"Bluefin","deep plum":"Deep Plum","plum":"Deep Plum"},
+rice:{"white":"White","cream":"Cream"},
+shape:{"original":"Calm","tall":"Hype"}
+};
+const dn=(c,k)=>(DNAME[c]&&DNAME[c][k])||k;
+const RENDER={scroll_h:"field",diagonal:"field",ripple:"field",chase:"field",checker:"field",sparkle:"field",wave_1:"marquee",wave_2:"marquee",chromie:"flow",filling_cycle:"maki",text_ants:"marquee",text_tezos:"marquee",text_paul_hbd:"marquee",text_yolo:"marquee",text_custom:"marquee"};/* render mechanic group per pattern id; branch on this, never on display names */
+const isText=p=>!!MSGOF[p]||p==="text_custom";/* glyph (message) marquee vs sine-wave marquee */
+function noriLabel(raw){return DNAME.nori[raw]||raw}
+function riceLabel(raw){return DNAME.rice[raw]||raw}
 function rcRoles(mode,R){const pk=()=>Math.floor(R()*24),w=x=>(x%24+24)%24,shf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const m=pk(),sd=R()<.5?1:-1;let H;
 if(mode==="duo"){let b=w(m+sd*3);for(let t=0;t<14;t++){b=w(m+sd*(3+Math.floor(R()*6)));if(contrast(neonOf(m),neonOf(b))>=1.4)break}H=[m,b,m,b,m,b]}
@@ -101,17 +117,17 @@ const C=H.map(neonOf),CN=H.map(h=>RCH[h].n);let sx=0,sy=0;H.forEach(h=>{sx+=Math
 const neutral=Math.hypot(sx,sy)/6<.35,bh=Math.round(((Math.atan2(sy,sx)*12/Math.PI)+24)%24+12)%24;
 const[t,pt]=wp(R,RCT),[n,pn]=wp(R,RCN),[r,pr]=wp(R,RCR);
 const bs=t[1]===3?VIV[bh]:t[1]===2&&VIV[bh]===2?1:t[1],bg=neutral?GRAY[t[1]===1?0:1]:rcc(bh,bs);
-const rice=r[1]===0?"#ffffff":r[1]===1?GRAY[0]:r[1]===2?rcc(5,1):rcc(H[0],1);
-return{C,CN,bg,nori:NNO[n[1]],rice,pr:pt*pn*pr,tone:neutral?"neutral gray bg":"complement "+t[0]+" bg",noriN:NNN[n[1]],riceN:r[0]}}
+const cream=r[1]===2||r[1]===3;const rice=cream?"#f6eed9":"#ffffff";/* Option A: unify Neon nori/rice to the canonical sets (same colors + names as Classic). white+gray-1 -> White, cream+hue-1 -> Cream (75/25). */
+return{C,CN,bg,nori:NORI[n[1]][1],rice,pr:pt*pn*pr,tone:neutral?"neutral gray bg":"complement "+t[0]+" bg",noriN:NORI[n[1]][0],riceN:cream?"cream":"white"}}
 function lab(h){const[r,g,b]=rgb(h).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)),f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116,X=f((r*.4124+g*.3576+b*.1805)/.95047),Y=f(r*.2126+g*.7152+b*.0722),Z=f((r*.0193+g*.1192+b*.9505)/1.08883);return[116*Y-16,500*(X-Y),200*(Y-Z)]}
 const dE=(a,b)=>{const x=lab(a),y=lab(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])};
 function monoRoles(R){const h=Math.floor(R()*24),a=hue(rcc(h,VIV[h])),[sc0,ps]=wp(R,MONOSCALE),[n,pn]=wp(R,RCN),[r,pr]=wp(R,RCR),[sc,pc]=wp(R,MONOSC),W=sc[1]===1;
-const rice=W?hsl(a,.5,.94):r[1]===0?"#ffffff":r[1]===1?GRAY[0]:r[1]===2?rcc(5,1):rcc(h,1),nori=W?hsl(a,.6,.1):NNO[n[1]];
+const rice=W?hsl(a,.5,.94):r[1]===0?"#ffffff":r[1]===1?GRAY[0]:r[1]===2?rcc(5,1):rcc(h,1),nori=hsl(a,.6,.1);/* truly mono: nori is always a dark shade of the mono hue, not a canonical seaweed color */
 let hi=W?Math.min(sc0[1],.72):sc0[1],lo=sc0[2];while(contrast(hsl(a,1,hi),rice)<1.3&&hi>.45)hi-=.02;if(hi-lo<.27)lo=Math.max(.16,hi-.27);
 const lv=()=>[0,1,2,3].map(i=>hi-(hi-lo)*i/3);
 for(let t=0;t<10;t++){const cs=lv().map(l=>hsl(a,1,l));let md=99;for(let i=0;i<3;i++)md=Math.min(md,dE(cs[i],cs[i+1]));if(md>=14||lo<=.16)break;lo=Math.max(.16,lo-.03)}
 const L=lv(),C=[L[0],L[1],L[2],L[3],L[2],L[1]].map(l=>hsl(a,1,l));
-return{C,CN:Array(6).fill(RCH[h].n+" mono"),bg:W?hsl(a,.7,.82):hsl(a,.7,.92),nori,rice,pr:ps*pc*(W?1:pn*pr),tone:"mono "+RCH[h].n+" ("+sc0[0]+", "+sc[0]+")",noriN:W?"ink "+RCH[h].n:NNN[n[1]],riceN:W?"tint "+RCH[h].n:r[0]}}
+return{C,CN:Array(6).fill(RCH[h].n+" mono"),bg:W?hsl(a,.7,.82):hsl(a,.7,.92),nori,rice,pr:ps*pc*(W?1:pn*pr),tone:"mono "+RCH[h].n+" ("+sc0[0]+", "+sc[0]+")",noriN:MONOFAM[h]+" Sumi",riceN:MONOFAM[h]+" Shari"}}
 const PAL={cur:"mix"};
 function types(){const g=Array.from({length:11},()=>Array(11).fill("n"));
 const f=(r,c0,c1,t)=>{for(let c=c0;c<=c1;c++)g[r][c]=t};
@@ -126,7 +142,7 @@ else if(mode==="accent"){const a=o();let b=o();while(b===a||contrast(P[a],P[b])<
 else{const s=Math.floor(R()*6);C=Array.from({length:6},(_,i)=>K[(i+s)%6])}
 return C.map(k=>P[k])}
 function idx(p,x,y,f,d){const sn=()=>SNAKE.findIndex(c=>c[0]===x&&c[1]===y);
-switch(p){case"scroll-h":return x-2+d*f;case"scroll-v":return(y-2)*2+d*f;case"diagonal":return x+y+d*f;
+switch(p){case"scroll_h":return x-2+d*f;case"scroll_v":return(y-2)*2+d*f;case"diagonal":return x+y+d*f;
 case"ripple":return Math.floor(Math.sqrt((x-5)*(x-5)+4*(y-3)*(y-3)))*1+d*f;case"chase":return sn()+d*f;
 case"checker":return((x+y+f)&1)*3+(f>>2)*d;default:return x-2+y}}
 function paths(M){const by={};for(const k in M){const[x,y]=k.split(",").map(Number);(by[M[k]]=by[M[k]]||[]).push([x,y])}
@@ -135,38 +151,38 @@ const clean=t=>t.toUpperCase().split("").filter(c=>c===" "||FONT[c]).join("");
 const adv=t=>t.split("").reduce((a,c)=>a+(c===" "?2:4),0);
 function gen(seed,opt){opt=opt||{};const R=rng(seed);
 let cp=PAL.cur,pmix=1;if(cp==="mix"){const[m,q]=wp(R,MIX);cp=m[0];pmix=q}
-const I=false,Q=cp!=="neon",[rm,p0]=wp(R,RAMP);let C=ramp(rm[0],R);
-let[pt,pp]=wp(R,rm[0]==="duo"||rm[0]==="accent"?PAT.filter(x=>x[0]!=="squiggle flow"&&(cp==="neon"||x[0]!=="maki types")):PAT);let[ms,pm]=wp(R,MSG);const[di,pd]=wp(R,DIR);let[sp,ps]=wp(R,SPD);
-let[tn,p1]=wp(R,TONE),[no,p2]=wp(R,Q?[["-","#000000",1]]:NORI),[ri,p3]=wp(R,Q?[["-","#ffffff",1]]:RICE),[ey,p4]=wp(R,Q?[["-",null,1]]:EYE);
+const Q=cp!=="classic",[rm,p0]=wp(R,RAMP);let C=ramp(rm[0],R);
+let[pt,pp]=wp(R,rm[0]==="duo"||rm[0]==="accent"?PAT.filter(x=>x[0]!=="chromie"&&(cp==="classic"||x[0]!=="filling_cycle")):PAT);const[di,pd]=wp(R,DIR);let[sp,ps]=wp(R,SPD);
+let[tn,p1]=wp(R,TONE),[no,p2]=wp(R,Q?[["-","#000000",1]]:NORI),[ri,p3]=wp(R,Q?[["-","#ffffff",1]]:RICE);
 const[sh,p5]=wp(R,SHAPE),[ro,p9]=wp(R,ROLL);
-let QB=null;if(Q){QB=cp==="mono"?monoRoles(R):rcRoles(rm[0],R,cp==="neonwheel"?"neon":cp);no=[QB.noriN,QB.nori];ri=[QB.riceN,QB.rice];ey=["match rice",null];p1=1;p2=QB.pr;p3=p4=1;C=QB.C;tn=[QB.tone,null]}
+let QB=null;if(Q){QB=cp==="mono"?monoRoles(R):rcRoles(rm[0],R);no=[QB.noriN,QB.nori];ri=[QB.riceN,QB.rice];p1=1;p2=QB.pr;p3=1;C=QB.C;tn=[QB.tone,null]}
 
-if((pt[0]==="squiggle flow"||(pt[0]==="maki types"&&cp!=="neon"))&&new Set(C).size<3)pt=PAT.find(x=>x[0]==="scroll-h");
+if((pt[0]==="chromie"||(pt[0]==="filling_cycle"&&cp!=="classic"))&&new Set(C).size<3)pt=PAT.find(x=>x[0]==="scroll_h");
 if((["checker","sparkle"].includes(pt[0])||rm[0]==="duo"||rm[0]==="accent")&&sp[1]<210)sp=SPD[1];
-if(pt[0]==="text"&&sp[1]<130)sp=SPD[0];
-let msg=ms[0];if(opt.text){pt=["text"];msg=clean(opt.text)||"HI";pp=1;pm=1}
+if(isText(pt[0])&&sp[1]<130)sp=SPD[0];
+let msg=MSGOF[pt[0]]||"";if(opt.text){pt=["text_custom"];msg=clean(opt.text)||"HI";pp=1}
 if(ro[1]===0&&cp!=="mono"&&C.some(k=>contrast(k,ri[1])<1.3)&&C.every(k=>contrast(k,"#ffffff")>=1.3))ri=["white","#ffffff"];
 const U=ro[1]===1,bgc=Q?{c:QB.bg,h:0,neutral:false,name:tn[0]}:compBg(C,tn,no[1],R);
 const bodyC=U?ri[1]:no[1],ringC=U?no[1]:ri[1];let bgCol=bgc.c;if(contrast(bgCol,bodyC)<2)bgCol=no[1];
 const lite=Q?[bgc.c,ri[1]].sort((a,b)=>lum(b)-lum(a))[0]:"#ffffff";
-let eyeC=ey[1]===null?ri[1]:ey[1],eyeN=ey[1]===null?"match rice":ey[0];
-if(U){eyeC=no[1];eyeN="inked ("+no[0]+")"}else if(contrast(eyeC,bodyC)<3.5){eyeC=lite;eyeN="light"}
+let eyeC=ringC;/* eyes match the inner/contrasting roll color: maki -> rice (White/Cream eyes), uramaki -> nori (dark eyes). Separate Eyes trait removed. */
 const inF=(x,y)=>FILL.some(c=>c[0]===x&&c[1]===y);
 const S={},T=types();
-for(let y=0;y<11;y++)for(let x=0;x<11;x++){const t=T[y][x];if(t==="b")S[x+","+y]=bgCol;else if(t==="r"&&!inF(x,y))S[x+","+y]=ringC}
+for(let y=0;y<11;y++)for(let x=0;x<11;x++){const t=T[y][x];if(t==="r"&&!inF(x,y))S[x+","+y]=ringC}
 const H=sh[1],top=10-H;
-let body="",info={};
-if(pt[0]==="text"||pt[0].endsWith("squiggle")){let M={},steps,v=[];
-if(pt[0]==="text"){const L=adv(msg),U=[...new Set(C)];steps=L+8;let cx=0;
-msg.split("").forEach((ch,i)=>{if(ch!==" "){const g=FONT[ch];for(let r=0;r<3;r++)for(let c=0;c<3;c++)if(g[r*3+c]==="1")M[(9+cx+c)+","+(2+r)]=U[i%U.length]}cx+=ch===" "?2:4});
-for(let k=0;k<steps;k++)v.push("-"+k+" 0");info.message=msg}
-else{const fq=pt[0]==="rapid squiggle"?2:1;steps=12;let py=null;
+let body="";
+if(RENDER[pt[0]]==="marquee"){let M={},steps,v=[];
+if(isText(pt[0])){const L=adv(msg),uc=[...new Set(C)];steps=L+8;let cx=0;
+msg.split("").forEach((ch,i)=>{if(ch!==" "){const g=FONT[ch];for(let r=0;r<3;r++)for(let c=0;c<3;c++)if(g[r*3+c]==="1")M[(9+cx+c)+","+(2+r)]=uc[i%uc.length]}cx+=ch===" "?2:4});
+for(let k=0;k<steps;k++)v.push("-"+k+" 0")}
+else{const fq=pt[0]==="wave_2"?2:1;steps=12;let py=null;
 for(let c=0;c<19;c++){const w=Math.sin(2*Math.PI*fq*c/12),y=3+(w>.4?1:w<-.4?-1:0),x=2+c;M[x+","+y]=C[c%6];if(py!==null&&Math.abs(y-py)>1)M[x+",3"]=C[c%6];py=y}
 for(let k=0;k<steps;k++)v.push("-"+k+" 0")}
-if(di[1]<0&&pt[0]!=="text")v=[v[0]].concat(v.slice(1).reverse());
-body='<svg x="2" y="2" width="7" height="3" viewBox="2 2 7 3"><path fill="'+no[1]+'" d="M3 2h5v3h-5zM2 3h1v1h-1zM8 3h1v1h-1z"/><g><animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+v.join(";")+'" dur="'+steps*sp[1]+'ms" repeatCount="indefinite"/>'+paths(M)+'</g></svg><path fill="'+ringC+'" d="M2 2h1v1h-1zM2 4h1v1h-1zM8 2h1v1h-1zM8 4h1v1h-1z"/>';
-info.steps=steps+" ("+(steps*sp[1]/1000).toFixed(1)+"s loop)"}
-else if(pt[0]==="maki types"){const q=rng(seed+"mk"),u=[...new Set(C)],cyc=Array.from({length:6},(_,i)=>u[i%u.length]),SEM=cp==="neon"?[P.pink,P.red,P.orange,P.yellow,P.lime,P.green]:cyc,OC=cp==="neon"?[P.pink,P.green,P.lime,P.red,P.orange,P.yellow]:cyc;
+if(di[1]<0&&!isText(pt[0]))v=[v[0]].concat(v.slice(1).reverse());
+/* No nested <svg>: its separate viewport rounds independently at fractional display scale and seams at the band edge. Instead the glyph layer scrolls unclipped and is masked back to the band window by opaque pixels that snap to the grid like the body. Draw order: nori band (under text) -> scrolling text -> ring garnish (cols 1/9 + corners) -> body edges (cols 0/10) -> background margins (roll cols -1/11, the 1px viewBox gutter). */
+body='<path fill="'+no[1]+'" d="M3 2h5v3h-5zM2 3h1v1h-1zM8 3h1v1h-1z"/><g><animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+v.join(";")+'" dur="'+steps*sp[1]+'ms" repeatCount="indefinite"/>'+paths(M)+'</g><path fill="'+ringC+'" d="M1 2h1v3h-1zM9 2h1v3h-1zM2 2h1v1h-1zM2 4h1v1h-1zM8 2h1v1h-1zM8 4h1v1h-1z"/><path fill="'+bodyC+'" d="M0 2h1v3h-1zM10 2h1v3h-1z"/><path fill="'+bgCol+'" d="M-1 2h1v3h-1zM11 2h1v3h-1z"/>';
+}
+else if(RENDER[pt[0]]==="maki"){const q=rng(seed+"mk"),u=[...new Set(C)],cyc=Array.from({length:6},(_,i)=>u[i%u.length]),SEM=cp==="classic"?[P.pink,P.red,P.orange,P.yellow,P.lime,P.green]:cyc,OC=cp==="classic"?[P.pink,P.green,P.lime,P.red,P.orange,P.yellow]:cyc;
 const rk=(x,y)=>x===2||x===8?3:x===3||x===7?2:(x===5&&y===3)?0:1,orig={};for(const k in ORIGL)orig[k]=OC[ORIGL[k]];
 const ix=[0,1,2,3,4,5,6,7];for(let i=7;i>0;i--){const j=Math.floor(q()*(i+1));[ix[i],ix[j]]=[ix[j],ix[i]]}const ord=ix.slice(0,3);
 const tm=n=>{const e=SEM[MAKI[n][1]],d=SEM[MAKI[n][3]];let kk=MAKI[n][2],k=SEM[kk],g=0;while(k===e&&g<6){kk++;g++;k=SEM[kk%6]}const m={};FILL.forEach(([x,y])=>{const r=rk(x,y);m[x+","+y]=r===0?d:r===1?k:e});return m};
@@ -175,8 +191,8 @@ const seq=[];let cur=orig;for(let i=0;i<3;i++)seq.push(cur);
 ord.forEach(n=>{const nx=tm(n);for(let t=0;t<3;t++)seq.push(mix(cur,nx,t));seq.push(nx,nx);cur=nx});for(let t=0;t<3;t++)seq.push(mix(cur,orig,t));
 const N=seq.length,st=sp[1],Tt=N*st;
 seq.forEach((m,f)=>{body+='<g visibility="'+(f?"hidden":"visible")+'"><animate attributeName="visibility" calcMode="discrete" values="visible;hidden;hidden" keyTimes="0;'+(1/N).toFixed(4)+';1" begin="'+f*st+'ms" dur="'+Tt+'ms" repeatCount="indefinite"/>'+paths(m)+'</g>'});
-info.order="original, "+ord.map(n=>MAKI[n][0]).join(", ");info.steps=N+" ("+(Tt/1000).toFixed(1)+"s loop)"}
-else{const kt=Array.from({length:FR+1},(_,i)=>(i/FR).toFixed(4)).join(";"),fl=pt[0]==="squiggle flow";let SHP=[];
+}
+else{const kt=Array.from({length:FR+1},(_,i)=>(i/FR).toFixed(4)).join(";"),fl=RENDER[pt[0]]==="flow";let SHP=[];
 if(fl){const q=rng(seed+"flow"),tf=[0,1,2,3,4,5,6].map(c=>c>0&&c<6&&q()<.5);if(tf.filter(Boolean).length<2){tf[2]=true;tf[4]=true}let py=null;
 for(let c=0;c<7;c++){const w=Math.sin(2*Math.PI*c/6),y=3+(w>.4?1:w<-.4?-1:0),cells=[y];if(py!==null&&Math.abs(y-py)>1)cells.push(3);
 if(tf[c]){const e=y===4?3:y===2?3:(q()<.5?2:4);if(!cells.includes(e))cells.push(e)}SHP.push(cells);py=y}}
@@ -191,12 +207,11 @@ body+='<g visibility="'+(f?"hidden":"visible")+'"><animate attributeName="visibi
 const HT=HOP.s+HOP.up+HOP.t+HOP.down,hs=["T","M","S","M","T"],hk=[0,HOP.t,HOP.t+HOP.down,HOP.t+HOP.down+HOP.s,HT].map(v=>(v/HT).toFixed(4)).join(";"),hv=f=>hs.map(f).join(";"),an=(a,f)=>'<animate attributeName="'+a+'" calcMode="discrete" values="'+hv(f)+'" keyTimes="'+hk+'" dur="'+HT+'ms" repeatCount="indefinite"/>';
 let eyes='';[2,6].forEach(x=>{eyes+='<rect x="'+x+'" y="'+top+'" width="1" height="'+H+'" fill="'+eyeC+'">'+an("y",c=>c==="S"?top+1:top)+'</rect>'});
 const Sup={},Slo={};for(const k in S){(+k.split(",")[1]<=5?Sup:Slo)[k]=S[k]}
-const topG='<g><animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+hv(c=>"0 "+({S:2,M:1,T:0})[c])+'" keyTimes="'+hk+'" dur="'+HT+'ms" repeatCount="indefinite"/><rect width="11" height="6" fill="'+bodyC+'"/>'+paths(Sup)+body+'</g>';
-const ovl=[0,10].map(x=>'<rect x="'+x+'" y="10" width="1" height="1" fill="'+bodyC+'" visibility="hidden">'+an("visibility",c=>c==="S"?"visible":"hidden")+'</rect>').join('');
-const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="520" height="520" shape-rendering="crispEdges"><rect width="13" height="13" fill="'+bgCol+'"/><g transform="translate(1,2)"><rect y="5" width="11" height="6" fill="'+bodyC+'"/>'+paths(Slo)+ovl+topG+eyes+'</g></svg>';
-const odds=opt.text?0:1/(pmix*p0*pp*(pt[0]==="text"?1:pd)*ps*p1*p2*p3*p4*p5*p9*(pt[0]==="text"?pm:1));
-const cn=QB&&QB.CN?QB.CN:C.map(x=>Q?(RN[x]||x):Object.keys(P).find(k=>P[k]===x));
-const tr={palette:cp,pattern:pt[0]};Object.assign(tr,info);Object.assign(tr,{direction:pt[0]==="text"?"right to left (fixed)":di[0],colors:rm[0]+": "+[...new Set(cn)].join(", "),speed:sp[0]+" ("+sp[1]+"ms/step)",roll:ro[0]==="maki"?"maki (nori outside)":"uramaki (rice outside)",background:Q?tn[0]+" / bg "+bgCol:(bgc.neutral?"neutral":"complement "+tn[0])+" ("+bgc.h+"°)",nori:no[0],rice:ri[0],eyes:eyeN,"eye shape":sh[0],motion:"hop"});
+const topG='<g><animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+hv(c=>"0 "+({S:2,M:1,T:0})[c])+'" keyTimes="'+hk+'" dur="'+HT+'ms" repeatCount="indefinite"/><path fill="'+bodyC+'" d="M3 0h5v1h-5zM1 1h9v1h-9zM0 2h11v4h-11z"/>'+paths(Sup)+body+'</g>';
+const ovl=[0,9].map(x=>'<rect x="'+x+'" y="9" width="2" height="2" fill="'+bodyC+'" visibility="hidden">'+an("visibility",c=>c==="S"?"visible":"hidden")+'</rect>').join('');
+const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="520" height="520" shape-rendering="crispEdges"><rect width="13" height="13" fill="'+bgCol+'"/><g transform="translate(1,2)"><path fill="'+bodyC+'" d="M0 5h11v5h-11zM1 10h9v1h-9z"/>'+paths(Slo)+ovl+topG+eyes+'</g></svg>';
+const odds=opt.text?0:1/(pmix*p0*pp*(isText(pt[0])?1:pd)*ps*p1*p2*p3*p5*p9);
+const tr={"Pattern":dn('pattern',pt[0]),"Direction":isText(pt[0])?"Reverse":dn('direction',di[0]),"Color Ramp":dn('ramp',rm[0]),"Speed":dn('speed',sp[0]),"Palette":dn('palette',cp),"Nori":noriLabel(no[0]),"Rice":riceLabel(ri[0]),"Eye Shape":dn('shape',sh[0]),"Roll Type":dn('roll',ro[0])};
 return{svg,mode:pt[0],odds,tr}}
 const fmt=n=>n>=1e4?Math.round(n/1e3)+"k":n>=1e3?(n/1e3).toFixed(1)+"k":Math.round(n);
 const A="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -208,7 +223,7 @@ document.getElementById("dt").innerHTML=Object.entries(res.tr).map(([k,v])=>k+":
 document.getElementById("src").value=res.svg;
 grid.querySelectorAll(".t").forEach(t=>t.setAttribute("aria-pressed",t.dataset.s===seed))}
 function add(seed){const r=gen(seed),b=document.createElement("button");b.className="t";b.dataset.s=seed;b.setAttribute("aria-pressed","false");
-b.innerHTML=r.svg+'<div class="m"><b>'+r.mode+"</b> 1 in "+fmt(r.odds)+"</div>";
+b.innerHTML=r.svg+'<div class="m"><b>'+dn('pattern',r.mode)+"</b> 1 in "+fmt(r.odds)+"</div>";
 b.onclick=()=>show(seed,r);grid.appendChild(b);return r}
 let SEEDS=[],SEL=null;
 function render(){grid.innerHTML="";let f=null;SEEDS.forEach(sd=>{const r=add(sd);if(!f||sd===SEL)f=[sd,r]});show(f[0],f[1])}
@@ -230,9 +245,8 @@ document.getElementById("gt").onclick=()=>{const s=cur(),t=document.getElementBy
 const sz=n=>gen("plan",{text:"ANTSTEZOSPAUL".repeat(3).slice(0,n)}).svg.length;
 const b4=sz(4),b16=sz(16),slope=(b16-b4)/12,base=b4-4*slope,maxc=Math.floor((LIMIT-base)/slope);
 document.getElementById("plan").innerHTML="Text costs about <b>"+Math.round(slope)+" bytes per character</b> (+"+Math.round(base)+" fixed), so the 32,768-byte ceiling is not the limit (it allows ~"+maxc+" characters). Readability is: each character is <b>4 steps</b> (+8), so <b>12 characters is about 7 s</b> per loop at normal speed. Recommended max: 12.";
-const tr=(n,l,i)=>"<tr><td colspan=2><b>"+n+"</b></td></tr>"+l.map(m=>"<tr><td>"+m[0]+"</td><td>"+(wt(m)/sum(l)*100).toFixed(0)+"%</td></tr>").join("");
-const ct=()=>tr("palette set",MIX)+tr("neon nori",NORI)+tr("neon rice",RICE)+tr("neon eyes",EYE)+tr("mono scale",MONOSCALE)+tr("mono scope",MONOSC);
-function table(){const I=PAL.cur==="iro";document.getElementById("tb").innerHTML=tr("pattern",PAT)+tr("message (text pattern)",MSG)+tr("direction",DIR)+tr("color ramp",RAMP)+tr("speed",SPD)+ct()+tr("eye shape",SHAPE)+tr("roll",ROLL)}
+const trRow=(n,l,nm)=>"<tr><td colspan=2><b>"+n+"</b></td></tr>"+l.map(m=>"<tr><td>"+(nm?nm(m[0]):m[0])+"</td><td>"+(wt(m)/sum(l)*100).toFixed(0)+"%</td></tr>").join("");
+function table(){document.getElementById("tb").innerHTML=trRow("pattern",PAT,x=>dn('pattern',x))+trRow("direction",DIR,x=>dn('direction',x))+trRow("color ramp",RAMP,x=>dn('ramp',x))+trRow("speed",SPD,x=>dn('speed',x))+trRow("palette",MIX,x=>dn('palette',x))+trRow("nori",NORI,x=>dn('nori',x))+trRow("rice",RICE,x=>dn('rice',x))+trRow("eye shape",SHAPE,x=>dn('shape',x))+trRow("roll type",ROLL,x=>dn('roll',x))}
 table();
 mint();
 </script></body></html>
