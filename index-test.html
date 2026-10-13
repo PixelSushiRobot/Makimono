@@ -1,0 +1,373 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Makimono — test</title>
+<!-- TEST BUILD ONLY. These dropdowns let you force traits in the studio to check
+     specific combinations. DELETE this meta tag (and use index.html) for the real
+     mint, so collectors get pure seed-random with no controls. "auto" = leave it to
+     the seed. 5 is Aleatory's param ceiling; Nori/Rice/Eye Shape/Direction aren't
+     declared here but are still forceable locally via ?p.nori=charcoal etc. -->
+<!-- params removed: random-only test build -->
+<style>
+/* Space Mono embedded as a subset — the Aleatory sandbox blocks the network, so a Google Fonts <link> can't load there.
+   Paste a woff2 subset below: one weight (400), glyphs A-Z 0-9 space . , ' ? ! - + / = : …  (band text is uppercased).
+   e.g.  glyphhanger --subset=SpaceMono-Regular.woff2 --whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,'?!-+/=:…" --formats=woff2
+   Until the base64 is pasted, the band falls back to the system monospace in the body font stack below. */
+@font-face{font-family:'Space Mono';font-style:normal;font-weight:400;font-display:swap;src:url(data:font/woff2;base64,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) format('woff2')}
+html,body{margin:0;height:100%}
+body{background:#0b0b0c;display:grid;place-items:center;font-family:'Space Mono',ui-monospace,Menlo,Consolas,monospace}
+/* The piece lives in a square stage. Normally the art fills it; adding .show (via the "i" key) shrinks the art up and reveals the traits band below, everything inside the square. All sizing derives from --canvas (the square side) so it scales with the viewport. Ink = the piece's nori color. */
+.stage{--canvas:100vmin;--scale-unit:calc(var(--canvas)*0.001);--sz-02:calc(var(--scale-unit)*2);--sz-15:calc(var(--scale-unit)*15);--sz-20:calc(var(--scale-unit)*20);--sz-30:calc(var(--scale-unit)*30);--bw:max(1px,var(--sz-02));--band-h:calc(var(--scale-unit)*180);--ink:rgb(var(--ink-rgb,20,20,20));width:var(--canvas);height:var(--canvas);position:relative;overflow:hidden;box-sizing:border-box;display:flex;background:var(--bg,#0b0b0c)}
+.stage.show{padding:var(--sz-20)}/* bg mat around the frame, like the poster, only when traits are shown */
+.frame{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--bg,#0b0b0c)}
+.stage.show .frame{border:var(--bw) solid var(--ink)}
+.art-box{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.art-box svg{height:100%;width:auto;max-width:100%;display:block}
+.band{flex:0 0 auto;box-sizing:border-box;height:var(--band-h);display:none;border-top:var(--bw) solid var(--ink)}
+.stage.show .band{display:flex}
+.swatch{flex:0 0 auto;box-sizing:border-box;width:calc(var(--band-h) - var(--bw));height:calc(var(--band-h) - var(--bw));padding:var(--sz-20);display:flex;align-items:flex-end;justify-content:center;border-right:var(--bw) solid var(--ink)}
+.bars{display:flex;flex-direction:row;align-items:flex-end;width:100%;height:100%}
+.cbar{flex:1 0 0;min-width:0}
+.cbar.unused{aspect-ratio:1;height:auto}
+.data{flex:1;display:flex;flex-direction:column;min-width:0}
+.drow{display:flex;flex:1;min-width:0;min-height:0}
+.drow.top{border-bottom:var(--bw) solid var(--ink)}
+.cell{display:flex;flex-direction:column;justify-content:center;gap:calc(var(--sz-02)*1.4);padding:var(--sz-20);border-right:var(--bw) solid var(--ink);min-width:0;min-height:0;overflow:hidden}
+.cell:last-child{border-right:none}
+.cell.fill{flex:1 0 auto}/* grows to fill, but never shrinks below its own content */
+.cell.msg{flex:0 1 auto;min-width:0}/* snug to the message text; shrinks + ellipsizes once it meets the Pattern cell */
+.cell.hug{flex:0 0 auto}
+.label{font-size:var(--sz-15);line-height:1.2;letter-spacing:.08em;text-transform:uppercase;color:rgba(var(--ink-rgb,20,20,20),.9);white-space:nowrap}
+.value{font-size:var(--sz-30);line-height:1;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+.msgv{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;outline:none;cursor:text}
+.msgv:empty:before{content:attr(data-ph);opacity:.4}
+</style>
+</head>
+<body>
+<script>
+(function () {
+// Dev harness: only runs when opened outside the Aleatory sandbox. Reload for a
+// new seed, pin one with ?seed=<hex>. On chain $alea is installed by the renderer,
+// which also replaces Math.random with the seeded stream and freezes the clock.
+if (!window.$alea) {
+  var query = new URLSearchParams(location.search);
+  var q = query.get("seed");
+  var seed = q || Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+  // xmur3 + sfc32, the construction the isolate and renderer use.
+  function xmur3(str) {
+    var h = 1779033703 ^ str.length;
+    for (var i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function () {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      h ^= h >>> 16;
+      return h >>> 0;
+    };
+  }
+  function sfc32(a, b, c, d) {
+    return function () {
+      a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+      var t = (a + b) | 0;
+      a = b ^ (b >>> 9);
+      b = (c + (c << 3)) | 0;
+      c = (c << 21) | (c >>> 11);
+      d = (d + 1) | 0;
+      t = (t + d) | 0;
+      c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+  }
+  var s = xmur3(seed);
+  var rand = sfc32(s(), s(), s(), s());
+  Math.random = rand;
+  window.$alea = {
+    seed: seed, hash: seed, params: {}, rand: rand, random: rand,
+    randInt: function (lo, hi) { return Math.floor(rand() * (hi - lo + 1)) + lo; },
+    randBetween: function (lo, hi) { return lo + rand() * (hi - lo); },
+    pick: function (arr) { return arr[Math.floor(rand() * arr.length)]; },
+    chance: function (p) { return rand() < p; },
+    param: function (n, f) {
+      var v = query.get("p." + n);
+      if (v === null) return f;
+      if (v === "true") return true;
+      if (v === "false") return false;
+      return v !== "" && !isNaN(Number(v)) ? Number(v) : v;
+    },
+    features: function (o) { console.log("features", o); return o; },
+    ready: function () { console.log("ready, captured here"); }
+  };
+  window.$alea.paramsSchema = [];
+}
+var alea = window.$alea;
+const P={pink:"#ff2d95",green:"#00c853",lime:"#b0ee00",red:"#ff3b30",orange:"#ff9500",yellow:"#fdd60a"};
+const K=Object.keys(P),FR=12,LIMIT=32768;
+const RAMP=[["random",30],["trio",25],["mirror",20],["duo",15],["accent",7],["spectrum",3]];
+const PAT=[["scroll_h",15],["diagonal",11],["ripple",10],["chase",8],["checker",9],["sparkle",7],["wave_1",9],["wave_2",5],["chromie",3],["filling_cycle",6],["text_ants",2],["text_tezos",3],["text_paul_hbd",1],["text_yolo",2.5]];
+const MSGOF={text_ants:"ANTS",text_tezos:"TEZOS",text_paul_hbd:"PAUL HBD",text_yolo:"YOLO"};/* message content per Type-pattern id; the message is folded into the Pattern trait, not a separate trait */
+const DIR=[["reverse",1,50],["forward",-1,50]];/* right-to-left = Reverse (sign +1, no frame reversal); left-to-right = Forward (sign -1). Slots/weights unchanged, only the labels, so token->motion associations are preserved. */
+const SPD=[["normal",130,62],["slow",210,30],["fast",80,8]];
+const TONE=[["pastel",.6,.9,40],["soft",.55,.8,30],["vivid",.9,.6,20],["tint",.5,.95,10]];
+const NORI=[["black","#000000",74],["charcoal","#1a1a1a",10],["shiso green","#0e3b2c",8],["deep navy","#0c1633",4],["deep plum","#2a0f26",4]];
+const RICE=[["white","#ffffff",75],["cream","#f6eed9",25]];
+const SHAPE=[["original",1,75],["tall",2,25]];
+const HOP={s:320,up:80,t:320,down:160};
+const MAKI=[["cucumber",4,5,4],["tuna",0,1,1],["negi toro",1,0,5],["salmon",0,2,2],["tamago",2,3,3],["spicy tuna",0,1,2],["avocado",5,4,3],["ebi",2,0,1]];
+const ORIGL={"3,2":0,"4,2":1,"5,2":2,"6,2":1,"7,2":3,"2,3":0,"3,3":4,"4,3":5,"5,3":5,"6,3":5,"7,3":0,"8,3":3,"3,4":3,"4,4":0,"5,4":3,"6,4":0,"7,4":4};
+const FILL=[];for(let y=2;y<=4;y++)for(let x=3;x<=7;x++)FILL.push([x,y]);FILL.push([2,3],[8,3]);
+const SNAKE=[[3,2],[4,2],[5,2],[6,2],[7,2],[8,3],[7,4],[6,4],[5,4],[4,4],[3,4],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3]];
+const FONT={A:"010111101",B:"110111111",C:"011100011",D:"110101110",E:"111110111",F:"111110100",G:"011100111",H:"101111101",I:"111010111",J:"001001110",K:"101110101",L:"100100111",M:"111111101",N:"111101101",O:"111101111",P:"111111100",Q:"111111001",R:"111110101",S:"011010110",T:"111010010",U:"101101111",V:"101101010",W:"101111111",X:"101010101",Y:"101010010",Z:"110010011","0":"111101111","1":"110010010","2":"111011110","3":"111011111","4":"101111001","5":"111110011","6":"100111111","7":"111001001","8":"011111111","9":"011011110","!":"010010010",".":"000000010",",":"000010100","'":"010000000","?":"111001010","-":"000111000","+":"010111010","/":"001010100","=":"111000111",":":"010000010"};
+const wt=m=>m[m.length-1],sum=l=>l.reduce((a,m)=>a+wt(m),0);
+function wp(R,l){const t=sum(l);let x=R()*t;for(const m of l){if((x-=wt(m))<0)return[m,wt(m)/t]}return[l[0],wt(l[0])/t]}
+function hash(s){let h=[1779033703,3144134277,1013904242,2773480762];for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h[0]=h[1]^Math.imul(h[0]^c,597399067);h[1]=h[2]^Math.imul(h[1]^c,2869860233);h[2]=h[3]^Math.imul(h[2]^c,951274213);h[3]=h[0]^Math.imul(h[3]^c,2716044179)}
+return h.map(x=>(x^(x>>>16))>>>0)}
+function rng(s){let[a,b,c,d]=hash(s);return()=>{a>>>=0;b>>>=0;c>>>=0;d>>>=0;let t=(a+b)|0;a=b^(b>>>9);b=(c+(c<<3))|0;c=(c<<21|c>>>11);d=(d+1)|0;t=(t+d)|0;c=(c+t)|0;return(t>>>0)/4294967296}}
+const rgb=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)/255);
+function lum(h){const[r,g,b]=rgb(h).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*r+.7152*g+.0722*b}
+const contrast=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+function hue(h){const[r,g,b]=rgb(h),mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(!d)return 0;let H=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;return(H*60+360)%360}
+function hsl(h,s,l){const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12,c=l-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(c*255).toString(16).padStart(2,"0")};return"#"+f(0)+f(8)+f(4)}
+let BGMODE="b";/* analogous, richer-Classic background system (verified in review) */
+function compBg(C,tone,nori,R){let sx=0,sy=0;C.forEach(c=>{const h=hue(c)*Math.PI/180;sx+=Math.cos(h);sy+=Math.sin(h)});
+const mag=Math.hypot(sx,sy)/C.length;let h,s=tone[1],acc=false,rich=false;
+if(mag<.35){h=Math.floor(R()*360);s=.14}
+else{const base=(Math.atan2(sy,sx)*180/Math.PI+360)%360;
+if(BGMODE==="old")h=(base+180)%360;
+else{const a=R();if(a<.72){h=base;s=Math.min(.85,s+.18);rich=true}else{acc=true;h=(base+(a<.86?180:a<.93?120:240))%360;s=Math.min(s,.2)}}}
+let l=acc?.9:(rich?Math.max(.55,tone[2]-.2):tone[2]),c=hsl(h,s,l);while(contrast(c,nori)<3&&l<.97){l+=.05;c=hsl(h,s,l)}return{c,h:Math.round(h),neutral:mag<.35}}
+const RC_RAW="rose:fff7f9,ffdce5,ff3b8d,db0072,800040,4c0023;raspberry:fff8f8,ffdddf,ff426c,de0051,82002c,510018;red:fff8f6,ffddd8,ff4647,e0002b,830014,530003;orange:fff8f5,ffded1,fd4d00,cd3c00,752100,401600;cinnamon:fff8f3,ffdfc6,d57300,ac5c00,633300,371d00;amber:fff8ef,ffe0b2,b98300,926700,523800,302100;yellow:fff9e5,ffe53e,9c8b00,7d6f00,463d00,292300;lime:f7ffac,d5f200,819300,677600,394100,222600;chartreuse:e5ffc3,98fb00,5c9b00,497c00,264500,182600;green:e0ffd9,72ff6c,00a21f,008217,004908,062800;emerald:dcffe6,5dffa2,00a05a,008147,004825,002812;aquamarine:daffef,42ffc6,009f78,007f5f,004734,00281b;teal:d7fff7,00ffe4,009e8c,007c6e,00443c,002722;cyan:c4fffe,00fafb,00999a,007a7b,004344,002525;powder:dafaff,8df0ff,0098a9,007987,004048,002227;sky:e3f7ff,aee9ff,0094b4,007590,00404f,001f28;cerulean:e8f6ff,b9e3ff,0092c5,00749d,003c54,001d2a;azure:e8f2ff,c6e0ff,008fdb,0071af,003b5e,001c30;blue:f0f4ff,d4e0ff,0089fc,006dca,00386d,001a39;indigo:f3f3ff,deddff,657eff,0061fc,00328a,001649;violet:f7f1ff,e8daff,9b70ff,794aff,2d0fbf,0b0074;purple:fdf4ff,f7d9ff,d150ff,b01fe3,660087,3a004f;magenta:fff3fc,ffd7f6,f911e0,ca00b6,740068,44003c;pink:fff7fb,ffdcec,ff2fb2,d2008f,790051,4b0030";
+const RCH=RC_RAW.split(";").map(e=>{const[n,c]=e.split(":");return{n,c:c.split(",").map(x=>"#"+x)}}),GRAY=["#f6f6f6","#e2e2e2","#8b8b8b","#6f6f6f","#3e3e3e","#222222"];
+const VIV=[3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3];
+const RN={};RCH.forEach(h=>h.c.forEach((c,i)=>RN[c]=h.n+"-"+(i+1)));GRAY.forEach((c,i)=>RN[c]="gray-"+(i+1));
+const rcc=(h,s)=>RCH[(h+24)%24].c[s-1],rcn=(h,s)=>RCH[(h+24)%24].n+"-"+s;
+function neonOf(h){const a=hue(rcc(h,VIV[h])),l=a<20||a>=340?.6:a<45?.52:a<65?.5:a<85?.47:a<160?.43:a<200?.46:a<245?.6:a<285?.66:.6;return hsl(a,1,l)}
+const MONOFAM=["Pink","Pink","Red","Orange","Orange","Yellow","Yellow","Lime","Lime","Green","Green","Teal","Teal","Cyan","Cyan","Blue","Blue","Blue","Blue","Purple","Purple","Purple","Pink","Pink"];/* mono hue (RCH index 0-23) -> broad color family, used to name Sumi/Shari e.g. "Green Sumi" */
+const RCT=[["tint",1,45],["pastel",2,45],["vivid",3,10]],RCN=[["black",0,72],["charcoal",1,12],["shiso",2,8],["navy",3,4],["plum",4,4]],RCR=[["white",0,60],["gray-1",1,15],["cream",2,15],["hue-1",3,10]],MONOSCALE=[["tints",.9,.62,35],["full",.86,.38,40],["shades",.7,.32,25]],MONOSC=[["filling only",0,55],["whole art",1,45]];
+const MIX=[["classic",40],["neon",40],["mono",20]],ROLL=[["maki",0,92],["uramaki",1,8]];
+/* Display-name mapping: internal ids/weights are kept unchanged; these map ids to the exposed trait values. */
+const DNAME={
+pattern:{"scroll_h":"Scroll","diagonal":"Diagonal","ripple":"Ripple","chase":"Chase","checker":"Checker","sparkle":"Sparkle","wave_1":"Wiggle","wave_2":"Turbo Wiggle","chromie":"Squiggle","filling_cycle":"Maki","text_ants":"Type ANTS","text_tezos":"Type TEZOS","text_paul_hbd":"Type PAUL HBD","text_yolo":"Type YOLO","text_custom":"Type"},
+palette:{"classic":"Classic","neon":"Neon","mono":"Mono"},
+direction:{"forward":"Forward","reverse":"Reverse"},
+ramp:{"random":"Random","trio":"Trio","mirror":"Mirror","duo":"Duo","accent":"Accent","spectrum":"Spectrum"},
+speed:{"normal":"Normal","slow":"Slow","fast":"Fast"},
+roll:{"maki":"Maki","uramaki":"Uramaki"},
+nori:{"black":"Black","charcoal":"Charcoal","shiso green":"Shiso Green","shiso":"Shiso Green","deep navy":"Bluefin","navy":"Bluefin","deep plum":"Deep Plum","plum":"Deep Plum"},
+rice:{"white":"White","cream":"Cream"},
+shape:{"original":"Calm","tall":"Hype"}
+};
+const dn=(c,k)=>(DNAME[c]&&DNAME[c][k])||k;
+const RENDER={scroll_h:"field",diagonal:"field",ripple:"field",chase:"field",checker:"field",sparkle:"field",wave_1:"marquee",wave_2:"marquee",chromie:"flow",filling_cycle:"maki",text_ants:"marquee",text_tezos:"marquee",text_paul_hbd:"marquee",text_yolo:"marquee",text_custom:"marquee"};/* render mechanic group per pattern id; branch on this, never on display names */
+const isText=p=>!!MSGOF[p]||p==="text_custom";/* glyph (message) marquee vs sine-wave marquee */
+function noriLabel(raw){return DNAME.nori[raw]||raw}
+function riceLabel(raw){return DNAME.rice[raw]||raw}
+function rcRoles(mode,R){const pk=()=>Math.floor(R()*24),w=x=>(x%24+24)%24,shf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const m=pk(),sd=R()<.5?1:-1;let H;
+if(mode==="duo"){let b=w(m+sd*3);for(let t=0;t<14;t++){b=w(m+sd*(3+Math.floor(R()*6)));if(contrast(neonOf(m),neonOf(b))>=1.4)break}H=[m,b,m,b,m,b]}
+else if(mode==="accent"){let b=w(m+sd*3);for(let t=0;t<14;t++){b=w(m+sd*(3+Math.floor(R()*6)));if(contrast(neonOf(m),neonOf(b))>=1.4)break}H=[m,m,m,m,m,b]}
+else if(mode==="trio"||mode==="mirror"){const t=R()<.7?[m,w(m+3*sd),w(m+6*sd)]:[m,w(m+4*sd),w(m+8*sd)];H=mode==="trio"?[t[0],t[0],t[1],t[1],t[2],t[2]]:[t[0],t[1],t[2],t[2],t[1],t[0]]}
+else if(mode==="spectrum")H=[0,4,8,12,16,20].map(i=>w(m+i));
+else{const t=shf([0,1,2,3,4,5,6,7,8]).slice(0,4).map(o=>w(m+sd*o));H=[t[0],t[1],t[2],t[3],t[0],t[1]]}
+const C=H.map(neonOf),CN=H.map(h=>RCH[h].n);let sx=0,sy=0;H.forEach(h=>{sx+=Math.cos(h*Math.PI/12);sy+=Math.sin(h*Math.PI/12)});
+let bh=Math.round(((Math.atan2(sy,sx)*12/Math.PI)+24)%24+(BGMODE==="old"?12:0))%24,acc=false;
+const neutral=Math.hypot(sx,sy)/6<.35;
+if(BGMODE!=="old"&&!neutral){const a=R();if(a>=.72){acc=true;bh=((bh+(a<.86?12:a<.93?8:16))%24+24)%24}}/* variation: a pale accent hue (complement/triadic), lightest tint only */
+const[t,pt]=wp(R,RCT),[n,pn]=wp(R,RCN),[r,pr]=wp(R,RCR);
+const bs=acc?1:(t[1]===3?((bh<2||bh>21)?2:VIV[bh]):t[1]===2&&VIV[bh]===2?1:t[1]),bg=neutral?GRAY[t[1]===1?0:1]:rcc(bh,bs);
+const cream=r[1]===2||r[1]===3;const rice=cream?"#f6eed9":"#ffffff";/* Option A: unify Neon nori/rice to the canonical sets (same colors + names as Classic). white+gray-1 -> White, cream+hue-1 -> Cream (75/25). */
+return{C,CN,bg,nori:NORI[n[1]][1],rice,pr:pt*pn*pr,tone:neutral?"neutral gray bg":"complement "+t[0]+" bg",noriN:NORI[n[1]][0],riceN:cream?"cream":"white"}}
+function lab(h){const[r,g,b]=rgb(h).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)),f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116,X=f((r*.4124+g*.3576+b*.1805)/.95047),Y=f(r*.2126+g*.7152+b*.0722),Z=f((r*.0193+g*.1192+b*.9505)/1.08883);return[116*Y-16,500*(X-Y),200*(Y-Z)]}
+const dE=(a,b)=>{const x=lab(a),y=lab(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])};
+function monoRoles(R){const h=Math.floor(R()*24),a=hue(rcc(h,VIV[h])),[sc0,ps]=wp(R,MONOSCALE),[n,pn]=wp(R,RCN),[r,pr]=wp(R,RCR),[sc,pc]=wp(R,MONOSC),W=sc[1]===1;
+const rice=W?hsl(a,.5,.94):r[1]===0?"#ffffff":r[1]===1?GRAY[0]:r[1]===2?rcc(5,1):rcc(h,1),nori=hsl(a,.6,.1);/* truly mono: nori is always a dark shade of the mono hue, not a canonical seaweed color */
+let hi=W?Math.min(sc0[1],.72):sc0[1],lo=sc0[2];while(contrast(hsl(a,1,hi),rice)<1.3&&hi>.45)hi-=.02;if(hi-lo<.27)lo=Math.max(.16,hi-.27);
+const lv=()=>[0,1,2,3].map(i=>hi-(hi-lo)*i/3);
+for(let t=0;t<10;t++){const cs=lv().map(l=>hsl(a,1,l));let md=99;for(let i=0;i<3;i++)md=Math.min(md,dE(cs[i],cs[i+1]));if(md>=14||lo<=.16)break;lo=Math.max(.16,lo-.03)}
+const L=lv(),C=[L[0],L[1],L[2],L[3],L[2],L[1]].map(l=>hsl(a,1,l));
+return{C,CN:Array(6).fill(RCH[h].n+" mono"),bg:W?hsl(a,.7,.82):hsl(a,.7,.92),nori,rice,pr:ps*pc*(W?1:pn*pr),tone:"mono "+RCH[h].n+" ("+sc0[0]+", "+sc[0]+")",noriN:MONOFAM[h]+" Sumi",riceN:MONOFAM[h]+" Shari"}}
+const PAL={cur:"mix"};
+function types(){const g=Array.from({length:11},()=>Array(11).fill("n"));
+const f=(r,c0,c1,t)=>{for(let c=c0;c<=c1;c++)g[r][c]=t};
+f(0,0,2,"b");f(0,8,10,"b");g[1][0]="b";g[1][10]="b";g[10][0]="b";g[10][10]="b";
+f(1,3,7,"r");for(let r=2;r<=4;r++)f(r,1,9,"r");f(5,3,7,"r");return g}
+function ramp(mode,R){const pick=a=>a[Math.floor(R()*a.length)],o=()=>pick(K);let C;
+if(mode==="random"){do{C=Array.from({length:6},o)}while(new Set(C).size<4)}
+else if(mode==="trio"){const u=[];while(u.length<3){const c=o();if(!u.includes(c))u.push(c)}C=[u[0],u[0],u[1],u[1],u[2],u[2]]}
+else if(mode==="mirror"){const a=[];while(a.length<3){const c=o();if(!a.includes(c))a.push(c)}C=[a[0],a[1],a[2],a[2],a[1],a[0]]}
+else if(mode==="duo"){const a=o();let b=o();while(b===a||contrast(P[a],P[b])<1.4)b=o();C=[a,b,a,b,a,b]}
+else if(mode==="accent"){const a=o();let b=o();while(b===a||contrast(P[a],P[b])<1.4)b=o();C=[a,a,a,a,a,b]}
+else{const s=Math.floor(R()*6);C=Array.from({length:6},(_,i)=>K[(i+s)%6])}
+return C.map(k=>P[k])}
+function idx(p,x,y,f,d){const sn=()=>SNAKE.findIndex(c=>c[0]===x&&c[1]===y);
+switch(p){case"scroll_h":return x-2+d*f;case"scroll_v":return(y-2)*2+d*f;case"diagonal":return x+y+d*f;
+case"ripple":return Math.floor(Math.sqrt((x-5)*(x-5)+4*(y-3)*(y-3)))*1+d*f;case"chase":return sn()+d*f;
+case"checker":return((x+y+f)&1)*3+(f>>2)*d;default:return x-2+y}}
+function paths(M){const by={};for(const k in M){const[x,y]=k.split(",").map(Number);(by[M[k]]=by[M[k]]||[]).push([x,y])}
+let o="";for(const col in by){const cs=by[col].sort((a,b)=>a[1]-b[1]||a[0]-b[0]);let d="";for(let i=0;i<cs.length;){let j=i;while(j+1<cs.length&&cs[j+1][1]===cs[i][1]&&cs[j+1][0]===cs[j][0]+1)j++;const w=j-i+1;d+="M"+cs[i][0]+" "+cs[i][1]+"h"+w+"v1h-"+w+"z";i=j+1}o+='<path fill="'+col+'" d="'+d+'"/>'}return o}
+const clean=t=>t.toUpperCase().split("").filter(c=>c===" "||FONT[c]).join("");
+const adv=t=>t.split("").reduce((a,c)=>a+(c===" "?2:4),0);
+function gen(seed,opt){opt=opt||{};const R=rng(seed);let F0=null;
+let cp=PAL.cur,pmix=1;if(cp==="mix"){const[m,q]=wp(R,MIX);cp=m[0];pmix=q}
+const Q=cp!=="classic",[rm,p0]=wp(R,RAMP);let C=ramp(rm[0],R);
+let[pt,pp]=wp(R,rm[0]==="duo"||rm[0]==="accent"?PAT.filter(x=>x[0]!=="chromie"&&(cp==="classic"||x[0]!=="filling_cycle")):PAT);const[di,pd]=wp(R,DIR);let[sp,ps]=wp(R,SPD);
+let[tn,p1]=wp(R,TONE),[no,p2]=wp(R,Q?[["-","#000000",1]]:NORI),[ri,p3]=wp(R,Q?[["-","#ffffff",1]]:RICE);
+const[sh,p5]=wp(R,SHAPE),[ro,p9]=wp(R,ROLL);
+let QB=null;if(Q){QB=cp==="mono"?monoRoles(R):rcRoles(rm[0],R);no=[QB.noriN,QB.nori];ri=[QB.riceN,QB.rice];p1=1;p2=QB.pr;p3=1;C=QB.C;tn=[QB.tone,null]}
+
+if((pt[0]==="chromie"||(pt[0]==="filling_cycle"&&cp!=="classic"))&&new Set(C).size<3)pt=PAT.find(x=>x[0]==="scroll_h");
+if((["checker","sparkle"].includes(pt[0])||rm[0]==="duo"||rm[0]==="accent")&&sp[1]<210)sp=SPD[1];
+if(isText(pt[0])&&sp[1]<130)sp=SPD[0];
+let msg=MSGOF[pt[0]]||"";if(opt.text){pt=["text_custom"];msg=clean(opt.text)||"HI";pp=1}
+if(ro[1]===0&&cp!=="mono"&&C.some(k=>contrast(k,ri[1])<1.3)&&C.every(k=>contrast(k,"#ffffff")>=1.3))ri=["white","#ffffff"];
+const U=ro[1]===1,bgc=Q?{c:QB.bg,h:Math.round(hue(QB.bg)),neutral:false,name:tn[0]}:compBg(C,tn,no[1],R);
+if(ri[0]==="cream"&&!bgc.neutral&&bgc.h>65&&bgc.h<310)ri=["white","#ffffff"];/* warm Cream rice clashes on cool-hued pieces; White always reads, so fall back to it there */
+const bodyC=U?ri[1]:no[1],ringC=U?no[1]:ri[1];let bgCol=bgc.c;if(contrast(bgCol,bodyC)<2)bgCol=no[1];
+const lite=Q?[bgc.c,ri[1]].sort((a,b)=>lum(b)-lum(a))[0]:"#ffffff";
+let eyeC=ringC;/* eyes match the inner/contrasting roll color: maki -> rice (White/Cream eyes), uramaki -> nori (dark eyes). Separate Eyes trait removed. */
+const inF=(x,y)=>FILL.some(c=>c[0]===x&&c[1]===y);
+const S={},T=types();
+for(let y=0;y<11;y++)for(let x=0;x<11;x++){const t=T[y][x];if(t==="r"&&!inF(x,y))S[x+","+y]=ringC}
+const H=sh[1],top=10-H;
+let body="";
+if(RENDER[pt[0]]==="marquee"){let M={},steps,v=[];
+if(isText(pt[0])){const L=adv(msg),uc=[...new Set(C)];steps=L+8;let cx=0;
+msg.split("").forEach((ch,i)=>{if(ch!==" "){const g=FONT[ch];for(let r=0;r<3;r++)for(let c=0;c<3;c++)if(g[r*3+c]==="1")M[(9+cx+c)+","+(2+r)]=uc[i%uc.length]}cx+=ch===" "?2:4});
+for(let k=0;k<steps;k++)v.push("-"+k+" 0")}
+else{const fq=pt[0]==="wave_2"?2:1;steps=12;let py=null;
+for(let c=0;c<19;c++){const w=Math.sin(2*Math.PI*fq*c/12),y=3+(w>.4?1:w<-.4?-1:0),x=2+c;M[x+","+y]=C[c%6];if(py!==null&&Math.abs(y-py)>1)M[x+",3"]=C[c%6];py=y}
+for(let k=0;k<steps;k++)v.push("-"+k+" 0")}
+if(di[1]<0&&!isText(pt[0]))v=[v[0]].concat(v.slice(1).reverse());F0=M;
+/* No nested <svg>: its separate viewport rounds independently at fractional display scale and seams at the band edge. Instead the glyph layer scrolls unclipped and is masked back to the band window by opaque pixels that snap to the grid like the body. Draw order: nori band (under text) -> scrolling text -> ring garnish (cols 1/9 + corners) -> body edges (cols 0/10) -> background margins (roll cols -1/11, the 1px viewBox gutter). */
+body='<path fill="'+no[1]+'" d="M3 2h5v3h-5zM2 3h1v1h-1zM8 3h1v1h-1z"/><g><animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+v.join(";")+'" dur="'+steps*sp[1]+'ms" repeatCount="indefinite"/>'+paths(M)+'</g><path fill="'+ringC+'" d="M1 2h1v3h-1zM9 2h1v3h-1zM2 2h1v1h-1zM2 4h1v1h-1zM8 2h1v1h-1zM8 4h1v1h-1z"/><path fill="'+bodyC+'" d="M0 2h1v3h-1zM10 2h1v3h-1z"/><path fill="'+bgCol+'" d="M-1 2h1v3h-1zM11 2h1v3h-1z"/>';
+}
+else if(RENDER[pt[0]]==="maki"){const q=rng(seed+"mk"),u=[...new Set(C)],cyc=Array.from({length:6},(_,i)=>u[i%u.length]),SEM=cp==="classic"?[P.pink,P.red,P.orange,P.yellow,P.lime,P.green]:cyc,OC=cp==="classic"?[P.pink,P.green,P.lime,P.red,P.orange,P.yellow]:cyc;
+const rk=(x,y)=>x===2||x===8?3:x===3||x===7?2:(x===5&&y===3)?0:1,orig={};for(const k in ORIGL)orig[k]=OC[ORIGL[k]];
+const ix=[0,1,2,3,4,5,6,7];for(let i=7;i>0;i--){const j=Math.floor(q()*(i+1));[ix[i],ix[j]]=[ix[j],ix[i]]}const ord=ix.slice(0,3);
+const tm=n=>{const e=SEM[MAKI[n][1]],d=SEM[MAKI[n][3]];let kk=MAKI[n][2],k=SEM[kk],g=0;while(k===e&&g<6){kk++;g++;k=SEM[kk%6]}const m={};FILL.forEach(([x,y])=>{const r=rk(x,y);m[x+","+y]=r===0?d:r===1?k:e});return m};
+const mix=(a,b,t)=>{const m={};FILL.forEach(([x,y])=>{const k=x+","+y;m[k]=rk(x,y)<=t?b[k]:a[k]});return m};
+const seq=[];let cur=orig;for(let i=0;i<3;i++)seq.push(cur);
+ord.forEach(n=>{const nx=tm(n);for(let t=0;t<3;t++)seq.push(mix(cur,nx,t));seq.push(nx,nx);cur=nx});for(let t=0;t<3;t++)seq.push(mix(cur,orig,t));F0=seq[0];
+const N=seq.length,st=sp[1],Tt=N*st;
+seq.forEach((m,f)=>{body+='<g visibility="'+(f?"hidden":"visible")+'"><animate attributeName="visibility" calcMode="discrete" values="visible;hidden;hidden" keyTimes="0;'+(1/N).toFixed(4)+';1" begin="'+f*st+'ms" dur="'+Tt+'ms" repeatCount="indefinite"/>'+paths(m)+'</g>'});
+}
+else{const kt=Array.from({length:FR+1},(_,i)=>(i/FR).toFixed(4)).join(";"),fl=RENDER[pt[0]]==="flow";let SHP=[];
+if(fl){const q=rng(seed+"flow"),tf=[0,1,2,3,4,5,6].map(c=>c>0&&c<6&&q()<.5);if(tf.filter(Boolean).length<2){tf[2]=true;tf[4]=true}let py=null;
+for(let c=0;c<7;c++){const w=Math.sin(2*Math.PI*c/6),y=3+(w>.4?1:w<-.4?-1:0),cells=[y];if(py!==null&&Math.abs(y-py)>1)cells.push(3);
+if(tf[c]){const e=y===4?3:y===2?3:(q()<.5?2:4);if(!cells.includes(e))cells.push(e)}SHP.push(cells);py=y}}
+for(let f=0;f<FR;f++){const M={};
+if(fl){FILL.forEach(([x,y])=>M[x+","+y]=no[1]);SHP.forEach((cells,c)=>{const k=C[((c+di[1]*f)%6+6)%6];cells.forEach(y=>M[(2+c)+","+y]=k)})}
+else if(pt[0]==="checker"){const i=(f>>1)%6;let j=(i+3)%6,k=0;while(C[j]===C[i]&&k<6){j=(j+1)%6;k++}FILL.forEach(([x,y])=>{M[x+","+y]=((x+y+f)&1)?C[j]:C[i]})}
+else FILL.forEach(([x,y])=>{M[x+","+y]=C[((idx(pt[0],x,y,f,di[1])%6)+6)%6]});
+if(!fl){const vs=FILL.map(c=>M[c[0]+","+c[1]]);if(new Set(vs).size<2){const o=C.find(k=>k!==vs[0]);if(o)FILL.forEach(([x,y])=>{if((x+y)&1)M[x+","+y]=o})}}
+if(pt[0]==="sparkle"){const r2=rng(seed+"s"+f);for(let k=0;k<3;k++){const c=FILL[Math.floor(r2()*FILL.length)];M[c[0]+","+c[1]]=lite}}
+if(f===0)F0=M;
+const vals=Array.from({length:FR+1},(_,i)=>i%FR===f?"visible":"hidden").join(";");
+body+='<g visibility="'+(f?"hidden":"visible")+'"><animate attributeName="visibility" calcMode="discrete" values="'+vals+'" keyTimes="'+kt+'" dur="'+FR*sp[1]+'ms" repeatCount="indefinite"/>'+paths(M)+'</g>'}}
+const HT=HOP.s+HOP.up+HOP.t+HOP.down,hs=["T","M","S","M","T"],hk=[0,HOP.t,HOP.t+HOP.down,HOP.t+HOP.down+HOP.s,HT].map(v=>(v/HT).toFixed(4)).join(";"),hv=f=>hs.map(f).join(";"),an=(a,f)=>'<animate class="hop" attributeName="'+a+'" calcMode="discrete" values="'+hv(f)+'" keyTimes="'+hk+'" dur="'+HT+'ms" repeatCount="indefinite"/>';
+let eyes='';[2,6].forEach(x=>{eyes+='<rect x="'+x+'" y="'+top+'" width="1" height="'+H+'" fill="'+eyeC+'">'+an("y",c=>c==="S"?top+1:top)+'</rect>'});
+const Sup={},Slo={};for(const k in S){(+k.split(",")[1]<=5?Sup:Slo)[k]=S[k]}
+const topG='<g><animateTransform class="hop" attributeName="transform" type="translate" calcMode="discrete" values="'+hv(c=>"0 "+({S:2,M:1,T:0})[c])+'" keyTimes="'+hk+'" dur="'+HT+'ms" repeatCount="indefinite"/><path fill="'+bodyC+'" d="M3 0h5v1h-5zM1 1h9v1h-9zM0 2h11v4h-11z"/>'+paths(Sup)+body+'</g>';
+const ovl=[0,9].map(x=>'<rect x="'+x+'" y="9" width="2" height="2" fill="'+bodyC+'" visibility="hidden">'+an("visibility",c=>c==="S"?"visible":"hidden")+'</rect>').join('');
+const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="520" height="520" shape-rendering="crispEdges"><rect width="13" height="13" fill="'+bgCol+'"/><g transform="translate(1,2)"><path fill="'+bodyC+'" d="M0 5h11v5h-11zM1 10h9v1h-9z"/>'+paths(Slo)+ovl+topG+eyes+'</g></svg>';
+const odds=opt.text?0:1/(pmix*p0*pp*(isText(pt[0])?1:pd)*ps*p1*p2*p3*p5*p9);
+const tr={"Pattern":dn('pattern',pt[0]),"Direction":isText(pt[0])?"Reverse":dn('direction',di[0]),"Color Ramp":dn('ramp',rm[0]),"Speed":dn('speed',sp[0]),"Palette":dn('palette',cp),"Nori":noriLabel(no[0]),"Rice":riceLabel(ri[0]),"Eye Shape":dn('shape',sh[0]),"Roll Type":dn('roll',ro[0])};
+const _skip=new Set([no[1],ri[1],bgCol,ringC,bodyC,lite,eyeC]),_t={};if(F0)for(const _k in F0){const _c=F0[_k];if(!_skip.has(_c))_t[_c]=(_t[_c]||0)+1}
+const pal=[...new Set([...C,...Object.keys(_t)])],usage=pal.map(c=>_t[c]||0);
+return{svg,mode:pt[0],odds,tr,pal,usage,bg:bgCol,ink:bodyC}}
+
+/* ---- Aleatory driver: random-only. Seed comes from the mint operation hash. ---- */
+/* The generator's own rng(seed) is seeded from $alea.seed, so every piece is a
+   pure function of that hash. No collector parameters are declared. The still the
+   renderer captures is this animation at t=0 (body at rest, frame 0): SMIL runs on
+   the SVG timeline, so freezing Date/performance.now does not advance it; ready()
+   fires synchronously below, so the cover is deterministic. */
+/* random-only mint behavior; the test-only text box (added below) forces a custom
+   marquee via gen's opt.text -> text_custom path, exactly like test.html's #txt.
+   The real mint has no such box, so it stays random-only. Message naming matches the
+   mint: Type pieces collapse Pattern to "Type" and carry the word in a Message trait. */
+/* ---- Render into a square stage. Art fills it at capture; pressing "i" reveals the
+   poster-style traits band below (art shrinks up), all within the square. ---- */
+var feats = {}, stage, artBox, band, hopOn = true;
+function hexRGB(h){h=String(h).replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');return parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function ensureStage(){
+  if(stage)return;
+  stage=document.createElement("div");stage.className="stage";
+  var frame=document.createElement("div");frame.className="frame";
+  artBox=document.createElement("div");artBox.className="art-box";
+  band=document.createElement("div");band.className="band";
+  frame.appendChild(artBox);frame.appendChild(band);stage.appendChild(frame);
+  document.body.appendChild(stage);
+}
+function cellHTML(l,v,fill){return '<div class="cell '+(fill?"fill":"hug")+'"><span class="label">'+l+'</span><span class="value">'+esc(v)+'</span></div>'}
+function barsHTML(pal,usage){var maxU=Math.max.apply(null,[1].concat(usage)),minR=1/pal.length;
+  return pal.map(function(c,i){var u=usage[i];if(u<=0)return '<div class="cbar unused" style="background:'+c+'"></div>';var h=Math.max(u/maxU,minR)*100;return '<div class="cbar" style="background:'+c+';height:'+h.toFixed(2)+'%"></div>'}).join("")}
+function msgCellHTML(v){return '<div class="cell msg"><span class="label">Message</span><span class="value msgv" contenteditable="true" spellcheck="false" data-ph="ADD…">'+esc(v)+'</span></div>'}
+function bandHTML(res){var tr=res.tr,isType=/^text_/.test(res.mode),msg=feats.Message||"";
+  var top=cellHTML("Pattern",isType?"Type":tr.Pattern,true)+msgCellHTML(msg)+cellHTML("Direction",tr.Direction,false)+cellHTML("Speed",tr.Speed,false);
+  var bot=cellHTML("Palette",tr.Palette,true)+cellHTML("Color Ramp",tr["Color Ramp"],false)+cellHTML("Roll Type",tr["Roll Type"],false)+cellHTML("Eyes",tr["Eye Shape"],false);
+  return '<div class="swatch"><div class="bars">'+barsHTML(res.pal,res.usage)+'</div></div><div class="data"><div class="drow top">'+top+'</div><div class="drow">'+bot+'</div></div>';
+}
+/* The Message cell is the custom-message input. Typing partial-updates the art, usage
+   bars, and the Pattern/Direction values in place, leaving the editable field (and its
+   focus/caret) untouched. basePreset = the seed's own preset word (empty unless the
+   seed is itself a Type piece). */
+function wireMessage(basePreset){
+  var msgv=band.querySelector(".msgv");if(!msgv)return;
+  var bars=band.querySelector(".bars"),cells=band.querySelectorAll(".drow.top .cell"),patV=cells[0].querySelector(".value"),dirV=cells[2].querySelector(".value");
+  function applyMsg(){
+    var v=msgv.textContent.replace(/\s+/g," ").trim();
+    if(!v&&msgv.innerHTML!=="")msgv.innerHTML="";/* drop the stray <br> contenteditable leaves behind, so :empty (the ADD… placeholder) matches again */
+    var res=gen(alea.seed,v?{text:v}:undefined),isType=/^text_/.test(res.mode);
+    feats=v?Object.assign({},res.tr,{Pattern:"Type",Message:v}):res.tr;
+    artBox.innerHTML=res.svg;if(!hopOn)applyHop();bars.innerHTML=barsHTML(res.pal,res.usage);
+    patV.textContent=isType?"Type":res.tr.Pattern;dirV.textContent=res.tr.Direction;
+  }
+  msgv.addEventListener("input",applyMsg);
+  msgv.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();msgv.blur()}});
+  msgv.addEventListener("blur",function(){
+    /* emptied -> ADD… placeholder, unless the seed is a Type piece, then restore its word */
+    if(!msgv.textContent.trim()&&basePreset){msgv.textContent=basePreset;applyMsg()}
+    msgv.scrollLeft=0;/* show a long/truncated message from the start, not the caret end */
+  });
+}
+/* Hop toggle: the three .hop SMIL animations (upper-half translate, eye y, squash overlays)
+   stop/restart via endElement/beginElement. Stopped, each reverts to its resting base value =
+   the standard pose; the fill/scroll animations are untagged and keep running. */
+function applyHop(){var svg=artBox&&artBox.querySelector("svg");if(!svg)return;var l=svg.querySelectorAll(".hop");for(var i=0;i<l.length;i++){try{hopOn?l[i].beginElement():l[i].endElement()}catch(e){}}}
+function mkmnRender(){
+  ensureStage();
+  var res=gen(alea.seed),msg=MSGOF[res.mode]||"";
+  feats=msg?Object.assign({},res.tr,{Pattern:"Type",Message:msg}):res.tr;
+  artBox.innerHTML=res.svg;
+  stage.style.setProperty("--bg",res.bg);
+  stage.style.setProperty("--ink-rgb",hexRGB(res.ink));
+  band.innerHTML=bandHTML(res);
+  wireMessage(msg);
+  return res;
+}
+mkmnRender();
+alea.features(feats);
+alea.ready();
+
+/* ---- TEST-BUILD UI: no visible button. "i" toggles the traits band (.show on the
+   stage); the band is hidden from load so it never shows in the static capture. The
+   Message cell inside the band is the custom-message input. Local only; no network,
+   no effect on determinism. ---- */
+(function(){
+  window.addEventListener("keydown",function(e){
+    if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
+    if(e.metaKey||e.ctrlKey||e.altKey)return;
+    if(e.key==="i"||e.key==="I"){e.preventDefault();if(stage)stage.classList.toggle("show")}
+    else if(e.key==="m"||e.key==="M"){e.preventDefault();hopOn=!hopOn;applyHop()}
+    else if(e.key==="Escape"&&stage)stage.classList.remove("show");
+  });
+})();
+})();
+</script>
+</body>
+</html>
