@@ -338,10 +338,12 @@ function ensureStage(){
   var exp=document.createElement("div");exp.className="export-bar";
   exp.innerHTML='<a class="button" download href="about:blank" aria-label="Save SVG"><span>SVG</span>'+ARR+'</a><a class="button" download href="about:blank" aria-label="Save GIF"><span>GIF</span>'+ARR+'</a>';
   var dl=exp.children[0],gl=exp.children[1];dl.addEventListener("pointerdown",function(){refreshExport(dl)});dl.addEventListener("focus",function(){refreshExport(dl)});
-  /* Pick the save hint: touch devices long-press, sandboxed/embedded frames (Aleatory) can't auto-download so right-click; a plain top-level page just clicks. */
-  var isTouch=(function(){try{return (window.matchMedia&&window.matchMedia("(pointer:coarse)").matches)||/Mobi|Android|iP(hone|ad|od)/i.test(navigator.userAgent||"")}catch(e){return false}})();
-  var embedded=(function(){try{return location.origin==="null"||window.self!==window.top}catch(e){return true}})();
-  if(isTouch||embedded){
+  /* Downloads work in most contexts now (incl. Aleatory), so default to a normal download and
+     only fall back to the right-click / tap & hold "Link to..." flow when we can positively
+     detect that downloads are blocked -- a sandboxed iframe whose sandbox lacks allow-downloads.
+     (Cross-origin frames throw on frameElement -> treated as allowed.) */
+  var blocked=(function(){try{var fe=window.frameElement;if(fe&&fe.sandbox&&fe.sandbox.length)return !fe.sandbox.contains("allow-downloads")}catch(e){}return false})();
+  if(blocked){
     var span=dl.querySelector("span"),ico=dl.querySelector(".icon"),ct=null,linked=false;
     /* Sandbox: auto-download is blocked, so keep the clean "SVG" label until the user clicks.
        First click reveals it's a link ("Link to SVG"); clicking the link copies the blob URL
@@ -358,7 +360,7 @@ function ensureStage(){
      so its blob only exists after the first click. In a sandbox: first click renders and
      reveals the save hint; a later click copies the blob URL. On a plain page: render + download. */
   (function(){
-    var gs=gl.querySelector("span"),gi=gl.querySelector(".icon"),gct=null,ready=false,busy=false,linked=false,sandbox=isTouch||embedded;
+    var gs=gl.querySelector("span"),gi=gl.querySelector(".icon"),gct=null,ready=false,busy=false,linked=false,sandbox=blocked;
     function spin(on){if(on){gl.classList.add("gif-busy");gl.setAttribute("aria-busy","true")}else{gl.classList.remove("gif-busy");gl.removeAttribute("aria-busy")}}
     /* Render once and cache; the border pulses while rendering. */
     function render(cb){if(ready)return cb&&cb();if(busy)return;busy=true;spin(true);makeGif().then(function(r){if(_gifUrl)URL.revokeObjectURL(_gifUrl);_gifUrl=r.url;gl.href=r.url;gl.setAttribute("download",r.name);ready=true;busy=false;spin(false);cb&&cb()},function(err){console.error(err);busy=false;spin(false)})}
