@@ -28,6 +28,15 @@ body{background:#0b0b0c;display:grid;place-items:center;font-family:'Space Mono'
 .poster-title-value{font-size:var(--sz-30);line-height:1;color:var(--ink);white-space:nowrap}
 .watermark{right:var(--sz-20);bottom:calc(var(--band-h) + var(--sz-20));width:var(--sz-90);height:var(--sz-30);z-index:3;pointer-events:none}
 .watermark svg{display:block;width:100%;height:100%;fill:var(--ink-muted)}
+/* SVG export — top-right, revealed with the "i" traits panel. Pill with ink border + down-arrow, inverts to the piece background on press. It's a real <a download> whose href is a fresh blob URL (rebuilt on pointerdown/focus): left-click downloads in a normal browser, and where that's blocked (e.g. the Aleatory sandbox) right-click > "Save Link As" still saves the file. */
+.export-bar{position:absolute;top:var(--sz-20);right:var(--sz-20);display:none;gap:calc(var(--scale-unit)*10);align-items:center;z-index:10}
+.stage.show .export-bar{display:flex}
+.export-bar .button{display:flex;align-items:center;gap:var(--sz-02);padding:calc(var(--scale-unit)*5) calc(var(--scale-unit)*7) calc(var(--scale-unit)*5) calc(var(--scale-unit)*10);border:var(--bw) solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);text-decoration:none;font:inherit;font-size:var(--sz-15);text-transform:uppercase;letter-spacing:.08em;line-height:1;-webkit-user-select:none;user-select:none;cursor:pointer}
+.export-bar .button .icon{width:calc(var(--scale-unit)*16);height:calc(var(--scale-unit)*16);fill:currentColor;display:block;flex-shrink:0}
+.export-bar .button:active{background:var(--ink);color:var(--bg,#0b0b0c)}
+.export-bar .button[aria-busy="true"]{cursor:progress}
+.export-bar .button.gif-busy{animation:gpulse .9s ease-in-out infinite}
+@keyframes gpulse{50%{border-color:var(--ink-muted)}}
 .swatch{flex:0 0 auto;box-sizing:border-box;width:calc(var(--band-h) - var(--bw));height:calc(var(--band-h) - var(--bw));padding:var(--sz-20);display:flex;align-items:flex-end;justify-content:center;border-right:var(--bw) solid var(--ink)}
 .bars{display:flex;flex-direction:row;align-items:flex-end;width:100%;height:100%}
 .cbar{flex:1 0 0;min-width:0}
@@ -153,7 +162,7 @@ const RCT=[["tint",1,45],["pastel",2,45],["vivid",3,10]],RCN=[["black",0,72],["c
 const MIX=[["classic",40],["neon",40],["mono",20]],ROLL=[["maki",0,92],["uramaki",1,8]];
 /* Display-name mapping: internal ids/weights are kept unchanged; these map ids to the exposed trait values. */
 const DNAME={
-pattern:{"scroll_h":"Scroll","diagonal":"Diagonal","ripple":"Ripple","chase":"Chase","checker":"Checker","sparkle":"Sparkle","wave_1":"Wiggle","wave_2":"Turbo Wiggle","chromie":"Squiggle","filling_cycle":"Maki","text_ants":"Type ANTS","text_tezos":"Type TEZOS","text_paul_hbd":"Type PAUL HBD","text_yolo":"Type YOLO","text_custom":"Type"},
+pattern:{"scroll_h":"Scroll","diagonal":"Diagonal","ripple":"Ripple","chase":"Chase","checker":"Checker","sparkle":"Sparkle","wave_1":"Wiggle","wave_2":"Turbo Wiggle","chromie":"Squiggle","filling_cycle":"Maki","text_ants":"Text ANTS","text_tezos":"Text TEZOS","text_paul_hbd":"Text PAUL HBD","text_yolo":"Text YOLO","text_custom":"Text"},
 palette:{"classic":"Classic","neon":"Neon","mono":"Mono"},
 direction:{"forward":"Forward","reverse":"Reverse"},
 ramp:{"random":"Random","trio":"Trio","mirror":"Mirror","duo":"Duo","accent":"Accent","spectrum":"Spectrum"},
@@ -296,11 +305,11 @@ const Sup={},Slo={};for(const k in S){(+k.split(",")[1]<=5?Sup:Slo)[k]=S[k]}
 const topG='<g><animateTransform class="hop" attributeName="transform" type="translate" calcMode="discrete" values="'+hv(c=>"0 "+({S:2,M:1,T:0})[c])+'" keyTimes="'+hk+'" dur="'+HT+'ms" repeatCount="indefinite"/><path fill="'+bodyC+'" d="M3 0h5v1h-5zM1 1h9v1h-9zM0 2h11v4h-11z"/>'+paths(Sup)+body+'</g>';
 const ovl=[0,9].map(x=>'<rect x="'+x+'" y="9" width="2" height="2" fill="'+bodyC+'" visibility="hidden">'+an("visibility",c=>c==="S"?"visible":"hidden")+'</rect>').join('');
 const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="520" height="520" shape-rendering="crispEdges"><rect width="13" height="13" fill="'+bgCol+'"/><g transform="translate(1,2)"><path fill="'+bodyC+'" d="M0 5h11v5h-11zM1 10h9v1h-9z"/>'+paths(Slo)+ovl+topG+eyes+'</g></svg>';
-const hideRamp=cp==="classic"&&pt[0]==="filling_cycle";/* Classic Maki ignores the ramp entirely (fixed SEM/OC colors, order from seed+"mk"), so Color Ramp is not a real trait there: drop it from tr, the swatch bars and the odds (odds use the ramp-marginal chance of landing on Maki) */
+const hideRamp=cp==="classic"&&pt[0]==="filling_cycle";/* Classic Maki ignores the ramp entirely (fixed SEM/OC colors, order from seed+"mk"), so Profile is not a real trait there: drop it from tr, the swatch bars and the odds (odds use the ramp-marginal chance of landing on Maki) */
 const rkp=hideRamp?(()=>{const mk=PAT.find(x=>x[0]==="filling_cycle")[1];return RAMP.reduce((a,r)=>{const l=patList(r[0]);return a+(l.some(x=>x[0]==="filling_cycle")?wt(r)/sum(RAMP)*mk/sum(l):0)},0)})():p0*pp;
 const odds=opt.text?0:1/(pmix*rkp*(isText(pt[0])?1:pd)*ps*p1*p2*p3*p5*p9);
-const tr={"Pattern":dn('pattern',pt[0]),"Direction":isText(pt[0])?"Reverse":dn('direction',di[0]),"Color Ramp":dn('ramp',rm[0]),"Speed":dn('speed',sp[0]),"Palette":dn('palette',cp),"Nori":noriLabel(no[0]),"Rice":riceLabel(ri[0]),"Eye Shape":dn('shape',sh[0]),"Roll Type":dn('roll',ro[0])};
-if(hideRamp)delete tr["Color Ramp"];
+const tr={"Pattern":dn('pattern',pt[0]),"Direction":isText(pt[0])?"Reverse":dn('direction',di[0]),"Profile":dn('ramp',rm[0]),"Speed":dn('speed',sp[0]),"Palette":dn('palette',cp),"Nori":noriLabel(no[0]),"Rice":riceLabel(ri[0]),"Eye Shape":dn('shape',sh[0]),"Form":dn('roll',ro[0])};
+if(hideRamp)delete tr["Profile"];
 const _skip=new Set([no[1],ri[1],bgCol,ringC,bodyC,lite,eyeC]),_t={};if(F0)for(const _k in F0){const _c=F0[_k];if(!_skip.has(_c))_t[_c]=(_t[_c]||0)+1}
 const pal=hideRamp?Object.keys(_t):[...new Set([...C,...Object.keys(_t)])],usage=pal.map(c=>_t[c]||0);
 return{svg,mode:pt[0],odds,tr,pal,usage,bg:bgCol,ink:bodyC}}
@@ -325,16 +334,55 @@ function ensureStage(){
   band=document.createElement("div");band.className="band";
   var title=document.createElement("div");title.className="poster-title";title.innerHTML='<div class="poster-title-label">project</div><div class="poster-title-value">MAKIMONO</div>';
   var wm=document.createElement("div");wm.className="watermark";wm.innerHTML='<svg viewBox="0 0 90 30" preserveAspectRatio="xMaxYMax meet" xmlns="http://www.w3.org/2000/svg"><g><rect width="24" height="6"/><rect y="16" width="24" height="6"/><rect y="24" width="12" height="6"/><rect x="12" y="8" width="18" height="6"/><rect x="30" y="8" width="24" height="6"/><rect x="30" y="24" width="24" height="6"/><rect x="36" width="24" height="6"/><rect x="36" y="16" width="24" height="6"/><rect x="60" width="24" height="6"/><rect x="60" y="16" width="24" height="6"/><rect x="60" y="24" width="12" height="6"/><rect x="72" y="8" width="18" height="6"/><rect x="78" y="24" width="12" height="6"/></g></svg>';
-  frame.appendChild(artBox);frame.appendChild(band);frame.appendChild(title);frame.appendChild(wm);stage.appendChild(frame);
+  var ARR='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 2.133c.294 0 .533.239.533.533v9.38l3.356-3.357a.533.533 0 0 1 .754.754L8.376 13.71a.534.534 0 0 1-.754 0L3.355 9.443a.533.533 0 1 1 .755-.754l3.356 3.356V2.666c0-.294.239-.533.533-.533" clip-rule="evenodd"/></svg>';
+  var exp=document.createElement("div");exp.className="export-bar";
+  exp.innerHTML='<a class="button" download href="about:blank" aria-label="Save SVG"><span>SVG</span>'+ARR+'</a><a class="button" download href="about:blank" aria-label="Save GIF"><span>GIF</span>'+ARR+'</a>';
+  var dl=exp.children[0],gl=exp.children[1];dl.addEventListener("pointerdown",function(){refreshExport(dl)});dl.addEventListener("focus",function(){refreshExport(dl)});
+  /* Pick the save hint: touch devices long-press, sandboxed/embedded frames (Aleatory) can't auto-download so right-click; a plain top-level page just clicks. */
+  var isTouch=(function(){try{return (window.matchMedia&&window.matchMedia("(pointer:coarse)").matches)||/Mobi|Android|iP(hone|ad|od)/i.test(navigator.userAgent||"")}catch(e){return false}})();
+  var embedded=(function(){try{return location.origin==="null"||window.self!==window.top}catch(e){return true}})();
+  if(isTouch||embedded){
+    var span=dl.querySelector("span"),ico=dl.querySelector(".icon"),ct=null,linked=false;
+    /* Sandbox: auto-download is blocked, so keep the clean "SVG" label until the user clicks.
+       First click reveals it's a link ("Link to SVG"); clicking the link copies the blob URL
+       (right-click / tap & hold still save it via the context menu). */
+    dl.addEventListener("click",function(e){
+      e.preventDefault();refreshExport(dl);
+      if(!linked){linked=true;span.textContent="Link to SVG";dl.setAttribute("aria-label","Link to SVG");return}
+      var u=dl.href,fin=function(ok){if(ico)ico.style.display="none";span.textContent=ok?"Link Copied!":"Copy Failed";if(ct)clearTimeout(ct);ct=setTimeout(function(){span.textContent="Link to SVG";if(ico)ico.style.display=""},1400)};
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(function(){fin(true)},function(){fin(copyLegacy(u))});
+      else fin(copyLegacy(u));
+    });
+  }
+  /* GIF export mirrors the SVG save/copy model, but the GIF is rendered on demand (async),
+     so its blob only exists after the first click. In a sandbox: first click renders and
+     reveals the save hint; a later click copies the blob URL. On a plain page: render + download. */
+  (function(){
+    var gs=gl.querySelector("span"),gi=gl.querySelector(".icon"),gct=null,ready=false,busy=false,linked=false,sandbox=isTouch||embedded;
+    function spin(on){if(on){gl.classList.add("gif-busy");gl.setAttribute("aria-busy","true")}else{gl.classList.remove("gif-busy");gl.removeAttribute("aria-busy")}}
+    /* Render once and cache; the border pulses while rendering. */
+    function render(cb){if(ready)return cb&&cb();if(busy)return;busy=true;spin(true);makeGif().then(function(r){if(_gifUrl)URL.revokeObjectURL(_gifUrl);_gifUrl=r.url;gl.href=r.url;gl.setAttribute("download",r.name);ready=true;busy=false;spin(false);cb&&cb()},function(err){console.error(err);busy=false;spin(false)})}
+    /* Same model as SVG: plain page renders then downloads; a sandbox turns the button into
+       "Link to GIF" (after rendering), and clicking the link copies the blob URL. */
+    gl.addEventListener("click",function(e){
+      if(!sandbox){if(ready)return;e.preventDefault();render(function(){gl.click()});return}
+      e.preventDefault();
+      if(busy)return;
+      if(!linked){render(function(){linked=true;gs.textContent="Link to GIF";gl.setAttribute("aria-label","Link to GIF")});return}
+      var u=gl.href,fin=function(ok){if(gi)gi.style.display="none";gs.textContent=ok?"Link Copied!":"Copy Failed";if(gct)clearTimeout(gct);gct=setTimeout(function(){gs.textContent="Link to GIF";if(gi)gi.style.display=""},1400)};
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(function(){fin(true)},function(){fin(copyLegacy(u))});else fin(copyLegacy(u));
+    });
+  })();
+  frame.appendChild(artBox);frame.appendChild(band);frame.appendChild(title);frame.appendChild(wm);frame.appendChild(exp);stage.appendChild(frame);
   document.body.appendChild(stage);
 }
 function cellHTML(l,v,fill){return '<div class="cell '+(fill?"fill":"hug")+'"><span class="label">'+l+'</span><span class="value">'+esc(v)+'</span></div>'}
 function barsHTML(pal,usage){var maxU=Math.max.apply(null,[1].concat(usage)),minR=1/pal.length;
   return pal.map(function(c,i){var u=usage[i];if(u<=0)return '<div class="cbar unused" style="background:'+c+'"></div>';var h=Math.max(u/maxU,minR)*100;return '<div class="cbar" style="background:'+c+';height:'+h.toFixed(2)+'%"></div>'}).join("")}
 function msgCellHTML(v){return '<div class="cell msg"><span class="label">Message</span><span class="value msgv" contenteditable="true" spellcheck="false" data-ph="ADD…">'+esc(v)+'</span></div>'}
-function botHTML(tr){/* Color Ramp cell only when the trait exists (Classic Maki has none: the ramp has no effect there) */return cellHTML("Palette",tr.Palette,true)+(tr["Color Ramp"]!=null?cellHTML("Color Ramp",tr["Color Ramp"],false):"")+cellHTML("Roll Type",tr["Roll Type"],false)+cellHTML("Eyes",tr["Eye Shape"],false)}
+function botHTML(tr){/* Profile cell only when the trait exists (Classic Maki has none: the ramp has no effect there) */return cellHTML("Palette",tr.Palette,true)+(tr["Profile"]!=null?cellHTML("Profile",tr["Profile"],false):"")+cellHTML("Form",tr["Form"],false)+cellHTML("Eyes",tr["Eye Shape"],false)}
 function bandHTML(res){var tr=res.tr,isType=/^text_/.test(res.mode),msg=feats.Message||"";
-  var top=cellHTML("Pattern",isType?"Type":tr.Pattern,true)+msgCellHTML(msg)+cellHTML("Direction",tr.Direction,false)+cellHTML("Speed",tr.Speed,false);
+  var top=cellHTML("Pattern",isType?"Text":tr.Pattern,true)+msgCellHTML(msg)+cellHTML("Direction",tr.Direction,false)+cellHTML("Speed",tr.Speed,false);
   var bot=botHTML(tr);
   return '<div class="swatch"><div class="bars">'+barsHTML(res.pal,res.usage)+'</div></div><div class="data"><div class="drow top">'+top+'</div><div class="drow bot">'+bot+'</div></div>';
 }
@@ -349,9 +397,9 @@ function wireMessage(basePreset){
     var v=msgv.textContent.replace(/\s+/g," ").trim();
     if(!v&&msgv.innerHTML!=="")msgv.innerHTML="";/* drop the stray <br> contenteditable leaves behind, so :empty (the ADD… placeholder) matches again */
     var res=gen(alea.seed,v?{text:v}:undefined),isType=/^text_/.test(res.mode);
-    feats=v?Object.assign({},res.tr,{Pattern:"Type",Message:v}):res.tr;
+    feats=v?Object.assign({},res.tr,{Pattern:"Text",Message:v}):res.tr;
     curSvg=res.svg;artBox.innerHTML=curSvg;if(!hopOn)applyHop();bars.innerHTML=barsHTML(res.pal,res.usage);
-    patV.textContent=isType?"Type":res.tr.Pattern;dirV.textContent=res.tr.Direction;band.querySelector(".drow.bot").innerHTML=botHTML(res.tr);/* a custom message turns Classic Maki into Type, where the ramp matters again */
+    patV.textContent=isType?"Text":res.tr.Pattern;dirV.textContent=res.tr.Direction;band.querySelector(".drow.bot").innerHTML=botHTML(res.tr);/* a custom message turns Classic Maki into Type, where the ramp matters again */
   }
   msgv.addEventListener("input",applyMsg);
   msgv.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();msgv.blur()}});
@@ -365,10 +413,45 @@ function wireMessage(basePreset){
    stop/restart via endElement/beginElement. Stopped, each reverts to its resting base value =
    the standard pose; the fill/scroll animations are untagged and keep running. */
 function applyHop(){var svg=artBox&&artBox.querySelector("svg");if(!svg)return;var l=svg.querySelectorAll(".hop");for(var i=0;i<l.length;i++){try{hopOn?l[i].beginElement():l[i].endElement()}catch(e){}}}
+/* Build a standalone .svg of the live artwork and point the Save link at it as a blob: URL. Clone, stamp
+   width/height so it opens at a real size (viewBox stays 0 0 13 13 — the unit grid), guarantee xmlns,
+   serialize. Rebuilt on each pointerdown/focus so the href is current (e.g. after a message edit); the
+   previous object URL is revoked, the new one stays alive through the save. Left-click downloads in a
+   normal browser; in a locked-down sandbox (Aleatory) where auto-download and popups are blocked, the blob
+   still saves via right-click > "Save Link As" (desktop) or tap & hold (mobile) — a user-initiated chrome
+   action resolves the in-memory blob regardless of the frame's opaque origin. The art stays animated. */
+var _expUrl=null;
+function refreshExport(a){
+  var svg=artBox&&artBox.querySelector("svg");if(!svg)return;
+  var clone=svg.cloneNode(true),px=520;
+  clone.setAttribute("width",px);clone.setAttribute("height",px);
+  if(!clone.getAttribute("xmlns"))clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+  var str=new XMLSerializer().serializeToString(clone);
+  if(_expUrl)URL.revokeObjectURL(_expUrl);
+  _expUrl=URL.createObjectURL(new Blob([str],{type:"image/svg+xml;charset=utf-8"}));
+  a.href=_expUrl;
+  a.setAttribute("download","makimono-"+String(alea.seed||"export").slice(0,12)+".svg");
+}
+/* Clipboard fallback for contexts without the async clipboard API: a hidden textarea + execCommand, run under the click's user activation. */
+function copyLegacy(t){try{var ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(ta);ta.focus();ta.select();var ok=document.execCommand("copy");document.body.removeChild(ta);return ok}catch(e){return false}}
+/* ---- GIF export: render the live animation to an animated GIF in-browser. Every SMIL
+   animation is calcMode="discrete" on the 70ms grid, so each frame is one exact state; we
+   bake slot k from the animations' own values/keyTimes/dur, rasterize at 1040px, and encode
+   with a self-contained GIF89a writer (lossless exact palette, 7cs/70ms delays, loop forever). ---- */
+var _gifUrl=null,GPX=1040,GSLOT=70;
+function makeGif(){return generateGif().then(function(blob){return {url:URL.createObjectURL(blob),name:"makimono-"+String(alea.seed||"export").slice(0,12)+".gif"}})}
+function gGcd(a,b){return b?gGcd(b,a%b):a}
+function gLcm(a,b){return a/gGcd(a,b)*b}
+function gLoop(svg){var ds={},any=false;svg.querySelectorAll("animate,animateTransform").forEach(function(a){var m=/(\d+)ms/.exec(a.getAttribute("dur")||"");if(m){ds[+m[1]]=1;any=true}});if(!any)return 840;return Object.keys(ds).map(Number).reduce(gLcm)}
+function gBake(src,t){var clone=src.cloneNode(true);clone.querySelectorAll("animate,animateTransform").forEach(function(node){var parent=node.parentNode;var vals=(node.getAttribute("values")||"").split(";");var ktA=node.getAttribute("keyTimes");var kts=ktA?ktA.split(";").map(Number):vals.map(function(_,i){return vals.length>1?i/(vals.length-1):0});var dM=/(\d+(?:\.\d+)?)ms/.exec(node.getAttribute("dur")||""),dur=dM?parseFloat(dM[1]):0;var bM=/(\d+(?:\.\d+)?)ms/.exec(node.getAttribute("begin")||""),begin=bM?parseFloat(bM[1]):0;var apply=true,val=vals[0];if(dur>0){var local=t-begin;if(local<0){apply=false}else{local=local%dur;var frac=local/dur,bi=0;for(var j=0;j<kts.length;j++){if(kts[j]<=frac+1e-9)bi=j;else break}val=vals[Math.min(bi,vals.length-1)]}}if(apply&&parent){if(node.tagName.toLowerCase()==="animatetransform"){var type=node.getAttribute("type")||"translate";parent.setAttribute("transform",type+"("+val.trim().replace(/\s+/g,",")+")")}else{parent.setAttribute(node.getAttribute("attributeName"),val)}}node.parentNode&&node.parentNode.removeChild(node)});return clone}
+function gRaster(clone){clone.setAttribute("width",GPX);clone.setAttribute("height",GPX);if(!clone.getAttribute("xmlns"))clone.setAttribute("xmlns","http://www.w3.org/2000/svg");var str=new XMLSerializer().serializeToString(clone);var url="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(str);return new Promise(function(res,rej){var img=new Image();img.width=GPX;img.height=GPX;img.onload=function(){var fin=function(){var c=document.createElement("canvas");c.width=GPX;c.height=GPX;var ctx=c.getContext("2d");ctx.imageSmoothingEnabled=false;try{ctx.drawImage(img,0,0,GPX,GPX)}catch(e){return rej(new Error("drawImage: "+e.message))}var d;try{d=ctx.getImageData(0,0,GPX,GPX).data}catch(e){return rej(new Error("getImageData: "+e.message))}var op=false;for(var i=3;i<d.length;i+=4){if(d[i]!==0){op=true;break}}if(!op)return rej(new Error("raster blank"));res(d)};if(img.decode)img.decode().then(fin,function(){fin()});else fin()};img.onerror=function(){rej(new Error("svg image load error"))};img.src=url})}
+function gLzw(px,minCode){var clear=1<<minCode,eoi=clear+1,codeSize=minCode+1,next=eoi+1,dict=new Map();var out=[],cur=0,n=0;function wr(code){cur|=code<<n;n+=codeSize;while(n>=8){out.push(cur&255);cur>>=8;n-=8}}wr(clear);var prefix=px[0];for(var i=1;i<px.length;i++){var k=px[i],key=(prefix<<8)|k,c=dict.get(key);if(c!==undefined){prefix=c}else{wr(prefix);if(next<4096){dict.set(key,next++);if(next>(1<<codeSize)&&codeSize<12)codeSize++}else{wr(clear);dict.clear();next=eoi+1;codeSize=minCode+1}prefix=k}}wr(prefix);wr(eoi);if(n>0)out.push(cur&255);return out}
+function gGif(idxs,w,h,palette,delayCs){var p=0;while((1<<(p+1))<palette.length)p++;var tableCount=1<<(p+1),minCode=Math.max(2,p+1),out=[];function b(v){out.push(v&255)}function sh(v){out.push(v&255);out.push((v>>8)&255)}function st(s){for(var i=0;i<s.length;i++)out.push(s.charCodeAt(i)&255)}st("GIF89a");sh(w);sh(h);b(0x80|(p<<4)|p);b(0);b(0);for(var i=0;i<tableCount;i++){var c=palette[i]||[0,0,0];b(c[0]);b(c[1]);b(c[2])}b(0x21);b(0xFF);b(11);st("NETSCAPE2.0");b(3);b(1);sh(0);b(0);for(var fi=0;fi<idxs.length;fi++){b(0x21);b(0xF9);b(4);b(0);sh(delayCs);b(0);b(0);b(0x2C);sh(0);sh(0);sh(w);sh(h);b(0);b(minCode);var data=gLzw(idxs[fi],minCode),o=0;while(o<data.length){var nn=Math.min(255,data.length-o);b(nn);for(var j=0;j<nn;j++)b(data[o+j]);o+=nn}b(0)}b(0x3B);return new Uint8Array(out)}
+function generateGif(){var live=artBox&&artBox.querySelector("svg");if(!live)return Promise.reject(new Error("no svg"));var loop=gLoop(live),frames=Math.max(1,Math.round(loop/GSLOT)),N=GPX*GPX,map={},palette=[],idxs=[];var step=function(k){if(k>=frames)return Promise.resolve();return gRaster(gBake(live,(k+0.5)*GSLOT)).then(function(data){var idx=new Uint8Array(N);for(var pp=0;pp<N;pp++){var key=(data[pp*4]<<16)|(data[pp*4+1]<<8)|data[pp*4+2],ci=map[key];if(ci===undefined){ci=palette.length;if(ci>255)throw new Error("too many colors");map[key]=ci;palette.push([data[pp*4],data[pp*4+1],data[pp*4+2]])}idx[pp]=ci}idxs.push(idx);return step(k+1)})};return step(0).then(function(){return new Blob([gGif(idxs,GPX,GPX,palette,Math.round(GSLOT/10))],{type:"image/gif"})})}
 function mkmnRender(){
   ensureStage();
   var res=gen(alea.seed),msg=MSGOF[res.mode]||"";
-  feats=msg?Object.assign({},res.tr,{Pattern:"Type",Message:msg}):res.tr;
+  feats=msg?Object.assign({},res.tr,{Pattern:"Text",Message:msg}):res.tr;
   curSvg=res.svg;artBox.innerHTML=curSvg;
   stage.style.setProperty("--bg",res.bg);
   stage.style.setProperty("--ink-rgb",hexRGB(res.ink));
@@ -391,6 +474,14 @@ alea.ready();
     if(e.key==="i"||e.key==="I"){e.preventDefault();if(stage)stage.classList.toggle("show")}
     else if(e.key==="m"||e.key==="M"){e.preventDefault();hopOn=!hopOn;if(hopOn){if(artBox)artBox.innerHTML=curSvg}else applyHop()}/* hop off: rest pose, fills keep running. hop on: re-inject the svg so hop and fills restart together from t=0 */
     else if(e.key==="Escape"&&stage)stage.classList.remove("show");
+  });
+  /* Touch has no "i" key, so a tap on the artwork toggles the band (same as "i"). Taps inside the open band (incl. the Message input) and on the Save pill keep their own behavior. The band is hidden on load so it stays out of Aleatory's static capture. */
+  window.addEventListener("click",function(e){
+    if(!stage)return;
+    var t=e.target;
+    if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;
+    if(t&&t.closest&&t.closest(".band, .export-bar"))return;
+    stage.classList.toggle("show");
   });
 })();
 })();
