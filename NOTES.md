@@ -1,6 +1,6 @@
 # Known issues
 
-These issues affect `makimono.html`, `makimono.mint.html` and `index.html`. The minted collection (`makimono.mint.html`) was published before they were found, so the fixes below are **not** in it. Each has a tested fix, recorded here for a future edition and for updating the demo.
+These issues affect `makimono.html`, `makimono.mint.html` and `index.html`. The minted collection (`makimono.mint.html`) was published before they were found, so the fixes below are **not** in it. Each has a fix recorded here for a future edition and for updating the demo. The fixes for issues 1 and 2 have been tested; the fixes for issues 3 and 4 are written out but not yet built.
 
 To apply a fix: change `makimono.html` first, then rebuild `makimono.mint.html` (comments stripped) and `index.html` (plus the three.js CDN script), as described in the README.
 
@@ -92,3 +92,49 @@ Ship together with issue 3.
 This matches phones and tablets without a mouse or trackpad and leaves desktops (including touchscreen laptops with a trackpad) unchanged. The SVG and GIF buttons stay.
 
 Optionally, also stop the `G` key from opening the game on those devices, for tablets with a keyboard. Not essential, since the button is the main way in on mobile.
+
+---
+
+## 4. GIF export keeps an earlier version after the Message changes
+
+**Affects:** all three files. Desktop and mobile.
+
+**Symptom.** The GIF button downloads whatever the art looked like the *first* time it was clicked. Type a custom message, save a GIF, then clear the message: the next GIF still shows the custom text instead of the original. It also happens the other way round (save the original, add a message, still get the original). The SVG export isn't affected.
+
+**Cause.** The SVG is rebuilt from the current art on every click. The GIF takes a few seconds to render, so it's rendered on the first click and cached for reuse. The cache is a single `ready` flag that's set once and never reset, so later changes to the art are never picked up.
+
+**Fix (not yet built).** Remember *which* art the cached GIF was made from, and only reuse it if the art is still the same at click time. The current art is already kept as one string, `curSvg`, which the Message field updates whenever it changes the art. Compare against it, not against the typed text: some different inputs produce the same art (e.g. `yolo` and `YOLO ` with a trailing space), and on a Text piece, clearing the field restores the piece's own word, so the art matches the original again.
+
+That gives:
+
+| Case | On GIF click |
+| --- | --- |
+| First click | Nothing cached, so render the current art (the original) |
+| Message field focused, nothing typed | Art unchanged, so reuse the cached GIF |
+| Typed, then deleted back to nothing | Art unchanged, so reuse |
+| Typed, then clicked | Art differs, so discard the cache and render the typed version |
+| Message deleted after a typed version was rendered | Art differs (back to the original), so discard and render the original |
+
+In the GIF export block, replace the `ready` flag with a record of the art the cached GIF was made from:
+
+```js
+var gifFor=null,pass=false; // gifFor: the curSvg the cached GIF was rendered from
+function fresh(){return !!_gifUrl&&gifFor===curSvg}
+function render(cb){if(fresh())return cb&&cb();if(busy)return;busy=true;spin(true);var want=curSvg;
+  makeGif().then(function(r){if(_gifUrl)URL.revokeObjectURL(_gifUrl);_gifUrl=r.url;gl.href=r.url;gl.setAttribute("download",r.name);gifFor=want;busy=false;spin(false);cb&&cb()},
+    function(err){console.error(err);busy=false;spin(false)})}
+gl.addEventListener("click",function(e){
+  if(!sandbox){
+    if(pass){pass=false;return}        // the click that follows a fresh render: let the download go through
+    if(fresh())return;                 // cached GIF still matches the art: download it as-is
+    e.preventDefault();render(function(){pass=true;gl.click()});return}
+  // sandbox ("Link to GIF") path: drop a stale link before reusing it
+  if(linked&&!fresh()){linked=false;gs.textContent="GIF";gl.setAttribute("aria-label","Save GIF")}
+  // ...existing sandbox path continues unchanged...
+```
+
+Notes:
+- **The hop toggle (`M`) is deliberately not part of the check.** It only pauses the hop on screen; the GIF is built from the art's animation markup, which always includes the hop, so every GIF shows the standard hopped version regardless of `M`.
+- **If the art changes while a GIF is rendering,** that render still completes and downloads the version that was clicked. It's recorded against the art at click time, so the next click sees the newer art and renders again.
+- **`pass`** lets the follow-up click download the just-rendered GIF even if the art changed during rendering, instead of starting another render.
+- **The sandbox branch** ("Link to GIF" / copy link) is a fallback for frames that block downloads. Aleatory now allows downloads, so it normally stays unused, but the stale-link reset keeps it correct if it ever runs.
