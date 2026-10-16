@@ -243,7 +243,7 @@ function paths(M){const by={};for(const k in M){const[x,y]=k.split(",").map(Numb
 let o="";for(const col in by){const cs=by[col].sort((a,b)=>a[1]-b[1]||a[0]-b[0]);let d="";for(let i=0;i<cs.length;){let j=i;while(j+1<cs.length&&cs[j+1][1]===cs[i][1]&&cs[j+1][0]===cs[j][0]+1)j++;const w=j-i+1;d+="M"+cs[i][0]+" "+cs[i][1]+"h"+w+"v1h-"+w+"z";i=j+1}o+='<path fill="'+col+'" d="'+d+'"/>'}return o}
 const clean=t=>t.toUpperCase().split("").filter(c=>c===" "||FONT[c]).join("");
 const adv=t=>t.split("").reduce((a,c)=>a+(c===" "?2:4),0);
-function gen(seed,opt){opt=opt||{};const R=rng(seed);let F0=null;
+function gen(seed,opt){opt=opt||{};window.MAKI_TXT=null;const R=rng(seed);let F0=null;
 let cp=PAL.cur,pmix=1;if(cp==="mix"){const[m,q]=wp(R,MIX);cp=m[0];pmix=q}
 const Q=cp!=="classic",[rm,p0]=wp(R,RAMP);let C=ramp(rm[0],R);
 let[pt,pp]=wp(R,patList(rm[0]));const[di,pd]=wp(R,DIR);const su=R();let sp,ps;/* speed is drawn here (same RNG position) but resolved after the pattern is final, see pickSpeed */
@@ -266,7 +266,7 @@ for(let y=0;y<11;y++)for(let x=0;x<11;x++){const t=T[y][x];if(t==="r"&&!inF(x,y)
 const H=sh[1],top=10-H;
 let body="";
 if(RENDER[pt[0]]==="marquee"){let M={},steps,v=[];
-if(isText(pt[0])){const L=adv(msg),uc=[...new Set(C)];steps=Math.ceil((L+8)/12)*12;let cx=0;/* pad with blank steps so the loop is a whole number of hops at every speed */
+if(isText(pt[0])){const L=adv(msg),uc=[...new Set(C)];window.MAKI_TXT={msg:msg,cols:uc};steps=Math.ceil((L+8)/12)*12;let cx=0;/* pad with blank steps so the loop is a whole number of hops at every speed. MAKI_TXT: the exact message + letter colours, read by the game's sky letters */
 msg.split("").forEach((ch,i)=>{if(ch!==" "){const g=FONT[ch];for(let r=0;r<3;r++)for(let c=0;c<3;c++)if(g[r*3+c]==="1")M[(9+cx+c)+","+(2+r)]=uc[i%uc.length]}cx+=ch===" "?2:4});
 for(let k=0;k<steps;k++)v.push("-"+k+" 0")}
 else{const fq=pt[0]==="wave_2"?2:1;steps=12;let py=null;
@@ -335,9 +335,12 @@ function ensureStage(){
   var title=document.createElement("div");title.className="poster-title";title.innerHTML='<div class="poster-title-label">project</div><div class="poster-title-value">MAKIMONO</div>';
   var wm=document.createElement("div");wm.className="watermark";wm.innerHTML='<svg viewBox="0 0 90 30" preserveAspectRatio="xMaxYMax meet" xmlns="http://www.w3.org/2000/svg"><g><rect width="24" height="6"/><rect y="16" width="24" height="6"/><rect y="24" width="12" height="6"/><rect x="12" y="8" width="18" height="6"/><rect x="30" y="8" width="24" height="6"/><rect x="30" y="24" width="24" height="6"/><rect x="36" width="24" height="6"/><rect x="36" y="16" width="24" height="6"/><rect x="60" width="24" height="6"/><rect x="60" y="16" width="24" height="6"/><rect x="60" y="24" width="12" height="6"/><rect x="72" y="8" width="18" height="6"/><rect x="78" y="24" width="12" height="6"/></g></svg>';
   var ARR='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 2.133c.294 0 .533.239.533.533v9.38l3.356-3.357a.533.533 0 0 1 .754.754L8.376 13.71a.534.534 0 0 1-.754 0L3.355 9.443a.533.533 0 1 1 .755-.754l3.356 3.356V2.666c0-.294.239-.533.533-.533" clip-rule="evenodd"/></svg>';
+  /* game-launch globe, simplified for small sizes: outline + equator + one meridian, stroked at the arrow's ~1.07 weight and height */
+  var GLOBE='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.1"><circle cx="8" cy="8" r="5.3"/><path d="M2.7 8h10.6"/><ellipse cx="8" cy="8" rx="2.3" ry="5.3"/></g></svg>';
   var exp=document.createElement("div");exp.className="export-bar";
-  exp.innerHTML='<a class="button" download href="about:blank" aria-label="Save SVG"><span>SVG</span>'+ARR+'</a><a class="button" download href="about:blank" aria-label="Save GIF"><span>GIF</span>'+ARR+'</a>';
-  var dl=exp.children[0],gl=exp.children[1];dl.addEventListener("pointerdown",function(){refreshExport(dl)});dl.addEventListener("focus",function(){refreshExport(dl)});
+  exp.innerHTML='<a class="button" href="#" role="button" aria-label="Play Katamaki"><span>KATAMAKI</span>'+GLOBE+'</a><a class="button" download href="about:blank" aria-label="Save SVG"><span>SVG</span>'+ARR+'</a><a class="button" download href="about:blank" aria-label="Save GIF"><span>GIF</span>'+ARR+'</a>';
+  var kb=exp.children[0];kb.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(window.KATAMAKI_LAUNCH)window.KATAMAKI_LAUNCH()}); // opens the game's welcome screen (same as G)
+  var dl=exp.children[1],gl=exp.children[2];dl.addEventListener("pointerdown",function(){refreshExport(dl)});dl.addEventListener("focus",function(){refreshExport(dl)});
   /* Downloads work in most contexts now (incl. Aleatory), so default to a normal download and
      only fall back to the right-click / tap & hold "Link to..." flow when we can positively
      detect that downloads are blocked -- a sandboxed iframe whose sandbox lacks allow-downloads.
@@ -486,6 +489,576 @@ alea.ready();
     stage.classList.toggle("show");
   });
 })();
+})();
+</script>
+<style>
+#game{position:fixed;inset:0;z-index:50;display:none;background:#05060a;font-family:ui-monospace,Menlo,Consolas,monospace}
+#game.on{display:block}
+#game canvas{display:block;width:100%;height:100%}
+#game .hud{position:absolute;inset:0;pointer-events:none;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+#game .traits{position:absolute;top:14px;left:16px;font-size:22px;font-weight:700;letter-spacing:.04em;line-height:1} /* now the objects counter, styled to match the timer */
+#game .traits b{font-size:11px;font-weight:600;opacity:.6;letter-spacing:.1em;margin-right:8px;vertical-align:middle}
+#game .timer{position:absolute;top:14px;right:16px;font-size:22px;font-weight:700;letter-spacing:.04em}
+#game .exit{position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:11px;opacity:.5}
+#game .sizebar{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);width:min(62vw,380px);height:12px;border:1.5px solid rgba(255,255,255,.65);border-radius:999px;overflow:hidden}
+#game .sizebar>i{display:block;height:100%;width:0;background:#fff;transition:width .12s linear}
+#game .sizelab{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);font-size:11px;opacity:.8}
+#game .hint{position:absolute;left:50%;top:calc(100% - 50px);transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);font-size:11px;line-height:1.5;opacity:.6;text-align:center;text-wrap:balance} /* anchored just under the bar and grows downward, so a wrap never climbs into the bar */
+#game .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(5,6,10,.74);text-align:center;color:#fff;pointer-events:auto;padding:24px}
+#game .overlay h2{margin:0;font-size:26px;font-weight:700;letter-spacing:.03em}
+#game .overlay p{margin:0;opacity:.82;font-size:13px;line-height:1.5;max-width:380px;text-wrap:pretty}
+#game .overlay button{margin-top:10px;padding:11px 22px;border:1.5px solid #fff;background:transparent;color:#fff;border-radius:999px;font:600 13px ui-monospace,monospace;cursor:pointer;text-transform:uppercase;letter-spacing:.1em;display:inline-flex;align-items:center;gap:10px}
+#game .overlay button kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:18px;height:18px;padding:0 5px;margin-right:-8px;border:1px solid currentColor;border-radius:5px;font:700 10px ui-monospace,monospace;letter-spacing:0;opacity:.7} /* keyboard shortcut badge, right of the label */
+#game .overlay button:active{background:#fff;color:#05060a}
+#game .overlay .grade{font:800 15px ui-monospace,monospace;letter-spacing:.24em;margin:0}
+#game .overlay .medal{line-height:0;margin:0}
+#game .overlay .medal:empty,#game .overlay .grade:empty{display:none}
+#game .hidden{display:none}
+</style>
+<div id="game">
+  <div class="hud">
+    <div class="traits"></div>
+    <div class="timer"></div>
+    <div class="exit">G / ESC for art</div>
+    <div class="sizelab"></div>
+    <div class="sizebar"><i></i></div>
+    <div class="hint">W / S roll &middot; A / D steer &middot; Space hop &middot; P pause &middot; R restart</div>
+  </div>
+  <div class="overlay start"><h2>Welcome to Katamaki</h2><p class="desc"></p><button class="go">Start Rolling<kbd>Enter</kbd></button></div>
+  <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd>P</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
+  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Continue Rolling<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button></div>
+  <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd>P</kbd></button></div>
+</div>
+<script>
+(function(){
+  var GAME=document.getElementById("game"),HUD={traits:GAME.querySelector(".traits"),timer:GAME.querySelector(".timer"),bar:GAME.querySelector(".sizebar>i"),sizelab:GAME.querySelector(".sizelab"),start:GAME.querySelector(".overlay.start"),end:GAME.querySelector(".overlay.end"),desc:GAME.querySelector(".desc"),et:GAME.querySelector(".et"),em:GAME.querySelector(".em"),medal:GAME.querySelector(".medal"),grade:GAME.querySelector(".grade"),again:GAME.querySelector(".again"),keep:GAME.querySelector(".keep"),pause:GAME.querySelector(".overlay.pause"),confirm:GAME.querySelector(".overlay.confirm"),pstat:GAME.querySelector(".pstat")};
+  if(!window.THREE){ // three.js not supplied (e.g. opened from disk without the declared library): keep the page alive, say so in the game overlay
+    var noLib=function(){GAME.classList.add("on");HUD.end.classList.add("hidden");HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="(three.js not loaded)";HUD.desc.appendChild(es);GAME.querySelector(".go").style.display="none"};
+    window.KATAMAKI_LAUNCH=noLib;
+    window.addEventListener("keydown",function(e){var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;if(e.key==="g"||e.key==="G"){e.preventDefault();if(GAME.classList.contains("on"))GAME.classList.remove("on");else noLib()}else if(e.key==="Escape")GAME.classList.remove("on")});
+    return}
+  var SR_BASE=26, SR=26, R0=1.1;
+  var renderer,scene,cam,ball,core,clump,planet,character,keyLight,props=[],terrain=[],enemies=[],clouds=[],obstacles=[],keys={},raf=0,running=false,built=false;
+  var blobTex,blobMat,playerShadow; // flat contact-shadow assets
+  var freeRoll=false; // after a medal, keep rolling with no clock
+  var bumpV=new THREE.Vector3(),wobT=0,banner=null,ants=[]; // monster knockback velocity, hit wobble timer, sky message banner, roaming ants // monster knockback velocity, hit wobble timer, sky message banner
+  var ballR,timeLeft,pips=0,up,fwd,pPos,hopT=0,hopDur=0.42,lastT=0,params={};
+  var camSide=1,camSideCur=1; // RC-car chase cam: preferred shoulder (+1/-1), eased
+
+  function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  function hash(s){var h=2166136261;s=String(s||"makimono");for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+  var rnd=mulberry(1);
+
+  function readTraits(){var m={};document.querySelectorAll(".band .cell").forEach(function(c){var l=c.querySelector(".label"),v=c.querySelector(".value");if(l&&v)m[l.textContent.trim()]=v.textContent.trim()});return m}
+  function readGrid(){return new Promise(function(res){var svg=document.querySelector(".art-box svg");if(!svg)return res(null);var cl=svg.cloneNode(true);cl.setAttribute("width",13);cl.setAttribute("height",13);if(!cl.getAttribute("xmlns"))cl.setAttribute("xmlns","http://www.w3.org/2000/svg");var str=new XMLSerializer().serializeToString(cl);var img=new Image();img.onload=function(){var c=document.createElement("canvas");c.width=13;c.height=13;var x=c.getContext("2d");x.imageSmoothingEnabled=false;x.drawImage(img,0,0,13,13);var d=x.getImageData(0,0,13,13).data,a=[];for(var i=0;i<169;i++)a.push([d[i*4],d[i*4+1],d[i*4+2]]);res(a)};img.onerror=function(){res(null)};img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(str)})}
+  function col(a){return new THREE.Color(a[0]/255,a[1]/255,a[2]/255)}
+  function chroma(a){return Math.max(a[0],a[1],a[2])-Math.min(a[0],a[1],a[2])}
+  function sum(a){return a[0]+a[1]+a[2]}
+  function eq(a,b){return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2])<24}
+
+  function deriveParams(tr,cells){
+    var p={};
+    p.form=(tr.Form||"").toLowerCase();
+    p.pattern=(tr.Pattern||"").toLowerCase();
+    p.speed=(tr.Speed||"").toLowerCase();
+    var fast=/fast/.test(p.speed),slow=/slow/.test(p.speed);
+    p.time=fast?30:slow?50:40;
+    p.targetMul=fast?4.0:slow?2.6:3.2;
+    p.chase=/chase/.test(p.pattern);
+    p.enemyN=p.chase?3:/sparkle|checker|ripple/.test(p.pattern)?2:1;
+    p.stepMs=fast?70:slow?210:140;
+    p.dir=/left|ccw|west|anti/.test((tr.Direction||"").toLowerCase())?-1:1;
+    p.isText=/text|marquee/.test(p.pattern);
+    p.kind=/checker/.test(p.pattern)?"checker":/ripple/.test(p.pattern)?"ripple":/chase/.test(p.pattern)?"chase":/diagonal/.test(p.pattern)?"diagonal":/sparkle/.test(p.pattern)?"sparkle":/maki/.test(p.pattern)?"rings":/text|marquee|scroll/.test(p.pattern)?"scroll":"flow";
+    // colour pools from the real pixels
+    var bg=cells?cells[0]:[10,10,12];
+    var nonbg=(cells||[]).filter(function(a){return !eq(a,bg)});
+    var seen={},uniq=[];nonbg.forEach(function(a){var k=(a[0]>>4)+"_"+(a[1]>>4)+"_"+(a[2]>>4);if(!seen[k]){seen[k]=1;uniq.push(a)}});
+    if(!uniq.length)uniq=[[230,60,150],[60,200,230],[240,220,80]];
+    var dark=uniq.slice().sort(function(a,b){return sum(a)-sum(b)})[0];
+    var light=uniq.slice().sort(function(a,b){return sum(b)-sum(a)})[0];
+    var pipPool=uniq.filter(function(a){return chroma(a)>55});if(!pipPool.length)pipPool=[light];
+    p.bg=bg;p.uniq=uniq;p.pip=pipPool;p.dark=dark;p.light=light;
+    p.planet=/uramaki/.test(p.form)?light:dark;
+    p.accent=pipPool[0];
+    return p;
+  }
+
+  function fibDir(i,n){var y=1-(i/(n-1))*2,r=Math.sqrt(Math.max(0,1-y*y)),ph=i*2.399963229728653;return new THREE.Vector3(Math.cos(ph)*r,y,Math.sin(ph)*r)}
+  var YUP=new THREE.Vector3(0,1,0),QT=new THREE.Quaternion();
+  // ---- faceted low-poly planet: a displaced icosphere with flat per-face biome colours ----
+  // relief01 is a pure function of surface direction (no RNG), so the mesh and the gameplay
+  // height query (surfaceR) agree exactly -- the player always rides the facets you see.
+  var WATER=0.40, RELIEF=8.5;
+  function noise3(x,y,z){return Math.sin(x*1.7+1.3)*Math.cos(y*1.9+2.1)+Math.sin(z*2.3+0.7)*Math.cos(x*1.1+3.3)+Math.sin((x+z)*1.3)*0.6}
+  function fbm(d){var a=1,f=1.4,s=0,amp=0;for(var o=0;o<4;o++){s+=a*noise3(d.x*f+o*4.1,d.y*f+o*7.3,d.z*f+o*2.7);amp+=a;a*=0.5;f*=2.03}return s/amp}
+  function relief01(d){return Math.max(0,Math.min(1,0.5+0.46*fbm(d)))}
+  function surfaceFromH(h){return SR+(h<WATER?WATER:h)*RELIEF} // seas sit flat at the water line
+  function surfaceR(d){return surfaceFromH(relief01(d))}
+  function colH(d){return surfaceR(d)-SR} // land height above the base sphere, for the player to ride
+  function fmat(c,o){return new THREE.MeshStandardMaterial(Object.assign({color:c,flatShading:true,roughness:.82},o||{}))}
+  function shadowify(o,cast,recv){o.traverse(function(n){if(n.isMesh){n.castShadow=cast;n.receiveShadow=recv}})}
+  function makeBlob(r){var pg=new THREE.PlaneGeometry(r*2,r*2);pg.rotateX(-Math.PI/2);var m=new THREE.Mesh(pg,blobMat);m.position.y=0.03;m.renderOrder=2;return m} // one flat soft disc -> clean single contact shadow, never breaks when geometry clips terrain
+  // lofted tapered body from a list of rings [x, centerY, radiusY, radiusZ] -> one flat-shaded creature body (fish)
+  function ringBody(rings,c1,c2,sides){sides=sides||11;var P=[],Cl=[],T=Math.PI*2,A=new THREE.Color(c1),B=new THREE.Color(c2==null?c1:c2);
+    function rp(r,j){var a=j/sides*T;return [r[0],r[1]+Math.sin(a)*r[2],Math.cos(a)*r[3]]}
+    function tri(a,b,c){P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);var y=(a[1]+b[1]+c[1])/3,k=y<-0.08?B:A;for(var q=0;q<3;q++)Cl.push(k.r,k.g,k.b)}
+    for(var i=0;i<rings.length-1;i++)for(var j=0;j<sides;j++){var p0=rp(rings[i],j),p1=rp(rings[i+1],j),p2=rp(rings[i+1],j+1),p3=rp(rings[i],j+1);tri(p0,p1,p2);tri(p0,p2,p3)}
+    var g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setAttribute("color",new THREE.Float32BufferAttribute(Cl,3));g.computeVertexNormals();
+    return new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,flatShading:true,roughness:.6,side:THREE.DoubleSide}));
+  }
+  /* The Pattern trait animates ONLY a sparse set of "filling" features (they grow up/down from
+     the ground); the planet surface itself is static. Keeps it grounded and cheap. */
+  function wave(c,p,t){var k=p.kind,ph=c.phase||0,lon=Math.atan2(c.dir.z,c.dir.x);
+    if(k==="checker")return c.parity?0.5+0.5*Math.sin(t/520):0.1;
+    if(k==="ripple")return 0.5+0.5*Math.sin(c.dir.y*6-t/360);
+    if(k==="scroll")return 0.5+0.5*Math.sin(lon*5-t/440*(p.dir||1));
+    if(k==="diagonal")return 0.5+0.5*Math.sin((lon+c.dir.y)*4-t/440);
+    if(k==="sparkle")return Math.sin(t/420+ph)>0.6?1:0.08;
+    if(k==="rings")return 0.5+0.5*Math.sin(c.dir.y*9);
+    if(k==="chase")return 0.5+0.5*Math.sin(t/500+ph);
+    return 0.5+0.5*Math.sin(ph+c.dir.x*3+c.dir.y*2-t/760); // flow
+  }
+  // ---- raw ingredients + sushi-bar objects (collectibles), recognizable low-poly ----
+  var INGK=["fish","fish2","shrimp","avocado","cucumber","eggplant","carrot","edamame","onigiri","soy","teacup","oshibori"];
+  function buildIngredient(kind){
+    var g=new THREE.Group(),C=THREE.Color;
+    function add(geo,c,o,px,py,pz,rot){var m=new THREE.Mesh(geo,fmat(c,o));if(px!=null)m.position.set(px,py,pz);if(rot)m.rotation.set(rot[0],rot[1],rot[2]);g.add(m);return m}
+    function lathe(profile,c,seg,o){var pts=profile.map(function(a){return new THREE.Vector2(a[0],a[1])});return new THREE.Mesh(new THREE.LatheGeometry(pts,seg||12),fmat(c,o))} // revolve a 2D profile -> clean rounded silhouette, flat-faceted
+    function slab(outline,depth,c,o){var s=new THREE.Shape();outline.forEach(function(pt,i){i?s.lineTo(pt[0],pt[1]):s.moveTo(pt[0],pt[1])});var bv=Math.min(0.1,depth*0.35),ge=new THREE.ExtrudeGeometry(s,{depth:depth,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelSegments:1,steps:1});ge.translate(0,0,-depth/2);return new THREE.Mesh(ge,fmat(c,o))} // extrude a 2D outline
+    function put(m,x,y,z,rx,ry,rz){if(x!=null)m.position.set(x,y,z);if(rx||ry||rz)m.rotation.set(rx||0,ry||0,rz||0);g.add(m);return m}
+    if(kind==="fish"||kind==="fish2"){ // lofted ring body + extruded fins (per the reference)
+      var fc=kind==="fish"?0xff8a4c:0x8a9aa6,belly=kind==="fish"?0xffd9c6:0xdfe8ee,fin=kind==="fish"?0xe8723a:0x5f6e79,Y=0.52;
+      var bod=ringBody([[-0.78,0,0.04,0.05],[-0.70,0,0.17,0.15],[-0.52,0.02,0.31,0.26],[-0.26,0.02,0.40,0.33],[0.06,0.02,0.40,0.34],[0.32,0.03,0.33,0.28],[0.54,0.035,0.22,0.19],[0.70,0.035,0.12,0.12],[0.78,0.035,0.04,0.05]],fc,belly,12);bod.position.y=Y;g.add(bod);
+      put(slab([[0,0],[-0.42,0.34],[-0.54,0],[-0.42,-0.34]],0.05,new C(fin),{roughness:.5}),-0.8,Y,0);   // forked tail fan
+      put(slab([[0.28,0],[-0.04,0.42],[-0.42,0]],0.05,new C(fin),{roughness:.5}),0,Y+0.38,0);             // dorsal fin
+      [1,-1].forEach(function(sd){
+        put(slab([[0,0],[0.42,-0.22],[0.06,-0.36]],0.04,new C(fin),{roughness:.5}),0.18,Y-0.05,0.24*sd);   // pectoral fin (both sides)
+        add(new THREE.SphereGeometry(.11,10,8),new C(0xf4efdc),{roughness:.35},0.58,Y+0.12,0.2*sd);                       // white eyeball (both sides)
+        add(new THREE.CircleGeometry(.055,12),new C(0x15110c),{roughness:.5,side:THREE.DoubleSide},0.58,Y+0.12,0.312*sd); // flat black iris on the eyeball
+      });
+    } else if(kind==="shrimp"){ // curled ebi: banded shell segments + fan tail + legs + antennae + eyes
+      var sa=0xf2a07a,sb=0xffe0cc,Y2=0.55;
+      var sp=new THREE.CatmullRomCurve3([new THREE.Vector3(0.55,Y2+0.28,0),new THREE.Vector3(0.28,Y2+0.44,0),new THREE.Vector3(-0.06,Y2+0.44,0),new THREE.Vector3(-0.36,Y2+0.3,0),new THREE.Vector3(-0.52,Y2+0.04,0),new THREE.Vector3(-0.44,Y2-0.22,0)]);
+      var NS=8;for(var si=0;si<NS;si++){var tt=si/(NS-1),pp=sp.getPoint(tt),tg=sp.getTangent(tt),an=Math.atan2(tg.y,tg.x),sz=0.34-0.2*tt;var pl=add(new THREE.IcosahedronGeometry(1,0),si%2?sa:sb,{roughness:.45},pp.x,pp.y,pp.z);pl.scale.set(sz*0.85,sz,sz*1.15);pl.rotation.z=an}
+      var hp=sp.getPoint(0);
+      for(var li=0;li<5;li++){var lp=sp.getPoint(0.22+li*0.12);add(new THREE.CylinderGeometry(0.015,0.03,0.26,4),new C(sb),{roughness:.5},lp.x,lp.y-0.22,0,[0,0,0.3])}
+      [1,-1].forEach(function(sd){add(new THREE.CylinderGeometry(0.012,0.02,0.72,4),new C(sa),{roughness:.5},hp.x+0.28,hp.y+0.14,0.06*sd,[0,0,-0.95])});
+      put(new THREE.Mesh(new THREE.ConeGeometry(0.07,0.3,5),fmat(new C(sa),{roughness:.45})),hp.x+0.2,hp.y+0.02,0,0,0,-1.3);
+      [0.24,-0.24].forEach(function(z){var sd=z>0?1:-1;add(new THREE.SphereGeometry(.1,10,8),new C(0xf4efdc),{roughness:.35},hp.x+0.16,hp.y+0.2,z);add(new THREE.CircleGeometry(.05,12),new C(0x15110c),{roughness:.5,side:THREE.DoubleSide},hp.x+0.16,hp.y+0.2,z+0.105*sd)}); // eyes stand out from the head, fish-style eyeball + flat iris
+      var ep=sp.getPoint(1),ea=Math.atan2(sp.getTangent(1).y,sp.getTangent(1).x);
+      [-0.26,0,0.26].forEach(function(zz){put(slab([[0,0],[0.28,0.12],[0.44,0],[0.28,-0.12]],0.03,new C(sb),{roughness:.5}),ep.x,ep.y,zz*0.16,0,zz,ea)});
+    } else if(kind==="avocado"){ // whole avocado: pear/teardrop body + small stem
+      put(lathe([[0,0],[0.26,0.08],[0.38,0.26],[0.42,0.5],[0.38,0.78],[0.28,1.04],[0.16,1.26],[0.07,1.4],[0,1.46]],new C(0x3f6a2a),13,{roughness:.65}),0,0,0);
+      add(new THREE.CylinderGeometry(.035,.05,.12,5),new C(0x5a4327),{roughness:.7},0,1.5,0);
+    } else if(kind==="cucumber"){ // lathed cucumber pod, laid down
+      put(lathe([[0,0],[0.12,0.08],[0.2,0.25],[0.21,1.0],[0.16,1.25],[0,1.35]],new C(0x4f8f33),10,{roughness:.6}),0,0.21,0,0,0,Math.PI/2);
+    } else if(kind==="eggplant"){ // lathed bulb + green calyx + stem
+      put(lathe([[0,0],[0.3,0.08],[0.42,0.3],[0.44,0.52],[0.34,0.78],[0.2,1.0],[0.14,1.12],[0,1.15]],new C(0x5b2a6e),12,{roughness:.4}),0,0,0);
+      add(new THREE.IcosahedronGeometry(.26,0),new C(0x3f7a2e),{roughness:.6},0,1.06,0).scale.set(1,.6,1);
+      add(new THREE.CylinderGeometry(.06,.08,.3,6),new C(0x3f7a2e),{roughness:.6},0,1.32,0,[0.3,0,0]);
+    } else if(kind==="soy"){ // lathed bottle + red cap
+      put(lathe([[0,0],[0.3,0],[0.34,0.08],[0.33,0.55],[0.22,0.7],[0.13,0.78],[0.13,0.98],[0,0.98]],new C(0x3a1f12),12,{roughness:.3}),0,0,0);
+      add(new THREE.CylinderGeometry(.15,.15,.16,10),new C(0xd33a2a),{roughness:.5},0,1.03,0);
+    } else if(kind==="teacup"){ // japanese yunomi: short wide cup + green tea
+      put(lathe([[0,0.02],[0.2,0.02],[0.22,0.06],[0.18,0.08],[0.26,0.16],[0.30,0.40],[0.31,0.45],[0.27,0.45],[0.26,0.40],[0.20,0.09],[0,0.07]],new C(0xeee5d4),16,{roughness:.75}),0,0,0);
+      add(new THREE.CylinderGeometry(.26,.23,.05,16),new C(0x6f9a3e),{roughness:.5},0,0.33,0); // matcha green tea
+    } else if(kind==="carrot"){ // orange root pointing down + leafy green top
+      put(new THREE.Mesh(new THREE.ConeGeometry(0.26,1.1,8),fmat(new C(0xe8742a),{roughness:.6})),0,0.55,0,Math.PI,0,0);
+      for(var ci=0;ci<3;ci++){var ca=(ci-1)*0.3;put(new THREE.Mesh(new THREE.ConeGeometry(0.06,0.5,4),fmat(new C(0x4e8a34),{roughness:.6})),0,1.12,0,ca,0,ca*0.6)}
+    } else if(kind==="edamame"){ // edamame: one closed pod with three bean bulges, all contained (no floating peas)
+      put(lathe([[0,0],[0.17,0.1],[0.21,0.32],[0.21,0.68],[0.17,0.9],[0,1.0]],new C(0x6fae36),12,{roughness:.6}),0.5,0.26,0,0,0,Math.PI/2);
+      [-0.26,0,0.26].forEach(function(x){add(new THREE.SphereGeometry(.16,8,6),new C(0x8fc24a),{roughness:.6},x,0.4,0)});
+    } else if(kind==="onigiri"){ // upright rice triangle, apex up, nori sheet across the bottom
+      var og=new THREE.CylinderGeometry(0.55,0.55,0.38,3);og.rotateX(-Math.PI/2);          // 3-sided prism turned so the triangle faces front, one point straight up
+      add(og,new C(0xf4ecd8),{roughness:.9},0,0.3,0);
+      add(new THREE.BoxGeometry(0.42,0.3,0.4),new C(0x14241a),{roughness:.9},0,0.175,0);   // nori wrapped over the bottom edge
+    } else { // oshibori: rolled towel on a little tray
+      add(new THREE.CylinderGeometry(.28,.28,1.3,10),new C(0xf3f1ea),{roughness:.95},0,.42,0,[0,0,Math.PI/2]);
+      add(new THREE.BoxGeometry(1.5,.12,.7),new C(0x2c2a28),{roughness:.5},0,.12,0);
+    }
+    return g;
+  }
+  // ---- the player's avatar: a simple low-poly maki model (nori ring, thick rice ring, filling core from the art) ----
+  // ---- the player: a maki roll on its side that rolls like a log; end-caps show a rounded-square 3x3 filling block ----
+  function rrShape(h,r){var s=new THREE.Shape();s.moveTo(-h+r,-h);s.lineTo(h-r,-h);s.absarc(h-r,-h+r,r,-Math.PI/2,0);s.lineTo(h,h-r);s.absarc(h-r,h-r,r,0,Math.PI/2);s.lineTo(-h+r,h);s.absarc(-h+r,h-r,r,Math.PI/2,Math.PI);s.lineTo(-h,-h+r);s.absarc(-h+r,-h+r,r,Math.PI,Math.PI*1.5);return s}
+  // one grid cell; the outer corner of a corner cell is rounded so the 9 cells together form a rounded square
+  function cellShape(x0,y0,x1,y1,rc,cr){var s=new THREE.Shape(),P=Math.PI;
+    if(rc==="bl")s.moveTo(x0+cr,y0);else s.moveTo(x0,y0);
+    if(rc==="br"){s.lineTo(x1-cr,y0);s.absarc(x1-cr,y0+cr,cr,-P/2,0)}else s.lineTo(x1,y0);
+    if(rc==="tr"){s.lineTo(x1,y1-cr);s.absarc(x1-cr,y1-cr,cr,0,P/2)}else s.lineTo(x1,y1);
+    if(rc==="tl"){s.lineTo(x0+cr,y1);s.absarc(x0+cr,y1-cr,cr,P/2,P)}else s.lineTo(x0,y1);
+    if(rc==="bl"){s.lineTo(x0,y0+cr);s.absarc(x0+cr,y0+cr,cr,P,P*1.5)}else s.lineTo(x0,y0);
+    return s}
+  // seeded 3x3 layout of rectangles only (1x1, 1x2, 2x1, 2x2, 1x3, 3x1, 2x3...), each a different colour from its neighbours
+  function fillingLayout(nCol){var rid=[-1,-1,-1,-1,-1,-1,-1,-1,-1],cid=[],n=0;
+    function free(x,y){return x<3&&y<3&&rid[y*3+x]<0}
+    for(var q=0;q<9;q++){if(rid[q]>=0)continue;var x=q%3,y=(q/3)|0,mw=0,mh=0;
+      while(free(x+mw,y))mw++;
+      var w=1+((rnd()*mw)|0);if(rnd()<0.35)w=Math.min(mw,w+1);                       // lean toward wider pieces
+      for(var hh=1;hh<=3-y;hh++){var ok=true;for(var c=0;c<w;c++)if(!free(x+c,y+hh-1))ok=false;if(!ok)break;mh=hh}
+      var h=1+((rnd()*mh)|0);if(w*h===9){if(rnd()<0.5)w=2;else h=2}                   // never one block filling everything
+      for(var yy=0;yy<h;yy++)for(var xx=0;xx<w;xx++)rid[(y+yy)*3+x+xx]=n;n++}
+    for(var r=0;r<n;r++){var used={};for(var k=0;k<9;k++){if(rid[k]!==r)continue;var kx=k%3,ky=(k/3)|0;
+        [[kx-1,ky],[kx+1,ky],[kx,ky-1],[kx,ky+1]].forEach(function(v){if(v[0]<0||v[0]>2||v[1]<0||v[1]>2)return;var o=rid[v[1]*3+v[0]];if(o!==r&&cid[o]!==undefined)used[cid[o]]=1})}
+      var opts=[];for(var c2=0;c2<nCol;c2++)if(!used[c2])opts.push(c2);
+      cid[r]=opts.length?opts[(rnd()*opts.length)|0]:((rnd()*nCol)|0)}
+    return {r:rid,c:rid.map(function(v){return cid[v]})}}
+  function fillCols(p){var out=[],seen={};(p.pip||[]).concat(p.uniq||[]).forEach(function(a){var k=a.join(",");if(!seen[k]){seen[k]=1;out.push(a)}});return out.length?out:[[220,120,90]]}
+  function makiFace(p,R,lay){
+    var f=new THREE.Group();
+    function disc(r,c,z){var m=new THREE.Mesh(new THREE.CircleGeometry(r,26),fmat(c,{roughness:.8,side:THREE.DoubleSide}));m.position.z=z;m.castShadow=false;return m}
+    var ura=/uramaki/.test(p.form||""),rice=new THREE.Color(0xf4ecd8),nori=ura?new THREE.Color(0x1c2620):col(p.dark); // uramaki: fixed nori green-black (the art's darkest colour isn't nori on inside-out pieces)
+    var G=R*0.5,cell=G*2/3,cr=cell*0.6; // G = half-size of the rounded-square filling block
+    if(ura){
+      f.add(disc(R,rice,0.01));                                                         // rice outside
+      var nm=new THREE.Mesh(new THREE.ShapeGeometry(rrShape(G+R*0.08,cr+R*0.08),6),fmat(nori,{roughness:.8,side:THREE.DoubleSide}));nm.position.z=0.02;nm.castShadow=false;f.add(nm); // nori wrapped around the filling
+    } else {
+      f.add(disc(R,nori,0.01));                                                         // nori outside
+      f.add(disc(R*0.84,rice,0.02));                                                    // rice between nori and filling
+    }
+    var fc=fillCols(p);
+    var corner={0:"bl",2:"br",6:"tl",8:"tr"};
+    for(var q=0;q<9;q++){var gx=q%3,gy=(q/3)|0,ci=lay.c[q],x0=-G+cell*gx,y0=-G+cell*gy;
+      var dep=0.07+(lay.r[q]%3)*0.045; // one height per rectangle, so its cells read as one solid piece of filling
+      var geo=new THREE.ExtrudeGeometry(cellShape(x0,y0,x0+cell,y0+cell,corner[q]||null,cr),{depth:dep,bevelEnabled:false,curveSegments:5});
+      var m=new THREE.Mesh(geo,fmat(col(fc[ci%fc.length]),{roughness:.75}));m.position.z=0.025;m.castShadow=false;f.add(m)}
+    return f;
+  }
+  function buildMakiRoll(p){
+    var g=new THREE.Group(),R=R0*0.98,L=R0*1.7;
+    var ura=/uramaki/.test(p.form||"");
+    var body=new THREE.Mesh(new THREE.CylinderGeometry(R,R,L,22),fmat(ura?new THREE.Color(0xf4ecd8):col(p.dark),{roughness:.8}));
+    body.rotation.z=Math.PI/2;body.castShadow=true;body.receiveShadow=true;g.add(body);           // uramaki: plain rice exterior; maki: nori exterior
+    var lay=fillingLayout(fillCols(p).length);                                                     // one layout shared by both ends (same slice of roll)
+    [[L/2+0.002,Math.PI/2],[-(L/2+0.002),-Math.PI/2]].forEach(function(cp){var f=makiFace(p,R*0.985,lay);f.position.x=cp[0];f.rotation.y=cp[1];g.add(f)}); // filling faces, outward on each end
+    return g;
+  }
+  // ---- low-poly white puff clouds that drift above the surface ----
+  function buildCloud(){var g=new THREE.Group();[[0,0,0,.9],[.8,.1,0,.6],[-.75,.05,.1,.65],[.2,.25,.3,.55]].forEach(function(o){var m=new THREE.Mesh(new THREE.IcosahedronGeometry(o[3],0),new THREE.MeshStandardMaterial({color:0xffffff,flatShading:true,roughness:1,emissive:0x222233,emissiveIntensity:.2}));m.position.set(o[0],o[1],o[2]);g.add(m)});return g}
+  // ---- blocking terrain: low-poly trees & rocks (roll-up-able once you're big enough) ----
+  function buildTree(c){var g=new THREE.Group();var tr=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,1.0,6),fmat(new THREE.Color(0x6b4a2a),{roughness:.9}));tr.position.y=.5;g.add(tr);var fo=new THREE.Mesh(new THREE.ConeGeometry(.8,1.9,6),fmat(c,{roughness:.9}));fo.position.y=1.75;g.add(fo);g.userData.size=0.95;return g}
+  function buildRock(c){var m=new THREE.Mesh(new THREE.IcosahedronGeometry(0.7,0),fmat(c,{roughness:1,flatShading:true}));m.scale.set(1,0.78,1);m.userData.size=0.7;return m}
+  function buildBush(c){var g=new THREE.Group();[[0,0.3,0,0.4],[0.3,0.26,0.1,0.3],[-0.25,0.28,-0.1,0.32],[0.05,0.52,0.05,0.28]].forEach(function(o){var m=new THREE.Mesh(new THREE.IcosahedronGeometry(o[3],0),fmat(c,{roughness:.9}));m.position.set(o[0],o[1],o[2]);g.add(m)});g.userData.size=0.5;return g}
+  function buildFlower(c){var g=new THREE.Group();var st=new THREE.Mesh(new THREE.CylinderGeometry(.03,.04,.6,5),fmat(new THREE.Color(0x4e7a34),{roughness:.8}));st.position.y=.3;g.add(st);var n=5;for(var i=0;i<n;i++){var a=i/n*6.283,pt=new THREE.Mesh(new THREE.IcosahedronGeometry(.12,0),fmat(c,{roughness:.7}));pt.position.set(Math.cos(a)*.14,.62,Math.sin(a)*.14);pt.scale.set(1,.5,1);g.add(pt)}var ctr=new THREE.Mesh(new THREE.IcosahedronGeometry(.08,0),fmat(new THREE.Color(0xf2c14e),{roughness:.6}));ctr.position.y=.64;g.add(ctr);g.userData.size=0.3;return g}
+  function buildMushroom(){var g=new THREE.Group();var st=new THREE.Mesh(new THREE.CylinderGeometry(.1,.13,.4,7),fmat(new THREE.Color(0xf0e6d2),{roughness:.8}));st.position.y=.2;g.add(st);var cap=new THREE.Mesh(new THREE.SphereGeometry(.28,10,6,0,6.283,0,Math.PI/2),fmat(new THREE.Color(0xc0392b),{roughness:.6}));cap.position.y=.4;g.add(cap);g.userData.size=0.35;return g}
+  // ---- chopstick monster (enemy): training-chopstick shape -- joined at the top, legs splayed open at the bottom ----
+  // low-poly black ant (head +z): abdomen, thorax, head, 6 jointed legs, 2 antennae, fish-style eyes on the head sides
+  function buildAnt(){var g=new THREE.Group(),blk=fmat(new THREE.Color(0x221e24),{roughness:.5}),lgm=fmat(new THREE.Color(0x171419),{roughness:.6}),ico=new THREE.IcosahedronGeometry(1,0),X=new THREE.Vector3(1,0,0);
+    function part(x,y,z,sx,sy,sz){var m=new THREE.Mesh(ico,blk);m.position.set(x,y,z);m.scale.set(sx,sy,sz);g.add(m);return m}
+    function seg(a,b,th){var d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.BoxGeometry(d.length(),th,th),lgm);m.position.copy(a).add(b).multiplyScalar(0.5);m.quaternion.setFromUnitVectors(X,d.normalize());g.add(m)}
+    part(0,0.44,-0.58,0.3,0.27,0.46);              // abdomen (largest, tapered rear)
+    part(0,0.42,-0.04,0.15,0.14,0.22);             // thorax
+    part(0,0.48,0.34,0.22,0.2,0.21);               // head
+    var V=function(x,y,z){return new THREE.Vector3(x,y,z)};
+    [1,-1].forEach(function(s){
+      [[0.1,0.26],[-0.04,0],[-0.16,-0.3]].forEach(function(L){var hip=V(s*0.1,0.4,L[0]),knee=V(s*0.34,0.6,L[0]+L[1]*0.4),foot=V(s*0.52,0.02,L[0]+L[1]);seg(hip,knee,0.045);seg(knee,foot,0.04)}); // 3 legs per side
+      var a0=V(s*0.08,0.62,0.42),a1=V(s*0.16,0.9,0.5),a2=V(s*0.26,0.98,0.78);seg(a0,a1,0.03);seg(a1,a2,0.03);  // elbowed antenna
+      var w=new THREE.Mesh(new THREE.SphereGeometry(0.09,10,8),fmat(new THREE.Color(0xf4efdc),{roughness:.35}));w.position.set(s*0.17,0.53,0.42);g.add(w);
+      var k=new THREE.Mesh(new THREE.CircleGeometry(0.045,12),fmat(new THREE.Color(0x15110c),{roughness:.5,side:THREE.DoubleSide}));k.position.set(s*0.262,0.53,0.43);k.rotation.y=s*Math.PI/2;g.add(k)}); // eyeball + flat iris, facing out
+    g.traverse(function(n){if(n.isMesh)n.castShadow=false});g.userData.size=0.6;return g}
+  function buildChopstick(){var g=new THREE.Group(),wood=new THREE.Color(0xd8b483),dark=new THREE.Color(0x6b4a2a);
+    var L=2.2,ang=0.34,H=Math.cos(ang)*L,s=Math.sin(ang)*L;
+    [1,-1].forEach(function(sgn){
+      var c=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.12,L,6),fmat(wood,{roughness:.8}));c.position.set(sgn*s/2,H/2,0);c.rotation.z=sgn*ang;g.add(c);
+      var tip=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,0.3,6),fmat(dark,{roughness:.8}));tip.position.set(sgn*s*0.95,0.15,0);tip.rotation.z=sgn*ang;g.add(tip); // dark foot
+    });
+    var cap=new THREE.Mesh(new THREE.BoxGeometry(0.34,0.22,0.2),fmat(new THREE.Color(0xe9d7b0),{roughness:.7}));cap.position.set(0,H+0.02,0);g.add(cap); // training-chopstick joiner
+    var eyeW=fmat(new THREE.Color(0xf4efdc),{roughness:.35}),eyeK=fmat(new THREE.Color(0x15110c),{roughness:.5,side:THREE.DoubleSide});
+    [-0.13,0.13].forEach(function(x){var w=new THREE.Mesh(new THREE.SphereGeometry(0.1,10,8),eyeW);w.position.set(x,H+0.04,0.14);g.add(w);
+      var k=new THREE.Mesh(new THREE.CircleGeometry(0.05,12),eyeK);k.position.set(x,H+0.04,0.242);g.add(k)}); // fish-style eyeball + flat black iris, standing off the joiner
+    return g;}
+  // ---- Text pieces: the message flies across the sky as 3D pixel letters (same 3x3 font + colours as the art) ----
+  // same 3x3 pixel font as the art (the art's copy is private to its own script, so the game keeps one)
+  var GFONT={A:"010111101",B:"110111111",C:"011100011",D:"110101110",E:"111110111",F:"111110100",G:"011100111",H:"101111101",I:"111010111",J:"001001110",K:"101110101",L:"100100111",M:"111111101",N:"111101101",O:"111101111",P:"111111100",Q:"111111001",R:"111110101",S:"011010110",T:"111010010",U:"101101111",V:"101101010",W:"101111111",X:"101010101",Y:"101010010",Z:"110010011","0":"111101111","1":"110010010","2":"111011110","3":"111011111","4":"101111001","5":"111110011","6":"100111111","7":"111001001","8":"011111111","9":"011011110","!":"010010010",".":"000000010",",":"000010100","'":"010000000","?":"111001010","-":"000111000","+":"010111010","/":"001010100","=":"111000111",":":"010000010"};
+  function buildBanner(msg,p){
+    var font=GFONT,s=0.9,g=new THREE.Group(),letters=[],cx=0;
+    var TX=window.MAKI_TXT,acc=(TX&&TX.cols&&TX.cols.length)?TX.cols.map(function(h){var c=new THREE.Color(h);return [c.r*255,c.g*255,c.b*255]}):(p.pip&&p.pip.length?p.pip:[[255,255,255]]),box=new THREE.BoxGeometry(s,s,s),mats={};
+    function mat(i){var a=acc[i%acc.length],k=a.join(",");if(!mats[k]){var c=col(a),sh=function(f){return new THREE.MeshBasicMaterial({color:c.clone().multiplyScalar(f)})};
+      mats[k]=[sh(0.72),sh(0.72),sh(0.88),sh(0.55),sh(1),sh(0.72)]}return mats[k]} // front = exact art colour; sides/top/bottom baked darker so each cube reads as 3D (box faces: +x,-x,+y,-y,+z,-z)
+    msg.toUpperCase().split("").forEach(function(ch,i){
+      if(ch===" "||!font[ch]){cx+=2;return}
+      var lg=new THREE.Group(),gl=font[ch];
+      for(var r=0;r<3;r++)for(var c=0;c<3;c++)if(gl[r*3+c]==="1"){var b=new THREE.Mesh(box,mat(i));b.position.set((c-1)*s,(1-r)*s,0);lg.add(b)} // one cube per lit pixel
+      g.add(lg);letters.push({g:lg,x0:(cx+1)*s,i:i});cx+=4});
+    return {g:g,letters:letters,W:cx*s,dir:p.dir||1,o:0}}
+  function stepBanner(dt,t){if(!banner)return;var D=30,hh=Math.tan(THREE.MathUtils.degToRad(cam.fov/2))*D,hw=hh*cam.aspect;
+    var cf=new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion),cu=new THREE.Vector3(0,1,0).applyQuaternion(cam.quaternion);
+    banner.g.position.copy(cam.position).addScaledVector(cf,D).addScaledVector(cu,hh*0.7+Math.sin(t/900)*0.4);banner.g.quaternion.copy(cam.quaternion); // same sky spot as the old banner
+    var span=hw*2+banner.W+4;banner.o=(banner.o+dt*4.5)%span;                                   // marquee: enters one side, exits the other, loops
+    for(var i=0;i<banner.letters.length;i++){var L=banner.letters[i],x=banner.dir>0?(hw+2-banner.o+L.x0):(-hw-2-banner.W+banner.o+L.x0);
+      L.g.position.set(x,Math.sin(t/420+L.i*0.7)*0.45,0);L.g.rotation.y=Math.sin(t/700+L.i*0.9)*0.45;L.g.rotation.x=Math.sin(t/900+L.i)*0.15}} // bob + turn so the depth shows
+  // ---- scatter the world: static biome planet, a FEW animated filling-features, ingredients, clouds ----
+  function spawnWorld(p){
+    terrain=[];props=[];clouds=[];obstacles=[];
+    var palHi=p.pip.length?p.pip:p.uniq;
+    var NF=34; // sparse animated features -- only these move
+    for(var i=0;i<NF;i++){
+      var d=fibDir((i*5+2)%NF,NF).applyAxisAngle(YUP,rnd()*0.7).normalize();
+      if(relief01(d)<WATER+0.03)continue;
+      var c=palHi[(rnd()*palHi.length)|0],fh=0.8+rnd()*1.4,foot=0.5+rnd()*0.3;
+      var geo=p.kind==="checker"?new THREE.BoxGeometry(1,1,1):p.kind==="sparkle"?new THREE.ConeGeometry(.5,1,4):new THREE.ConeGeometry(.55,1,5);
+      var g=new THREE.Mesh(geo,fmat(col(c),{roughness:.85}));g.scale.set(foot,fh,foot);g.castShadow=true;g.receiveShadow=true;scene.add(g);
+      terrain.push({g:g,dir:d,h0:fh,foot:foot,parity:(i&1),phase:(d.x+d.z)*4+i});
+    }
+    var NP=72; // ingredients to collect, sitting on land
+    for(var j=0;j<NP;j++){
+      var pd=fibDir((j*3+1)%NP,NP).applyAxisAngle(YUP,rnd()*1.1).normalize();
+      if(relief01(pd)<WATER+0.02)pd=fibDir(j,NP).lerp(YUP,0.3).normalize();
+      var ing=buildIngredient(INGK[(rnd()*INGK.length)|0]);
+      // exaggerated size variety: mostly normal, some chunky, a few absurdly huge
+      var r=rnd(),s;if(r<0.68)s=0.5+rnd()*0.4;else if(r<0.9)s=1.1+rnd()*1.0;else s=2.6+rnd()*2.4;
+      ing.scale.setScalar(s);scene.add(ing);var ib=makeBlob(0.7);ing.add(ib);ing.userData.blob=ib;
+      props.push({g:ing,dir:pd,foot:s*0.9,req:s*0.5,gain:0.07+s*0.11,spin:rnd()*6.28,dead:false});
+    }
+    for(var k=0;k<12;k++){ // clouds
+      var cd=fibDir(k,12).applyAxisAngle(YUP,rnd()*6.28).normalize(),cl=buildCloud();cl.scale.setScalar(1.1+rnd()*0.9);
+      clouds.push({g:cl,dir:cd,rad:SR+RELIEF+2.4+rnd()*2.5,spd:0.03+rnd()*0.05});scene.add(cl);
+    }
+    // blocking scenery: dense forest/garden clusters + scattered singles (Katamari messiness)
+    function placeObstacle(dir,sc){dir.normalize();if(relief01(dir)<WATER+0.04)return;var k=rnd(),oc=col(p.uniq[(rnd()*p.uniq.length)|0]),g;
+      if(k<0.42)g=buildTree(oc);else if(k<0.64)g=buildBush(oc);else if(k<0.8)g=buildRock(oc);else if(k<0.92)g=buildFlower(col((p.pip&&p.pip.length?p.pip:p.uniq)[(rnd()*(p.pip&&p.pip.length?p.pip.length:p.uniq.length))|0]));else g=buildMushroom();
+      g.scale.multiplyScalar(sc);g.position.copy(dir.clone().multiplyScalar(surfaceR(dir)));g.quaternion.copy(QT.setFromUnitVectors(YUP,dir));scene.add(g);var gb=makeBlob(g.userData.size||0.7);g.add(gb);g.userData.blob=gb;
+      obstacles.push({g:g,dir:dir.clone(),size:(g.userData.size||0.7)*sc,dead:false});}
+    var CLUST=6;for(var ci=0;ci<CLUST;ci++){var center=fibDir((ci*5+2)%CLUST,CLUST).applyAxisAngle(YUP,rnd()*6.28).normalize();if(relief01(center)<WATER+0.06)continue;
+      var cnt=7+(rnd()*7|0);for(var kk=0;kk<cnt;kk++){var off=new THREE.Vector3(rnd()-.5,rnd()-.5,rnd()-.5).multiplyScalar(0.2);placeObstacle(center.clone().add(off),0.65+rnd()*0.7)}}
+    var SC=30;for(var s=0;s<SC;s++){placeObstacle(fibDir((s*7+3)%SC,SC).applyAxisAngle(YUP,rnd()*2.3),0.7+rnd()*0.8)}
+  }
+
+  function build(tr,cells){
+    SR=SR_BASE;
+    params=deriveParams(tr,cells);
+    rnd=mulberry(hash((window.$alea&&$alea.seed)||tr.Pattern||"makimono"));
+    var p=params;
+    scene=new THREE.Scene();
+    var sky=col(p.bg).multiplyScalar(.22);scene.background=sky;scene.fog=new THREE.FogExp2(sky.getHex(),0.0022);
+    cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,3000);
+    renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setSize(innerWidth,innerHeight);
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled=false;renderer.shadowMap.type=THREE.PCFSoftShadowMap; // real maps replaced by flat blob shadows (single clean contact shadow, no terrain-clip gaps)
+    GAME.insertBefore(renderer.domElement,GAME.firstChild);
+    // shared blob-shadow disc stamped under every grounded object
+    var _bc=document.createElement("canvas");_bc.width=_bc.height=64;var _bx=_bc.getContext("2d");var _bgd=_bx.createRadialGradient(32,32,2,32,32,32);_bgd.addColorStop(0,"rgba(0,0,0,0.5)");_bgd.addColorStop(0.55,"rgba(0,0,0,0.26)");_bgd.addColorStop(1,"rgba(0,0,0,0)");_bx.fillStyle=_bgd;_bx.fillRect(0,0,64,64);
+    blobTex=new THREE.CanvasTexture(_bc);blobMat=new THREE.MeshBasicMaterial({map:blobTex,transparent:true,depthWrite:false,side:THREE.DoubleSide});
+    var _psg=new THREE.PlaneGeometry(1,1);_psg.rotateX(-Math.PI/2);playerShadow=new THREE.Mesh(_psg,blobMat);playerShadow.renderOrder=2;scene.add(playerShadow);
+    scene.add(new THREE.HemisphereLight(0xdfe8ff,0x1a2130,0.72));
+    keyLight=new THREE.DirectionalLight(0xffffff,1.45);keyLight.position.set(10,20,10);keyLight.castShadow=false;
+    keyLight.shadow.mapSize.set(2048,2048);keyLight.shadow.bias=-0.0006;keyLight.shadow.normalBias=0.15;
+    var sc=keyLight.shadow.camera;sc.near=1;sc.far=96;sc.left=sc.bottom=-16;sc.right=sc.top=16;sc.updateProjectionMatrix();
+    scene.add(keyLight);scene.add(keyLight.target);
+    var rim=new THREE.DirectionalLight(0x9fb6ff,0.45);rim.position.set(-9,5,-11);scene.add(rim);
+    // faceted biome planet: displace an icosphere per-direction, flat per-face colour banded by the piece's palette
+    var palS=p.uniq.slice().sort(function(a,b){return sum(a)-sum(b)}),waterC=palS[0],land=palS.slice(1);if(!land.length)land=palS;
+    function biome(h){if(h<WATER)return col(waterC);var t=(h-WATER)/(1-WATER);return col(land[Math.min(land.length-1,Math.floor(t*land.length))])}
+    var geo=new THREE.IcosahedronGeometry(SR,5).toNonIndexed(),pos=geo.attributes.position,NV=pos.count,ca=new Float32Array(NV*3),vv=new THREE.Vector3();
+    for(var i=0;i<NV;i+=3){var hs=0,ds=[];for(var k=0;k<3;k++){vv.fromBufferAttribute(pos,i+k);var d=vv.clone().normalize();var hh=relief01(d);ds.push([d,hh]);hs+=hh}
+      var fc=biome(hs/3);for(var k2=0;k2<3;k2++){var r=surfaceFromH(ds[k2][1]);pos.setXYZ(i+k2,ds[k2][0].x*r,ds[k2][0].y*r,ds[k2][0].z*r);ca[(i+k2)*3]=fc.r;ca[(i+k2)*3+1]=fc.g;ca[(i+k2)*3+2]=fc.b}}
+    geo.setAttribute("color",new THREE.BufferAttribute(ca,3));geo.computeVertexNormals();
+    planet=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,flatShading:true,roughness:.96,metalness:0}));planet.receiveShadow=true;scene.add(planet);
+    var atmo=new THREE.Mesh(new THREE.IcosahedronGeometry(SR+RELIEF+3.2,3),new THREE.MeshBasicMaterial({color:col(p.accent),transparent:true,opacity:.1,side:THREE.BackSide}));scene.add(atmo);
+    // stars
+    var sv=[];for(var s=0;s<700;s++){var sd=fibDir(s,700).multiplyScalar(900+rnd()*600);sv.push(sd.x,sd.y,sd.z)}
+    var sg=new THREE.BufferGeometry();sg.setAttribute("position",new THREE.Float32BufferAttribute(sv,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:1.5,sizeAttenuation:false})));
+    // chopstick monsters: chase the player and snatch stuck sushi off the clump
+    enemies=[];for(var e=0;e<Math.max(2,p.enemyN);e++){var ed=fibDir((e+1)*37%50,50);var em=buildChopstick();var esz=(rnd()<0.22?1.9+rnd()*1.9:0.7+rnd()*0.8)*(p.esize||1);em.scale.setScalar(esz);scene.add(em);em.add(makeBlob(0.5));enemies.push({g:em,pos:ed.multiplyScalar(SR).clone(),sign:e%2?1:-1,cd:0,sz:esz})}
+    // ants: roam the planet; too big = they bump you and steal, big enough = you roll them up (they flee)
+    ants=[];var antN=9+(/ants/i.test((tr.Message||"")+" "+(tr.Pattern||""))?6:0);
+    for(var ai=0;ai<antN;ai++){var ad=fibDir((ai*17+5)%64,64);var ag=buildAnt();var asz=0.7+rnd()*0.9;ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;
+      ants.push({g:ag,pos:ad.multiplyScalar(SR),head:null,sz:asz,req:1.5+asz*0.9,cd:0,dead:false,ph:rnd()*6.28})}
+    // player: ball rig (surface-aligned) + clump (rolls) + maki-roll character (pushes, does not roll)
+    ball=new THREE.Group();scene.add(ball);
+    clump=new THREE.Group();ball.add(clump);
+    ballR=R0;
+    core=buildMakiRoll(p);clump.add(core);
+    spawnWorld(p);
+    banner=null;if(p.isText||tr.Message||window.MAKI_TXT){var msg=((window.MAKI_TXT&&window.MAKI_TXT.msg)||tr.Message||(tr.Pattern||"").replace(/^text\s*/i,"")||"MAKIMONO").trim()||"MAKIMONO";banner=buildBanner(msg,p);scene.add(banner.g)}
+    pPos=new THREE.Vector3(0,1,0.001).normalize();pPos.multiplyScalar(surfaceR(pPos)+ballR);
+    up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);
+    pips=0;hopT=0;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
+    HUD.traits.innerHTML="<b>OBJECTS</b>0"; // traits hidden in-game; top-left shows the objects count
+    HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"x your size before the "+Math.round(params.time)+"s clock runs out.";
+    built=true;onResize();
+  }
+
+  function onResize(){if(!renderer)return;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
+  window.addEventListener("resize",onResize);
+
+  // collected things stand on the roll's surface (base pressed into the barrel), never over the filling ends,
+  // and ride the surface outward as the roll grows (see placeStuck)
+  function stickToRoll(g){clump.updateWorldMatrix(true,false);var lp=clump.worldToLocal(g.getWorldPosition(new THREE.Vector3()));scene.remove(g);
+    if(g.userData.blob){g.remove(g.userData.blob);g.userData.blob=null}
+    var rd=new THREE.Vector3(0,lp.y,lp.z);if(rd.lengthSq()<1e-6)rd.set(0,1,0);rd.normalize();           // direction out from the roll's axis
+    var s=ballR/R0,xf=Math.max(-0.85,Math.min(0.85,lp.x*0.7/(R0*0.85*s)));                              // position along the barrel as a fraction, off the end caps
+    var sk=g.scale.x,dr=Math.random(),sink=dr<0.3?sk*(0.25+Math.random()*0.25):dr<0.75?sk*(0.05+Math.random()*0.15):-sk*(0.05+Math.random()*0.2); // messy: some buried deep, most snug, some perched proud
+    g.userData.stick={rd:rd,xf:xf,sink:sink};
+    var tilt=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(Math.random()-0.5,0,Math.random()-0.5).normalize(),(Math.random()-0.5)*0.9); // knocked askew, up to ~25 degrees
+    g.quaternion.setFromUnitVectors(YUP,rd).multiply(tilt).multiply(new THREE.Quaternion().setFromAxisAngle(YUP,Math.random()*6.283)); // base against the roll, random lean + spin
+    clump.add(g);placeStuck(g,s)}
+  function placeStuck(g,s){var k=g.userData.stick;g.position.set(k.xf*R0*0.85*s,0,0).addScaledVector(k.rd,R0*0.98*s-k.sink)} // on the current (scaled) roll surface
+  function step(t){
+    if(!running)return;
+    raf=requestAnimationFrame(step);
+    var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;
+    up.copy(pPos).normalize();
+    fwd.addScaledVector(up,-fwd.dot(up));if(fwd.lengthSq()<1e-6)fwd.set(up.z,up.x,up.y);fwd.normalize();
+    var turn=2.2,mv=0,SPEED=7.5;
+    if(keys.a||keys.ArrowLeft)fwd.applyAxisAngle(up,turn*dt);
+    if(keys.d||keys.ArrowRight)fwd.applyAxisAngle(up,-turn*dt);
+    if(keys.w||keys.ArrowUp)mv+=1;if(keys.s||keys.ArrowDown)mv-=1;
+    var prevDir=pPos.clone().normalize();
+    if(mv){var axis=new THREE.Vector3().crossVectors(up,fwd).normalize();pPos.applyAxisAngle(axis,(SPEED/SR)*dt*mv)} // W: travel +fwd (forward), matches the forward roll below
+    if(bumpV.lengthSq()>0.01){var bu=bumpV.clone();bu.addScaledVector(up,-bu.dot(up));var bl=bu.length();if(bl>1e-3)pPos.applyAxisAngle(new THREE.Vector3().crossVectors(up,bu).normalize(),bl/SR*dt);bumpV.multiplyScalar(Math.pow(0.02,dt))}else bumpV.set(0,0,0); // monster knockback, decays fast; walls still stop it
+    var hop=0;if(hopT>0){hopT-=dt;hop=Math.sin((1-hopT/hopDur)*Math.PI)*2.0}
+    var pdir=pPos.clone().normalize();
+    // anything too big to collect is a wall: you can't move closer into it, but you can always back away (never stuck)
+    var blocked=false;
+    function wall(dir,reach){var dn=pdir.angleTo(dir)*SR;if(dn<reach&&dn<prevDir.angleTo(dir)*SR)blocked=true}
+    for(var oi=0;oi<obstacles.length;oi++){var ob=obstacles[oi];if(ob.dead)continue;
+      if(pdir.angleTo(ob.dir)*SR<ballR+ob.size){
+        if(ballR>ob.size*0.9){ob.dead=true;ob.g.scale.multiplyScalar(0.75);stickToRoll(ob.g);ballR+=Math.min(0.18,ob.size*0.12)}
+        else wall(ob.dir,ballR+ob.size);
+      }
+    }
+    for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req)wall(bo.dir,ballR*0.85+bo.foot*0.7)} // oversized ingredients block too
+    if(blocked)pdir.copy(prevDir);
+    up.copy(pdir);
+    pPos.copy(pdir).multiplyScalar(surfaceR(pdir)+ballR+hop);ball.position.copy(pPos);
+    if(playerShadow){playerShadow.position.copy(pdir).multiplyScalar(surfaceR(pdir)+0.05);playerShadow.quaternion.copy(QT.setFromUnitVectors(YUP,pdir));playerShadow.scale.setScalar(ballR*2.3)} // single clean shadow under the roll
+    var side=new THREE.Vector3().crossVectors(up,fwd).normalize();
+    if(keyLight){keyLight.target.position.copy(ball.position);keyLight.position.copy(ball.position).addScaledVector(up,36).addScaledVector(side,12).addScaledVector(fwd,6);keyLight.target.updateMatrixWorld()}
+    ball.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(side,up,fwd));
+    if(wobT>0){wobT=Math.max(0,wobT-dt);ball.rotateZ(Math.sin(wobT*40)*wobT*0.5)} // hit wobble
+    clump.rotation.x+=(SPEED*dt*(blocked?0:mv))/ballR; // roll matches travel; stops when blocked
+    core.scale.setScalar(ballR/R0);
+    for(var sc=0,sS=ballR/R0;sc<clump.children.length;sc++){var sk=clump.children[sc];if(sk.userData.stick)placeStuck(sk,sS)} // push stuck objects out with the growing (or shrinking) roll
+    // animate ONLY the sparse filling features (grow up/down); the planet surface is static
+    for(var ti=0;ti<terrain.length;ti++){var c=terrain[ti];var sy=Math.max(0.12,c.h0*(0.55+0.45*wave(c,params,t)));c.g.scale.set(c.foot,sy,c.foot);var fr=surfaceR(c.dir);c.g.position.copy(c.dir.clone().multiplyScalar(fr));c.g.quaternion.copy(QT.setFromUnitVectors(YUP,c.dir))}
+    // clouds drift slowly
+    for(var ci=0;ci<clouds.length;ci++){var cl=clouds[ci];cl.dir.applyAxisAngle(YUP,cl.spd*dt).normalize();cl.g.position.copy(cl.dir.clone().multiplyScalar(cl.rad));cl.g.quaternion.copy(QT.setFromUnitVectors(YUP,cl.dir))}
+    // collect ingredients (they sit on the land; chase makes them drift toward you)
+    for(var i=0;i<props.length;i++){var o=props[i];if(o.dead)continue;
+      if(params.chase){var tp=pdir.clone().sub(o.dir);tp.addScaledVector(o.dir,-tp.dot(o.dir));if(tp.lengthSq()>1e-5){tp.normalize();o.dir.applyAxisAngle(new THREE.Vector3().crossVectors(o.dir,tp).normalize(),0.4*dt)}}
+      o.dir.normalize();o.g.position.copy(o.dir.clone().multiplyScalar(surfaceR(o.dir)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir));o.g.rotateY(o.spin+t/900);
+      if(ballR>=o.req&&ball.position.angleTo(o.dir)*SR<ballR+o.foot){o.dead=true;stickToRoll(o.g);ballR+=o.gain;pips++}}
+    // chopstick monsters roam and snatch stuck sushi off the clump
+    for(var e=0;e<enemies.length;e++){var en=enemies[e];en.cd=Math.max(0,en.cd-dt);var eu=en.pos.clone().normalize();var toB=ball.position.clone().sub(en.pos);toB.addScaledVector(eu,-toB.dot(eu));if(toB.lengthSq()>1e-5)toB.normalize();var dist=en.pos.angleTo(ball.position)*SR;var tang=new THREE.Vector3().crossVectors(eu,toB).multiplyScalar(en.sign);var orbit=dist<(ballR+5)?0.85:0.25;var edir=toB.multiplyScalar(1-orbit).addScaledVector(tang,orbit);if(edir.lengthSq()>1e-5)edir.normalize();en.pos.applyAxisAngle(new THREE.Vector3().crossVectors(eu,edir).normalize(),2.4*(params.espeed||1)/SR*dt);var endir=en.pos.clone().normalize();en.pos.copy(endir).multiplyScalar(surfaceR(endir));en.g.position.copy(en.pos);var ef=ball.position.clone().sub(en.pos);ef.addScaledVector(endir,-ef.dot(endir));if(ef.lengthSq()<1e-6)ef.set(endir.z,endir.x,endir.y);ef.normalize();var es=new THREE.Vector3().crossVectors(endir,ef).normalize();en.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(es,endir,ef));en.g.rotateZ(Math.sin(t/150+e)*0.16); // always faces the roll (eyes on you), waddling side to side
+      if(en.cd<=0&&ball.position.distanceTo(en.pos)<ballR+0.8*(en.sz||1)){en.cd=1.8;var kids=clump.children.filter(function(c){return c!==core});for(var k=0;k<2&&kids.length;k++)clump.remove(kids.pop());ballR=Math.max(R0,ballR-0.34);pips=Math.max(0,pips-1);
+        var away=ball.position.clone().sub(en.pos);bumpV.copy(away.normalize().multiplyScalar(16+4*(en.sz||1)));if(hopT<=0)hopT=hopDur*0.75;wobT=0.5} // knocked away: shove + little hop + wobble
+    }
+    // ants wander; within sight they come at you while you're small, and run once you can roll them up
+    for(var ai=0;ai<ants.length;ai++){var an=ants[ai];if(an.dead)continue;an.cd=Math.max(0,an.cd-dt);var au=an.pos.clone().normalize();
+      if(!an.head){an.head=new THREE.Vector3(au.y,au.z,au.x).cross(au).normalize()}
+      an.head.applyAxisAngle(au,Math.sin(t/650+an.ph)*1.6*dt);                                   // meander
+      var big=ballR>=an.req,ad2=an.pos.angleTo(ball.position)*SR,spd=1.6;
+      if(ad2<10){var tb=ball.position.clone().sub(an.pos);tb.addScaledVector(au,-tb.dot(au));if(tb.lengthSq()>1e-5){tb.normalize();if(big){tb.negate();spd=2.3}an.head.lerp(tb,Math.min(1,dt*2.5)).normalize()}}
+      var aax=new THREE.Vector3().crossVectors(au,an.head);if(aax.lengthSq()>1e-6)an.pos.applyAxisAngle(aax.normalize(),spd/SR*dt);
+      var nu=an.pos.clone().normalize();an.pos.copy(nu).multiplyScalar(surfaceR(nu));an.head.addScaledVector(nu,-an.head.dot(nu)).normalize();
+      an.g.position.copy(an.pos).addScaledVector(nu,Math.abs(Math.sin(t/90+an.ph))*0.05*an.sz);
+      an.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(nu,an.head).normalize(),nu,an.head));an.g.rotateZ(Math.sin(t/80+an.ph)*0.06);
+      if(ball.position.distanceTo(an.pos)<ballR+0.55*an.sz){
+        if(big){an.dead=true;stickToRoll(an.g);ballR+=0.1+an.sz*0.08;pips++}
+        else if(an.cd<=0){an.cd=1.4;var akids=clump.children.filter(function(c){return c!==core});if(akids.length)clump.remove(akids.pop());ballR=Math.max(R0,ballR-0.2);pips=Math.max(0,pips-1);
+          bumpV.copy(ball.position.clone().sub(an.pos).normalize().multiplyScalar(12+3*an.sz));if(hopT<=0)hopT=hopDur*0.6;wobT=0.4}} // same knock-back as the chopsticks, a bit softer
+    }
+    // RC-car chase cam: sits behind + above + off one shoulder; distance grows with the roll
+    camSideCur+=(camSide-camSideCur)*(1-Math.pow(0.00005,dt)); // ease shoulder switch over ~0.3s
+    var want=pPos.clone().addScaledVector(up,ballR*2.0+5).addScaledVector(fwd,-(ballR*3.0+7)).addScaledVector(side,(ballR*1.7+4.5)*camSideCur);
+    var minH=surfaceR(want.clone().normalize())+ballR*1.2+1.5;if(want.length()<minH)want.setLength(minH); // keep above terrain to avoid clipping
+    cam.position.lerp(want,1-Math.pow(0.0016,dt));cam.up.copy(up);
+    // aim at the roll, biased slightly toward the near end-face so the filling stays in view
+    cam.lookAt(ball.position.clone().addScaledVector(up,ballR*0.3).addScaledVector(side,camSideCur*ballR*0.35));
+    // goal: reach the target size before the clock runs out; after a medal the clock is gone (free roll)
+    var curMul=ballR/R0,hit=curMul>=params.targetMul;
+    if(!freeRoll){timeLeft-=dt;if(timeLeft<0)timeLeft=0}
+    HUD.bar.style.width=Math.min(100,(curMul/params.targetMul)*100)+"%";
+    HUD.sizelab.textContent="SIZE "+curMul.toFixed(1)+"x / GOAL "+params.targetMul.toFixed(1)+"x";
+    if(HUD.traits._n!==pips){HUD.traits._n=pips;HUD.traits.innerHTML="<b>OBJECTS</b>"+pips}
+    HUD.timer.textContent=freeRoll?"FREE ROLL":Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2)+(hit?"  ★":"");
+    stepBanner(dt,t);
+    renderer.render(scene,cam);
+    if(!freeRoll&&timeLeft<=0){end(hit);return}
+  }
+
+  function winArt(grade,pal){ // one flat icon crown for every medal; only the fill colour changes
+    return '<svg width="64" height="64" viewBox="0 0 48 48"><path d="M6 36 L8 14 L17 23 L24 10 L31 23 L40 14 L42 36 Z M6 39 H42 V42 H6 Z" fill="'+pal[0]+'"/></svg>';
+  }
+  // ---- end-screen copy: one random line per slot, never the same line twice in a row (memory only) ----
+  var COPY={
+    win:{GOLD:["THIS IS A HEALTH CODE VIOLATION.","THE HEALTH INSPECTOR IS CRYING.","THAT'S HUGE!","YOU ARE QUITE A COLLECTOR!"],
+         SILVER:["ABSOLUTE ROLL.","NOW THAT'S A ROLL.","CHEF'S KISS."],
+         BRONZE:["THAT'S... SOMETHING.","IT'S ROUND. IT'S A ROLL.","WELL, IT HOLDS TOGETHER."]},
+    fail:["TIME'S UP","OUT OF TIME, CHEF.","THE CLOCK WINS THIS ONE."],
+    failBody:{low:["Only {current}x of {target}x. The ants are very pleased with themselves. Try again?","Only {current}x of {target}x. Even the chopsticks felt bad. Try again?","Only {current}x of {target}x. The ants have already started the victory party. Try again?"],
+              mid:["{current}x of {target}x. Over halfway to legend. The ants are nervous. Try again?","{current}x of {target}x. Respectable roll, dubious pace. Try again?","{current}x of {target}x. The chopsticks saw you coming. Try again?"],
+              high:["SO CLOSE! {current}x of {target}x. One more crumb. Try again?","{current}x of {target}x. You could taste it. So could the ants. Try again?","{current}x of {target}x. The ants have never been this worried. Try again?"]}},
+    lastPick={};
+  function pick(slot,pool){var i=(Math.random()*pool.length)|0;if(pool.length>1&&i===lastPick[slot])i=(i+1+((Math.random()*(pool.length-1))|0))%pool.length;lastPick[slot]=i;return pool[i]}
+  function fill(s,v){return s.replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m})}
+  function end(win){running=false;cancelAnimationFrame(raf);
+    var curMul=ballR/R0,ratio=curMul/params.targetMul,grade=ratio>=1.7?"GOLD":ratio>=1.3?"SILVER":ratio>=1?"BRONZE":"";
+    var pal={GOLD:["#f6c945","#b8860b"],SILVER:["#dde2e8","#9aa3ad"],BRONZE:["#d99a5c","#9c5a24"]}[grade];
+    var v={current:curMul.toFixed(1),target:params.targetMul.toFixed(1),count:pips};
+    HUD.medal.innerHTML=win&&pal?winArt(grade,pal):"";
+    HUD.grade.textContent=win?grade:"";HUD.grade.style.color=pal?pal[0]:"#fff";
+    if(win){
+      HUD.et.textContent=pick("win"+grade,COPY.win[grade]);
+      HUD.em.textContent=fill("You rolled up to {current}x (target {target}x) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
+    } else {
+      var band=ratio<0.5?"low":ratio<0.8?"mid":"high";                 // progress bands: under 50%, 50-79%, 80%+
+      HUD.et.textContent=pick("fail",COPY.fail);
+      HUD.em.textContent=fill(pick("fail"+band,COPY.failBody[band]),v);
+    }
+    HUD.keep.classList.toggle("hidden",!win);HUD.again.querySelector(".al").textContent=win?"Restart":"Try again";
+    HUD.end.classList.remove("hidden");phase="end"}
+  function keepRolling(){freeRoll=true;begin()}
+  // ---- round phases: welcome -> play <-> pause (<-> confirm) -> end. Leaving for the art mid-round pauses it. ----
+  var phase="welcome";
+  function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
+  function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};
+    var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
+    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"x / Goal "+params.targetMul.toFixed(1)+"x · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
+    overlays(HUD.pause);phase="pause"}
+  function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
+  function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
+
+  var builtMsg=""; // the art's message when the world was built; a changed Message cell forces a rebuild
+  function artMsg(){return (window.MAKI_TXT&&window.MAKI_TXT.msg)||""}
+  async function launch(skipIntro){
+    if(running)return;
+    if(built&&artMsg()!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
+    GAME.classList.add("on");
+    if(built&&(phase==="pause"||phase==="confirm"||phase==="end")){if(phase==="confirm")cancelRestart();return} // back from the art: stay on the pause (or end) screen, no welcome
+    overlays(skipIntro?null:HUD.start);phase="welcome";
+    if(!built){builtMsg=artMsg();var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
+    if(skipIntro)begin();
+  }
+  function begin(){if(!built)return;overlays(null);phase="play";running=true;lastT=performance.now();raf=requestAnimationFrame(step)}
+  function restart(){freeRoll=false;built=false;running=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[];launch(true)} // straight back into a fresh round, no welcome screen
+  function exit(){pauseGame();running=false;cancelAnimationFrame(raf);keys={};GAME.classList.remove("on")} // leaving mid-round always pauses it
+  window.KATAMAKI_LAUNCH=function(){if(!GAME.classList.contains("on"))launch()}; // KATAMAKI button in the art's top bar
+
+  GAME.querySelector(".go").addEventListener("click",begin);
+  GAME.querySelector(".again").addEventListener("click",restart);
+  HUD.keep.addEventListener("click",keepRolling);
+  GAME.querySelector(".cont").addEventListener("click",begin);
+  GAME.querySelector(".rst").addEventListener("click",askRestart);
+  GAME.querySelector(".yes").addEventListener("click",restart);
+  GAME.querySelector(".no").addEventListener("click",cancelRestart);
+  GAME.addEventListener("click",function(e){e.stopPropagation()});
+  window.addEventListener("keydown",function(e){
+    var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;
+    var on=GAME.classList.contains("on"),k=e.key.length===1?e.key.toLowerCase():e.key;
+    if(k==="g"){e.preventDefault();if(on)exit();else launch();return}                 // G: art <-> game (pauses a live round)
+    if(!on)return;                                                                   // everything below is game-only; Esc on the art does nothing
+    if(k==="Escape"){e.preventDefault();exit();return}                              // Esc: back to the art (pauses)
+    if(k==="p"){e.preventDefault();if(phase==="play")pauseGame();else if(phase==="pause")begin();else if(phase==="confirm")cancelRestart();else if(phase==="end"&&!HUD.keep.classList.contains("hidden"))keepRolling();return}
+    if(k==="r"){e.preventDefault();if(phase==="play"||phase==="pause")askRestart();else if(phase==="confirm"||phase==="end")restart();return}
+    if(k==="Enter"&&phase==="confirm"){e.preventDefault();restart();return}
+    if(k==="Enter"&&phase==="welcome"&&built&&!HUD.start.classList.contains("hidden")){e.preventDefault();begin();return} // Start Rolling
+    if(phase!=="play")return;
+    keys[e.key]=true;if(k==="a"||k==="ArrowLeft")camSide=1;if(k==="d"||k==="ArrowRight")camSide=-1;if(k===" "&&running&&hopT<=0)hopT=hopDur;if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
+  });
+  window.addEventListener("keyup",function(e){keys[e.key]=false});
 })();
 </script>
 </body>
