@@ -1100,8 +1100,9 @@ alea.ready();
   window.addEventListener("keyup",function(e){keys[e.key]=false});
 })();
 </script>
+<style>@media (hover:none) and (pointer:coarse){.export-bar .v1-link{display:none}}</style><!-- PUBLIC DEMO only: v1 has no mobile tap fix, so the V1 link is hidden on touch-only devices, like KATAMAKI -->
 <script>/* PUBLIC DEMO only: a "V1" pill in the export bar that opens the same seed in the minted version (v1). v2 changed some rules, so a seed's art can differ there */
-(function(){var b=document.querySelector(".export-bar");if(!b||!window.$alea)return;var a=document.createElement("a");a.className="button";a.href="v1/?seed="+encodeURIComponent($alea.seed);a.setAttribute("aria-label","Open this seed in the minted version");a.innerHTML="<span>V1</span>";b.appendChild(a)})();
+(function(){var b=document.querySelector(".export-bar");if(!b||!window.$alea)return;var a=document.createElement("a");a.className="button v1-link";a.href="v1/?seed="+encodeURIComponent($alea.seed);a.setAttribute("aria-label","Open this seed in the minted version");a.innerHTML="<span>V1</span>";b.appendChild(a)})();
 </script>
 </body>
 </html>

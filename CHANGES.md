@@ -28,4 +28,4 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 
 ### Demo only
 
-- **V1** button in the export bar (`index.html` only, not minted): opens the same seed in `v1/`.
+- **V1** button in the export bar (`index.html` only, not minted): opens the same seed in `v1/`. Hidden on phones and tablets, like KATAMAKI, since v1 has no mobile tap fix.
