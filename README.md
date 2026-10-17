@@ -46,17 +46,21 @@ Opening `makimono.html` directly from disk shows the art, but the game reports "
 | `M` | Toggle the hop animation |
 | `G` or the **KATAMAKI** button | Open the game |
 
-**Katamaki** (desktop only)
+**Katamaki**
 
-| Key | Action |
-| --- | --- |
-| `W` / `↑` · `S` / `↓` | Roll forward / backward |
-| `A` / `←` · `D` / `→` | Turn left / right |
-| `Space` | Hop |
-| `P` | Pause / resume |
-| `R` | Restart (asks to confirm during a round) |
-| `Enter` | Start rolling · confirm restart |
-| `G` / `Esc` | Back to the art (pauses the round) |
+| Key | Touch | Action |
+| --- | --- | --- |
+| `W` / `↑` · `S` / `↓` | Drag anywhere: up / down | Roll forward / backward |
+| `A` / `←` · `D` / `→` | Drag anywhere: left / right | Turn left / right |
+| `Space` | Arrow button (bottom right) | Hop |
+| `P` | Pause button (top right) | Pause / resume |
+| `R` | Restart on the pause screen | Restart (asks to confirm during a round) |
+| `Enter` | Start Rolling button | Start rolling · confirm restart |
+| `G` / `Esc` | ✕ button (top right) | Back to the art (pauses the round) |
+
+On touch, the stick appears wherever your thumb lands and is analog: a small push gives a gentle turn. Portrait and landscape both work.
+
+**Adaptive quality.** If a device can't keep up (under 48 fps), the game lowers quality one step at a time: sharpness first, then fewer decor cones and clouds, then no scattered scenery. Collectibles, ants and chopsticks never change, so the goal and difficulty stay the same. A step that doesn't help is undone. Add `?perf=1` to show the frame rate and level (tap it to force one), or `?tier=0`–`3` to force a level.
 
 Reach the goal size before the clock runs out to earn Bronze, Silver or Gold, then keep rolling for as long as you like. Your token's traits set the planet's colours, the time limit, the goal size, the monsters and the roll's style (maki or uramaki).
 
@@ -64,9 +68,9 @@ Reach the goal size before the clock runs out to earn Bronze, Silver or Gold, th
 
 1. Upload `makimono.mint.html` from the repo root (v2).
 2. Tick the **three.js** library box. The mint UI adds `<meta name="alea:library" content="three@0.160.1">`, and the renderer supplies three.js. Don't add a three.js script tag or a second library tag yourself: the network is blocked on chain.
-3. In the preview, check that the art renders, then press `G` and play a round.
+3. In the preview, check that the art renders, then press `G` and play a round. On a phone, check the touch controls too.
 
-The v2 mint build is about 107 KB, over the 32 KB that fits in one Tezos operation, so Aleatory publishes it in chunks (several signatures).
+The v2 mint build is about 115 KB, over the 32 KB that fits in one Tezos operation, so Aleatory publishes it in chunks (several signatures).
 
 ## Making changes
 

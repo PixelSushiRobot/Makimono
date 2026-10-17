@@ -10,7 +10,7 @@ v2 is the version at the repo root and on [makimono.psr.fyi](https://makimono.ps
 
 1. **Edge bleed on scrolling patterns.** The scrolling filling layer is wrapped in a fixed clip, so no sliver of filling shows past the art's right edge in the detailed view. ([v1 issue 1](v1/NOTES.md#1-edge-bleed-on-scrolling-patterns-in-the-detailed-view))
 2. **Mobile tap opens the traits band.** Taps are detected from pointer/touch events instead of waiting for a `click` that iOS Safari never sends. Timing uses `e.timeStamp`, since Aleatory freezes `Date.now()`. ([v1 issue 2](v1/NOTES.md#2-tapping-the-art-doesnt-open-the-traits-band-on-mobile))
-3. **No KATAMAKI button on phones and tablets.** The game is desktop only, so its button is hidden on touch-only devices. Desktops and touchscreen laptops with a trackpad are unchanged. ([v1 issue 3](v1/NOTES.md#3-katamaki-button-shows-on-mobile-where-the-game-isnt-supported))
+3. **Katamaki plays on phones and tablets.** Instead of hiding the KATAMAKI button on mobile, the game now has touch controls (see below). ([v1 issue 3](v1/NOTES.md#3-katamaki-button-shows-on-mobile-where-the-game-isnt-supported))
 4. **GIF export follows the current art.** The cached GIF is only reused while the art (including the Message) is the same as when it was rendered. Every GIF shows the hopped version, whatever the hop toggle. ([v1 issue 4](v1/NOTES.md#4-gif-export-keeps-an-earlier-version-after-the-message-changes))
 
 ### Rule changes
@@ -22,10 +22,18 @@ v2 is the version at the repo root and on [makimono.psr.fyi](https://makimono.ps
 
 The listed odds still add up: pattern odds come from each profile's allowed patterns, and the speed shares are recomputed from them.
 
+### Katamaki on mobile
+
+- **Touch controls.** Drag anywhere for an analog stick that appears under your thumb (up/down roll, left/right steer). An arrow button hops. Small icon buttons under the timer pause or go back to the art. The page doesn't scroll or zoom while playing.
+- **Portrait and landscape.** The HUD keeps clear of the notch and home bar, the controls sit above the size bar in portrait, and portrait gets a wider camera view.
+- **Pauses when hidden.** Switching apps or locking the phone pauses the round.
+- **Adaptive quality.** Under 48 fps, quality steps down: sharpness capped at 1.5×, then 1× with fewer decor cones and clouds and no antialiasing from the next round, then 0.75× with no scattered scenery. Collectibles, ants and chopsticks never change. A step that doesn't help is undone. `?perf=1` shows the frame rate and level; `?tier=0`–`3` forces a level.
+- **Mobile viewport.** The page now has a mobile viewport tag, so phones lay it out at their real width instead of a shrunk desktop page.
+
 ### Other
 
 - The project name in the top-left corner of the traits view reads **MAKIMONO 2.0**.
 
 ### Demo only
 
-- **V1** button in the export bar (`index.html` only, not minted): opens the same seed in `v1/`. Hidden on phones and tablets, like KATAMAKI, since v1 has no mobile tap fix.
+- **V1** button in the export bar (`index.html` only, not minted): opens the same seed in `v1/`. Hidden on phones and tablets, since v1 has no mobile tap fix.

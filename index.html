@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <!-- PUBLIC DEMO (GitHub Pages) -- built from makimono.html plus this one script tag (and a "V1" link before </body>). The script tag loads three.js from a CDN so the game runs on the open web. Do not mint this file: on chain the network is blocked, so this script would fail. Mint makimono.mint.html with the three.js library box ticked instead. -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Makimono</title>
 <style>
 /* Space Mono embedded as a subset — the Aleatory sandbox blocks the network, so a Google Fonts <link> can't load there.
@@ -38,7 +39,6 @@ body{background:#0b0b0c;display:grid;place-items:center;font-family:'Space Mono'
 .export-bar .button:active{background:var(--ink);color:var(--bg,#0b0b0c)}
 .export-bar .button[aria-busy="true"]{cursor:progress}
 .export-bar .button.gif-busy{animation:gpulse .9s ease-in-out infinite}
-@media (hover:none) and (pointer:coarse){.export-bar .button[aria-label="Play Katamaki"]{display:none}}/* Katamaki is desktop-only: hide its button on touch-only devices (phones, tablets) */
 @keyframes gpulse{50%{border-color:var(--ink-muted)}}
 .swatch{flex:0 0 auto;box-sizing:border-box;width:calc(var(--band-h) - var(--bw));height:calc(var(--band-h) - var(--bw));padding:var(--sz-20);display:flex;align-items:flex-end;justify-content:center;border-right:var(--bw) solid var(--ink)}
 .bars{display:flex;flex-direction:row;align-items:flex-end;width:100%;height:100%}
@@ -553,6 +553,33 @@ alea.ready();
 #game .overlay .medal{line-height:0;margin:0}
 #game .overlay .medal:empty,#game .overlay .grade:empty{display:none}
 #game .hidden{display:none}
+#game .tpad{display:none}
+#game.touch{touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#game.touch .tpad{display:block;position:absolute;inset:0;touch-action:none}
+#game .stick{position:absolute;left:calc(26px + env(safe-area-inset-left));bottom:calc(30px + env(safe-area-inset-bottom));width:120px;height:120px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:rgba(255,255,255,.07);pointer-events:none;opacity:.5;transition:opacity .15s}
+#game .stick.on{bottom:auto;margin:-60px 0 0 -60px;opacity:1;transition:none}
+#game .stick i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#game .tpad button{display:grid;place-items:center;padding:0;color:#fff;touch-action:none;-webkit-tap-highlight-color:transparent}
+#game .tpad button svg{display:block;fill:currentColor}
+#game .hopb{position:absolute;right:calc(26px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom));width:84px;height:84px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.12)}
+#game .hopb svg{width:38px;height:38px}
+#game .hopb.on{background:#fff;color:#05060a}
+/* pause + back-to-art: small round icon buttons tucked under the timer, top-right */
+#game .tbtns{position:absolute;top:calc(48px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));display:flex;gap:8px}
+#game .tbtns button{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);background:rgba(5,6,10,.3)}
+#game .tbtns button svg{width:16px;height:16px}
+#game .tbtns button:active{background:rgba(255,255,255,.25)}
+#game.touch .exit,#game.touch .overlay button kbd{display:none}
+#game.touch .traits{top:calc(14px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left))}
+#game.touch .timer{top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right))}
+/* size bar, label and hint stay at the bottom like desktop, lifted clear of the home bar */
+#game.touch .sizebar{bottom:calc(60px + env(safe-area-inset-bottom))}
+#game.touch .sizelab{bottom:calc(76px + env(safe-area-inset-bottom))}
+#game.touch .hint{top:calc(100% - 50px - env(safe-area-inset-bottom))}
+/* landscape: the bar sits between the stick and HOP, so keep it out of their way */
+@media (orientation:landscape){#game.touch .sizebar{width:min(calc(100vw - 380px),380px)}#game.touch .hint{max-width:calc(100vw - 360px)}}
+/* portrait: the controls move up above the bar and its label */
+@media (orientation:portrait){#game .stick{bottom:calc(112px + env(safe-area-inset-bottom))}#game .hopb{bottom:calc(130px + env(safe-area-inset-bottom))}}
 </style>
 <div id="game">
   <div class="hud">
@@ -563,6 +590,7 @@ alea.ready();
     <div class="sizebar"><i></i></div>
     <div class="hint">W / S roll &middot; A / D steer &middot; Space hop &middot; P pause &middot; R restart</div>
   </div>
+  <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button><button class="tart" aria-label="Back to the art"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 1.8L8 6.6l4.8-4.8 1.4 1.4L9.4 8l4.8 4.8-1.4 1.4L8 9.4l-4.8 4.8-1.4-1.4L6.6 8 1.8 3.2z"/></svg></button></div></div>
   <div class="overlay start"><h2>Welcome to Katamaki</h2><p class="desc"></p><button class="go">Start Rolling<kbd>Enter</kbd></button></div>
   <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd>P</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
   <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Continue Rolling<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button></div>
@@ -861,7 +889,7 @@ alea.ready();
       obstacles.push({g:g,dir:dir.clone(),size:(g.userData.size||0.7)*sc,dead:false});}
     var CLUST=6;for(var ci=0;ci<CLUST;ci++){var center=fibDir((ci*5+2)%CLUST,CLUST).applyAxisAngle(YUP,rnd()*6.28).normalize();if(relief01(center)<WATER+0.06)continue;
       var cnt=7+(rnd()*7|0);for(var kk=0;kk<cnt;kk++){var off=new THREE.Vector3(rnd()-.5,rnd()-.5,rnd()-.5).multiplyScalar(0.2);placeObstacle(center.clone().add(off),0.65+rnd()*0.7)}}
-    var SC=30;for(var s=0;s<SC;s++){placeObstacle(fibDir((s*7+3)%SC,SC).applyAxisAngle(YUP,rnd()*2.3),0.7+rnd()*0.8)}
+    obsSingle0=obstacles.length;var SC=30;for(var s=0;s<SC;s++){placeObstacle(fibDir((s*7+3)%SC,SC).applyAxisAngle(YUP,rnd()*2.3),0.7+rnd()*0.8)}
   }
 
   function build(tr,cells){
@@ -872,7 +900,8 @@ alea.ready();
     scene=new THREE.Scene();
     var sky=col(p.bg).multiplyScalar(.22);scene.background=sky;scene.fog=new THREE.FogExp2(sky.getHex(),0.0022);
     cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,3000);
-    renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setSize(innerWidth,innerHeight);
+    fitFov();
+    renderer=new THREE.WebGLRenderer({antialias:PQ.tier<2});renderer.setPixelRatio(perfPR());renderer.setSize(innerWidth,innerHeight);
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.shadowMap.enabled=false;renderer.shadowMap.type=THREE.PCFSoftShadowMap; // real maps replaced by flat blob shadows (single clean contact shadow, no terrain-clip gaps)
     GAME.insertBefore(renderer.domElement,GAME.firstChild);
@@ -919,7 +948,8 @@ alea.ready();
     built=true;onResize();
   }
 
-  function onResize(){if(!renderer)return;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
+  function fitFov(){if(!cam)return;var a=innerWidth/innerHeight;cam.fov=a<1?Math.min(78,2*Math.atan(Math.tan(55*Math.PI/360)/Math.sqrt(a))*180/Math.PI):55;cam.updateProjectionMatrix()} // portrait gets a wider view so the sides aren't cut off
+  function onResize(){if(!renderer)return;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();fitFov();renderer.setSize(innerWidth,innerHeight)}
   window.addEventListener("resize",onResize);
 
   // collected things stand on the roll's surface (base pressed into the barrel), never over the filling ends,
@@ -937,13 +967,13 @@ alea.ready();
   function step(t){
     if(!running)return;
     raf=requestAnimationFrame(step);
-    var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;
+    perfSample(t,t-lastT);var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;
     up.copy(pPos).normalize();
     fwd.addScaledVector(up,-fwd.dot(up));if(fwd.lengthSq()<1e-6)fwd.set(up.z,up.x,up.y);fwd.normalize();
     var turn=2.2,mv=0,SPEED=7.5;
-    if(keys.a||keys.ArrowLeft)fwd.applyAxisAngle(up,turn*dt);
-    if(keys.d||keys.ArrowRight)fwd.applyAxisAngle(up,-turn*dt);
-    if(keys.w||keys.ArrowUp)mv+=1;if(keys.s||keys.ArrowDown)mv-=1;
+    var st=((keys.a||keys.ArrowLeft)?1:0)-((keys.d||keys.ArrowRight)?1:0)-stick.x;st=Math.max(-1,Math.min(1,st)); // keys give full turn, the stick is analog
+    if(st)fwd.applyAxisAngle(up,turn*dt*st);
+    if(keys.w||keys.ArrowUp)mv+=1;if(keys.s||keys.ArrowDown)mv-=1;mv=Math.max(-1,Math.min(1,mv-stick.y)); // stick up = forward
     var prevDir=pPos.clone().normalize();
     if(mv){var axis=new THREE.Vector3().crossVectors(up,fwd).normalize();pPos.applyAxisAngle(axis,(SPEED/SR)*dt*mv)} // W: travel +fwd (forward), matches the forward roll below
     if(bumpV.lengthSq()>0.01){var bu=bumpV.clone();bu.addScaledVector(up,-bu.dot(up));var bl=bu.length();if(bl>1e-3)pPos.applyAxisAngle(new THREE.Vector3().crossVectors(up,bu).normalize(),bl/SR*dt);bumpV.multiplyScalar(Math.pow(0.02,dt))}else bumpV.set(0,0,0); // monster knockback, decays fast; walls still stop it
@@ -1053,7 +1083,7 @@ alea.ready();
   // ---- round phases: welcome -> play <-> pause (<-> confirm) -> end. Leaving for the art mid-round pauses it. ----
   var phase="welcome";
   function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
-  function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};
+  function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};releaseStick();
     var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
     HUD.pstat.textContent="Size "+curMul.toFixed(1)+"x / Goal "+params.targetMul.toFixed(1)+"x · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
     overlays(HUD.pause);phase="pause"}
@@ -1071,9 +1101,9 @@ alea.ready();
     if(!built){builtMsg=artMsg();var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
     if(skipIntro)begin();
   }
-  function begin(){if(!built)return;overlays(null);phase="play";running=true;lastT=performance.now();raf=requestAnimationFrame(step)}
+  function begin(){if(!built)return;overlays(null);phase="play";running=true;lastT=performance.now();PQ.skip=-1;PQ.ws=0;perfApply();raf=requestAnimationFrame(step)}
   function restart(){freeRoll=false;built=false;running=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[];launch(true)} // straight back into a fresh round, no welcome screen
-  function exit(){pauseGame();running=false;cancelAnimationFrame(raf);keys={};GAME.classList.remove("on")} // leaving mid-round always pauses it
+  function exit(){pauseGame();running=false;cancelAnimationFrame(raf);keys={};releaseStick();GAME.classList.remove("on")} // leaving mid-round always pauses it
   window.KATAMAKI_LAUNCH=function(){if(!GAME.classList.contains("on"))launch()}; // KATAMAKI button in the art's top bar
 
   GAME.querySelector(".go").addEventListener("click",begin);
@@ -1097,10 +1127,62 @@ alea.ready();
     if(phase!=="play")return;
     keys[e.key]=true;if(k==="a"||k==="ArrowLeft")camSide=1;if(k==="d"||k==="ArrowRight")camSide=-1;if(k===" "&&running&&hopT<=0)hopT=hopDur;if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
   });
+  // ---- touch controls: floating stick (left thumb: up/down roll, left/right steer, analog), hop button (arrow), pause and back-to-art icon buttons.
+  // the touch layout turns on for touch-only devices, after any touch on the game, or with ?touch=1 (a mouse can drive the stick, for checking on desktop).
+  var stick={x:0,y:0};
+  var hintEl=GAME.querySelector(".hint");
+  function useTouch(){if(GAME.classList.contains("touch"))return;GAME.classList.add("touch");hintEl.textContent="Drag anywhere to roll and steer · tap the arrow to hop"}
+  if(matchMedia("(hover:none) and (pointer:coarse)").matches||/[?&]touch=1/.test(location.search))useTouch();
+  GAME.addEventListener("pointerdown",function(e){if(e.pointerType==="touch")useTouch()},true);
+  var tpad=GAME.querySelector(".tpad"),stEl=tpad.querySelector(".stick"),knob=stEl.querySelector("i"),hopB=tpad.querySelector(".hopb"),SR_PX=60,DZ=.12,sid=null,ox=0,oy=0;
+  function setStick(dx,dy){var d=Math.hypot(dx,dy);
+    if(d>SR_PX){ox+=dx*(1-SR_PX/d);oy+=dy*(1-SR_PX/d);dx*=SR_PX/d;dy*=SR_PX/d;d=SR_PX;stEl.style.left=ox+"px";stEl.style.top=oy+"px"} // dragging past the rim pulls the stick along, so reversing is quick
+    knob.style.transform="translate("+dx+"px,"+dy+"px)";
+    var m=d/SR_PX;m=m<DZ?0:(m-DZ)/(1-DZ);var ux=d?dx/d:0,uy=d?dy/d:0,x=ux*m;
+    stick.x=(x<0?-1:1)*Math.pow(Math.abs(x),1.5);stick.y=uy*m; // softer steering near the centre
+    if(stick.x<-.35)camSide=1;else if(stick.x>.35)camSide=-1}
+  function releaseStick(){sid=null;stick.x=stick.y=0;knob.style.transform="";stEl.classList.remove("on");stEl.style.left=stEl.style.top=""}
+  tpad.addEventListener("pointerdown",function(e){if(e.target.closest("button")||sid!==null||phase!=="play")return;e.preventDefault();
+    sid=e.pointerId;try{tpad.setPointerCapture(sid)}catch(_){}ox=e.clientX;oy=e.clientY;stEl.classList.add("on");stEl.style.left=ox+"px";stEl.style.top=oy+"px";setStick(0,0)});
+  tpad.addEventListener("pointermove",function(e){if(e.pointerId!==sid)return;e.preventDefault();setStick(e.clientX-ox,e.clientY-oy)});
+  ["pointerup","pointercancel","lostpointercapture"].forEach(function(n){tpad.addEventListener(n,function(e){if(e.pointerId===sid)releaseStick()})});
+  hopB.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();hopB.classList.add("on");if(running&&hopT<=0)hopT=hopDur});
+  ["pointerup","pointercancel","pointerleave"].forEach(function(n){hopB.addEventListener(n,function(){hopB.classList.remove("on")})});
+  tpad.querySelector(".tpause").addEventListener("click",function(){pauseGame()});
+  tpad.querySelector(".tart").addEventListener("click",function(){exit()});
+  ["touchstart","touchmove"].forEach(function(n){GAME.addEventListener(n,function(e){if(GAME.classList.contains("touch")&&!e.target.closest(".overlay, .tbtns, .perf"))e.preventDefault()},{passive:false})}); // no page scroll, pinch or double-tap zoom while playing
+  document.addEventListener("visibilitychange",function(){if(document.hidden)pauseGame()}); // app switch, lock screen, incoming call: pause the round
+  // ---- adaptive quality: watch the frame rate while playing and step down only if the device struggles.
+  // tiers: 0 full | 1 sharpness capped at 1.5x | 2 sharpness 1x, half the decor cones and clouds, no antialias from the next round | 3 sharpness .75x, no scattered scenery (clusters stay)
+  // a step that doesn't raise the frame rate by 10% is undone and the tier locks (e.g. iOS Low Power Mode caps every page at 30fps, lowering quality can't help).
+  // timing uses the rAF timestamp (the game's own clock), never Date.now (frozen on Aleatory). ?perf=1 shows fps + tier (tap it to force a tier), ?tier=0..3 forces a tier.
+  var PQ={tier:0,lock:false,forced:undefined,skip:-1,ws:0,n:0,big:0,last:-1,prev:0},obsSingle0=1e9,perfEl=null;
+  (function(){var m=location.search.match(/[?&]tier=([0-3])/);if(m){PQ.tier=+m[1];PQ.lock=true;PQ.forced=PQ.tier}
+    if(!/[?&]perf=1/.test(location.search))return; // readout (top centre) for checking a device: tap it to force tier 0, 1, 2, 3, then back to auto
+    perfEl=document.createElement("button");perfEl.className="perf";perfEl.style.cssText="position:absolute;left:50%;top:calc(52px + env(safe-area-inset-top));transform:translateX(-50%);z-index:3;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(5,6,10,.45);color:#fff;font:700 11px ui-monospace,monospace;letter-spacing:.04em;touch-action:manipulation";GAME.appendChild(perfEl);
+    perfEl.addEventListener("click",function(e){e.stopPropagation();PQ.forced=PQ.forced===undefined?0:PQ.forced+1;
+      if(PQ.forced>3){PQ.forced=undefined;PQ.lock=false;PQ.tier=0}else{PQ.tier=PQ.forced;PQ.lock=true}PQ.last=-1;PQ.skip=-1;PQ.ws=0;perfApply()});
+    perfShow()})();
+  function perfPR(){return Math.min(devicePixelRatio||1,[2,1.5,1,.75][PQ.tier])}
+  function perfApply(){if(!renderer)return;renderer.setPixelRatio(perfPR());renderer.setSize(innerWidth,innerHeight);
+    terrain.forEach(function(c,i){c.g.visible=PQ.tier<2||i%2===0});
+    clouds.forEach(function(c,i){c.g.visible=PQ.tier<2||i%2===0});
+    obstacles.forEach(function(o,i){if(i<obsSingle0)return;
+      if(PQ.tier>=3){if(!o.dead){o.dead=true;o.hid=true;o.g.visible=false}} // hidden scenery also stops blocking
+      else if(o.hid){o.dead=false;o.hid=false;o.g.visible=true}});
+    perfShow()}
+  function perfShow(fps){if(perfEl)perfEl.textContent=(fps?Math.round(fps):"--")+" fps · tier "+PQ.tier+(PQ.forced!==undefined?" forced":PQ.lock?" locked":" auto")}
+  function perfSample(t,ft){if(PQ.skip<0)PQ.skip=t+1000;if(t<PQ.skip){PQ.ws=0;return} // settle for 1s after (re)starting or a step
+    if(!PQ.ws){PQ.ws=t;PQ.n=0;PQ.big=0;return}
+    PQ.n++;if(ft>250)PQ.big++;var el=t-PQ.ws;if(el<2000)return;
+    var fps=PQ.n*1000/el;PQ.ws=0;perfShow(fps);
+    if(PQ.lock||PQ.big)return; // a long stall (app switch, garbage collection) spoils the window
+    if(PQ.last>=0){if(fps<PQ.prev*1.1){PQ.tier=PQ.last;PQ.lock=true;PQ.last=-1;perfApply();return}PQ.last=-1} // the last step didn't help: undo it and stop
+    if(fps<48&&PQ.tier<3){PQ.last=PQ.tier;PQ.prev=fps;PQ.tier++;perfApply();PQ.skip=t+1000}}
   window.addEventListener("keyup",function(e){keys[e.key]=false});
 })();
 </script>
-<style>@media (hover:none) and (pointer:coarse){.export-bar .v1-link{display:none}}</style><!-- PUBLIC DEMO only: v1 has no mobile tap fix, so the V1 link is hidden on touch-only devices, like KATAMAKI -->
+<style>@media (hover:none) and (pointer:coarse){.export-bar .v1-link{display:none}}</style><!-- PUBLIC DEMO only: v1 has no mobile tap fix, so the V1 link is hidden on touch-only devices -->
 <script>/* PUBLIC DEMO only: a "V1" pill in the export bar that opens the same seed in the minted version (v1). v2 changed some rules, so a seed's art can differ there */
 (function(){var b=document.querySelector(".export-bar");if(!b||!window.$alea)return;var a=document.createElement("a");a.className="button v1-link";a.href="v1/?seed="+encodeURIComponent($alea.seed);a.setAttribute("aria-label","Open this seed in the minted version");a.innerHTML="<span>V1</span>";b.appendChild(a)})();
 </script>
