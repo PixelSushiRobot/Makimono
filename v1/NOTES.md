@@ -1,6 +1,8 @@
 # Known issues
 
-These issues affect `makimono.html`, `makimono.mint.html` and `index.html`. The minted collection (`makimono.mint.html`) was published before they were found, so the fixes below are **not** in it. Each has a fix recorded here for a future edition and for updating the demo. The fixes for issues 1 and 2 have been tested; the fixes for issues 3 and 4 are written out but not yet built.
+**All six are fixed in v2, at the repo root (see [`../CHANGES.md`](../CHANGES.md)).** This folder is the minted v1 and stays unchanged.
+
+These issues affect `makimono.html`, `makimono.mint.html` and `index.html`. The minted collection (`makimono.mint.html`) was published before they were found, so the fixes below are **not** in it. Each has a fix recorded here for a future edition and for updating the demo. The fixes for issues 1 and 2 have been tested; the fixes for issues 3 and 4 are written out but not yet built. The fixes for issues 5 and 6 change which art a seed produces, so they are for a future edition only (see the warning under issue 5).
 
 To apply a fix: change `makimono.html` first, then rebuild `makimono.mint.html` (comments stripped) and `index.html` (plus the three.js CDN script), as described in the README.
 
@@ -138,3 +140,90 @@ Notes:
 - **If the art changes while a GIF is rendering,** that render still completes and downloads the version that was clicked. It's recorded against the art at click time, so the next click sees the newer art and renders again.
 - **`pass`** lets the follow-up click download the just-rendered GIF even if the art changed during rendering, instead of starting another render.
 - **The sandbox branch** ("Link to GIF" / copy link) is a fallback for frames that block downloads. Aleatory now allows downloads, so it normally stays unused, but the stale-link reset keeps it correct if it ever runs.
+
+---
+
+## 5. Mono ignores the Profile trait
+
+**Affects:** all three files. Mono palette only (20% of pieces).
+
+**Symptom.** Every Mono piece shows a Profile (Random, Trio, Mirror, Duo, Accent, Spectrum), but the art is the same whichever one it gets. A Mono Duo looks exactly like a Mono Spectrum.
+
+**Cause.** `monoRoles` always builds the six colour roles as `[L0,L1,L2,L3,L2,L1]` from its 4 lightness levels, and never looks at the profile. Classic and Neon build their roles from the profile, so the trait is real there.
+
+**Fix.** Make the six Mono roles follow the profile, choosing from the same 4 shades (6 shades were tried and looked muddy):
+
+| Profile | Shade order (indexes into the 4 shades) |
+| --- | --- |
+| Random | any 6, using at least 3 different shades |
+| Trio | `a a b b c c`, 3 different shades |
+| Mirror | `a b c c b a`, 3 different shades |
+| Duo | `a b a b a b`, shades at least 2 steps apart |
+| Accent | `a a a a a b`, shades at least 2 steps apart |
+| Spectrum | `0 1 2 3 2 1` (today's look) |
+
+Pass the profile in (`monoRoles(R,rm[0])` in `gen`, `function monoRoles(R,mode)`), and replace the `const L=lv(),C=[L[0],L[1],L[2],L[3],L[2],L[1]].map(...)` line with:
+
+```js
+/* the 6 roles follow the Profile, picking from the 4 shades (indexes into L). Duo and Accent shades sit 2+ steps apart; Random uses 3+ shades */
+const pk=()=>Math.floor(R()*4),far=x=>{let y;do{y=pk()}while(Math.abs(y-x)<2);return y},dist=k=>{const u=[];while(u.length<k){const c=pk();if(!u.includes(c))u.push(c)}return u};
+let I;if(mode==="random"){do{I=[0,1,2,3,4,5].map(pk)}while(new Set(I).size<3)}else if(mode==="trio"){const u=dist(3);I=[u[0],u[0],u[1],u[1],u[2],u[2]]}
+else if(mode==="mirror"){const u=dist(3);I=[u[0],u[1],u[2],u[2],u[1],u[0]]}else if(mode==="duo"){const x=pk(),y=far(x);I=[x,y,x,y,x,y]}
+else if(mode==="accent"){const x=pk(),y=far(x);I=[x,x,x,x,x,y]}else I=[0,1,2,3,2,1];
+const L=lv(),C=I.map(i=>hsl(a,1,L[i]));
+```
+
+Also give Mono the same no-Fast limits as Classic and Neon: in `SPEED_RULES`, change the palette list `["classic","neon"]` to `null` (any palette) in the Duo/Accent field-pattern rule and the Ripple + Spectrum/Mirror rule.
+
+**Known limit (accepted).** With 4 shades, Mono Trio has only 4 possible shade sets for a given hue and scale (which shade is left out), and any order of `a a b b c c` plays as the same loop once animated. Two Trio pieces with the same hue, scale and left-out shade look the same. Hue, scale and pattern still vary them.
+
+**⚠ Changes existing seeds.** The new shade picks use extra random draws, and issue 6 changes which patterns can be picked. Many seeds would render different art from their minted token. Don't apply issues 5 and 6 to `makimono.html` or `index.html` while they're meant to match the minted collection; use them for a new edition.
+
+---
+
+## 6. Some trait combinations look the same as others
+
+**Affects:** all three files. Desktop and mobile.
+
+**Symptom.** Some pieces have different traits but show the same art, or art that's very hard to tell apart:
+
+| Combination | Looks like | Why | Palettes |
+| --- | --- | --- | --- |
+| Duo + Diagonal | Checker | Two colours on a diagonal give a checkerboard | All |
+| Duo + Chase | Duo + Scroll | The chase path alternates by column, giving vertical stripes | All |
+| Accent + Checker | Duo + Checker | Checker only shows two colours, so the profiles match | All |
+| Accent + Text | Duo + Text | Text cycles only the *unique* colours, in first-seen order: both are `a, b` | Mono |
+| Mirror + Text | Trio + Text | Both reduce to `a, b, c` | Mono |
+| Random + Text | Trio or Spectrum + Text | Random lands on 3 or 4 of the 4 shades | Mono |
+| Mirror + Maki | Trio + Maki | Maki uses the same unique-colour cycle as Text | Mono |
+| Mirror + Sparkle | Trio + Sparkle | The still base differs only by Mirror's split middle shade | Mono |
+| Mirror + Ripple | Trio + Ripple | Same split shade, lost in the pulsing rings | Mono |
+
+The first three are blocked on every palette, because the layout matches whatever the colours are. The Mono-only ones aren't a problem on Classic and Neon: there every piece rolls its own colours (Classic picks 3 of 6 at random; Neon picks a random start hue on the 24-hue wheel), so two pieces with the same colour count almost never share colours. On Mono, every piece picks from the same 4 shades of its hue, so the same count gives the same shades.
+
+Checked and left alone:
+- **Text on Classic/Neon:** Duo, Accent, Trio, Mirror, Random and Spectrum give different colour sets each roll.
+- **Sparkle + Duo vs Checker:** Sparkle's random white pixels set it apart.
+
+**Fix.** Ban these patterns per profile and palette in `patList`, which every pick and every odds calculation already goes through. Replace the `patList` line with:
+
+```js
+const TEXTS=["text_ants","text_tezos","text_paul_hbd","text_yolo"];
+/* lookalike guards: drop patterns where a profile would look the same as another profile or pattern.
+   all palettes (same layout whatever the colors): Duo Diagonal = Checker, Duo Chase = Duo Scroll, Accent Checker = Duo Checker.
+   Mono only (Mono has 4 shades of one hue, so profiles with the same shade count land on the same shades): Text shows only the unique colors,
+   so Accent = Duo and Mirror = Trio, and Random always matches Trio or Spectrum; Mirror's split shade can't be seen on Sparkle, Ripple or Maki */
+const patList=(ramp,cp)=>{const b=ramp==="duo"||ramp==="accent"?["chromie","filling_cycle"]:[];/* two-color ramps: no Squiggle; no Maki either (Maki needs 3+ ramp colors, and in Classic it ignores the ramp) */
+if(ramp==="duo")b.push("diagonal","chase");if(ramp==="accent")b.push("checker");
+if(cp==="mono"){if(ramp==="accent"||ramp==="random")b.push(...TEXTS);if(ramp==="mirror")b.push("sparkle","ripple","filling_cycle",...TEXTS)}
+return b.length?PAT.filter(x=>!b.includes(x[0])):PAT};
+```
+
+Then pass the palette at each call:
+- In `gen`: `wp(R,patList(rm[0],cp))`.
+- In the `SPW` speed-share table: `patList(r[0],m[0])`.
+- In the Classic Maki odds (`rkp`): `patList(r[0],"classic")`.
+
+Notes:
+- **Odds stay correct.** The pattern odds come from the filtered list, and the speed shares are recomputed from it, so the listed odds still add up.
+- Ship together with issue 5: the Mono rows assume Mono follows the Profile.
