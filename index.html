@@ -543,13 +543,9 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 #game .overlay .medal{line-height:0;margin:0}
 #game .overlay .medal:empty,#game .overlay .grade:empty{display:none}
 #game .overlay p.wel{margin:0 0 -2px;font:700 12px ui-monospace,monospace;letter-spacing:.32em;text-transform:uppercase;opacity:.8}
-#game .overlay .logo{margin:0 0 6px;line-height:0}
-#game .overlay .logo svg{display:block;width:min(400px,76vw);height:auto;overflow:visible}
-#game .overlay .logo g{animation:kbob 1.32s ease-in-out infinite alternate} /* the same bob as the sky letters: one sine period is 2.64s, each letter 0.7 rad behind the last */
-@keyframes kbob{from{transform:translateY(.24px)}to{transform:translateY(-.24px)}}
-#game .overlay .wroll{width:min(300px,72vw);height:clamp(72px,22vh,170px);margin:-6px 0 -4px;pointer-events:none}
-#game .overlay .wroll canvas{display:block;width:100%!important;height:100%!important}
-@media (prefers-reduced-motion:reduce){#game .overlay .logo g{animation:none}}
+#game .overlay .logo{width:min(400px,76vw,80vh);aspect-ratio:2/1;margin:0;line-height:0;pointer-events:none} /* one 3D view: the KATAMAKI cube letters with the player's roll under them */
+#game .overlay .logo canvas{display:block;width:100%!important;height:100%!important}
+#game .overlay .logo .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 #game .hidden{display:none}
 #game .tpad{display:none}
 #game.touch{touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -589,7 +585,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     <div class="hint">W / S roll &middot; A / D steer &middot; Space hop &middot; P pause &middot; R restart</div>
   </div>
   <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button><button class="tart" aria-label="Back to the art"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 1.8L8 6.6l4.8-4.8 1.4 1.4L9.4 8l4.8 4.8-1.4 1.4L8 9.4l-4.8 4.8-1.4-1.4L6.6 8 1.8 3.2z"/></svg></button></div></div>
-  <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo" aria-label="Katamaki">Katamaki</h2><div class="wroll" aria-hidden="true"></div><p class="desc"></p><button class="go">Start Rolling<kbd>Enter</kbd></button></div>
+  <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd>Enter</kbd></button></div>
   <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd>P</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
   <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Continue Rolling<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button></div>
   <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd>P</kbd></button></div>
@@ -1090,41 +1086,39 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 
   var builtMsg=""; // the art's message + seed when the world was built; a changed Message cell (or, in the player, a new seed) forces a rebuild
   function artMsg(){return (window.MAKI_TXT&&window.MAKI_TXT.msg)||""}
-  // welcome title: KATAMAKI in the game's pixel font, coloured exactly like a custom message on this piece would be (letter i gets colour i), with a darker offset as the cube side
-  function drawLogo(){var el=HUD.start.querySelector(".logo");if(!el)return;
-    var cols=(window.MAKI_TXT&&window.MAKI_TXT.cols)||window.MAKI_PAL||["#ffffff"],s="",cx=0;
-    "KATAMAKI".split("").forEach(function(ch,i){var h=cols[i%cols.length],gl=GFONT[ch],d="",dk="rgba(0,0,0,.45)",rim="";
-      for(var y=0;y<3;y++)for(var x=0;x<3;x++)if(gl[y*3+x]==="1")d+="M"+(cx+x)+" "+y+"h1v1h-1z";
-      var m=/^#([0-9a-f]{6})$/i.exec(h);if(m){var n=parseInt(m[1],16),r=n>>16&255,g=n>>8&255,b=n&255;dk="rgb("+(r*.55|0)+","+(g*.55|0)+","+(b*.55|0)+")";
-        if(r*.2126+g*.7152+b*.0722<40)rim=' stroke="rgba(255,255,255,.35)" stroke-width=".08"'} // very dark letters get a faint rim so they don't vanish into the dimmed scene
-      s+='<g style="animation-delay:'+(-i*0.294).toFixed(3)+'s"><path transform="translate(.3 .3)" fill="'+dk+'" d="'+d+'"/><path fill="'+h+'"'+rim+' d="'+d+'"/></g>';cx+=4});
-    el.innerHTML='<svg viewBox="-0.2 -0.6 31.7 4.4" shape-rendering="crispEdges" aria-hidden="true">'+s+'</svg>'}
   async function launch(skipIntro){
     if(running)return;
     if(built&&artMsg()+"|"+$alea.seed!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
     GAME.classList.add("on");
     if(built&&(phase==="pause"||phase==="confirm"||phase==="end")){if(phase==="confirm")cancelRestart();return} // back from the art: stay on the pause (or end) screen, no welcome
-    drawLogo();overlays(skipIntro?null:HUD.start);phase="welcome";
+    overlays(skipIntro?null:HUD.start);phase="welcome";
     if(!built){builtMsg=artMsg()+"|"+$alea.seed;var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
     if(skipIntro)begin();else welStart();
   }
-  // welcome roll: the player's maki turning slowly under the title. Its own small transparent renderer, alive only while the welcome screen shows.
+  // welcome title: KATAMAKI built from the same cube letters as the sky banner (buildBanner), coloured like a custom message on this piece
+  // (letter i gets colour i), with the player's maki turning slowly under it. Its own small transparent renderer, alive only while the welcome screen shows.
   var welG=null,wel=null;
   function welStart(){if(wel||!welG||phase!=="welcome"||HUD.start.classList.contains("hidden"))return;
-    var el=HUD.start.querySelector(".wroll");if(!el||!el.clientWidth)return;
+    var el=HUD.start.querySelector(".logo");if(!el||!el.clientWidth)return;
     var r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setClearColor(0,0);r.outputColorSpace=THREE.SRGBColorSpace;r.setPixelRatio(Math.min(devicePixelRatio||1,2));
-    var s=new THREE.Scene(),c=new THREE.PerspectiveCamera(30,1,0.1,50),tilt=new THREE.Group();
+    var s=new THREE.Scene(),c=new THREE.PerspectiveCamera(30,2,0.1,80),tilt=new THREE.Group();
     s.add(new THREE.HemisphereLight(0xdfe8ff,0x1a2130,0.72));var k=new THREE.DirectionalLight(0xffffff,1.45);k.position.set(10,20,10);s.add(k);var rl=new THREE.DirectionalLight(0x9fb6ff,0.45);rl.position.set(-9,5,-11);s.add(rl); // the game's lights
     tilt.rotation.x=0.42;tilt.add(welG);s.add(tilt);welG.position.set(0,0,0);welG.rotation.set(0,0,0);
+    var pal=(window.MAKI_PAL||["#ffffff"]).map(function(h){var q=new THREE.Color(h);return [q.r*255,q.g*255,q.b*255]}); // same conversion buildBanner uses for a custom message's colours
+    var T=buildBanner("KATAMAKI",{pip:pal,dir:1}),TK=0.32;T.g.scale.setScalar(TK);T.g.position.y=2.55;s.add(T.g); // 8 letters, 27.9 units wide -> about 3x the roll
     el.appendChild(r.domElement);var still=matchMedia("(prefers-reduced-motion:reduce)").matches,w0=0,h0=0;
-    wel={r:r,raf:0};
+    wel={r:r,raf:0,T:T};
     function frame(t){var w=el.clientWidth,h=el.clientHeight;
-      if(w!==w0||h!==h0){w0=w;h0=h;r.setSize(w,h,false);c.aspect=w/h;var fit=1.5/Math.sin(15*Math.PI/180)/Math.min(1,c.aspect);c.position.set(0,0,fit);c.lookAt(0,0,0);c.updateProjectionMatrix()} // fit the roll's bounding sphere
-      welG.rotation.y=still?-0.75:-0.75+t*0.0006; // rAF time (Aleatory freezes Date.now)
+      if(w!==w0||h!==h0){w0=w;h0=h;r.setSize(w,h,false);c.aspect=w/h;var d=Math.max(2.45,4.75/c.aspect)/Math.tan(15*Math.PI/180);c.position.set(0,0.82,d);c.lookAt(0,0.82,0);c.updateProjectionMatrix()} // fit title (y 1.9 to 3.2) and roll (y -1.5 to 1.5)
+      for(var i=0;i<T.letters.length;i++){var L=T.letters[i];L.g.position.set(L.x0-13.5,still?0:Math.sin(t/420+L.i*0.7)*0.45,0); // centred; bob + turn exactly like the sky letters (rAF time: Aleatory freezes Date.now)
+        L.g.rotation.y=still?0:Math.sin(t/700+L.i*0.9)*0.45;L.g.rotation.x=still?0:Math.sin(t/900+L.i)*0.15}
+      welG.rotation.y=still?-0.75:-0.75+t*0.0006;
       welG.position.y=still?0:Math.sin(t*0.0024)*0.05;
       r.render(s,c);if(!still&&wel)wel.raf=requestAnimationFrame(frame)}
     wel.raf=requestAnimationFrame(frame)}
-  function welStop(){if(!wel)return;cancelAnimationFrame(wel.raf);wel.r.domElement.remove();wel.r.forceContextLoss&&wel.r.forceContextLoss();wel.r.dispose();wel=null} // frees the extra WebGL context before play
+  function welStop(){if(!wel)return;cancelAnimationFrame(wel.raf);wel.r.domElement.remove();
+    wel.T.g.traverse(function(o){if(o.isMesh){o.geometry.dispose();[].concat(o.material).forEach(function(m){m.dispose()})}}); // the title's cubes are this screen's own; the roll is a shared-geometry clone, left alone
+    wel.r.forceContextLoss&&wel.r.forceContextLoss();wel.r.dispose();wel=null} // frees the extra WebGL context before play
   function begin(){welStop();if(!built)return;overlays(null);phase="play";running=true;lastT=performance.now();PQ.skip=-1;PQ.ws=0;perfApply();raf=requestAnimationFrame(step)}
   function restart(){freeRoll=false;built=false;running=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[];launch(true)} // straight back into a fresh round, no welcome screen
   function exit(){welStop();pauseGame();running=false;cancelAnimationFrame(raf);keys={};releaseStick();GAME.classList.remove("on")} // leaving mid-round always pauses it
