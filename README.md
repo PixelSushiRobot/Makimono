@@ -2,39 +2,35 @@
 
 A fully on-chain generative pixel-art collection of animated sushi rolls on [Aleatory](https://aleatory.art) (Tezos), with **Katamaki**: a small 3D game where you roll your own token's maki around its own planet.
 
-## Versions
+## Play your token
 
-| Version | Where | Status |
-| --- | --- | --- |
-| **v2** | repo root · [makimono.psr.fyi](https://makimono.psr.fyi/) | Latest. All v1 known issues fixed, plus rule changes. See [`CHANGES.md`](CHANGES.md). |
-| **v1** | [`v1/`](v1/) · [makimono.psr.fyi/v1/](https://makimono.psr.fyi/v1/) | **Minted.** Frozen: never edit these files. Known issues in [`v1/NOTES.md`](v1/NOTES.md). |
+Open **[makimono.psr.fyi](https://makimono.psr.fyi/)**, tap or click the art, then **SEED** and paste your token's seed (copy it from the token's page on Aleatory). The page reloads with your piece:
 
-The exact v1 files are also tagged in git as `v1-minted`.
+```
+https://makimono.psr.fyi/?seed=<your token's seed>
+```
 
-v2 changes how some seeds turn into traits, so a seed can look different in v2 than its minted v1 token. To see a token as minted, use `/v1/?seed=<hex>`, or the **V1** button in the demo.
+The player draws exactly your minted art, and adds what the minted version can't: a few viewer fixes and Katamaki on phones and tablets. Paste the seed exactly as shown: it's case-sensitive, and a different seed gives a different piece.
 
-## Files
+## Layout
 
-Each version has the same three files:
+| Path | What it is |
+| --- | --- |
+| `index.html` | **The player** (the site). The minted v1 piece with the viewer fixes, touch controls, adaptive quality and the SEED button. The art rules are untouched. Not for minting: it loads three.js from a CDN. |
+| [`v1/`](v1/) | **Minted.** The exact files of the collection on Aleatory. Frozen: never edit. Known issues in [`v1/NOTES.md`](v1/NOTES.md). Also tagged in git as `v1-minted`. |
+| [`v2/`](v2/) | **Not released.** A possible future edition: all fixes plus new Mono and lookalike rules, which change some seeds' art. See [`v2/CHANGES.md`](v2/CHANGES.md). |
+
+Each file is self-contained: the font is embedded and there are no image or script files next to them. The only outside resource is the three.js CDN script in the player and the demos.
+
+### v1 files
 
 | File | What it is |
 | --- | --- |
-| `makimono.html` | Source. Commented, readable version of the piece and the game. All changes start here. |
-| `makimono.mint.html` | Mint build. `makimono.html` with comments and the local seed harness removed. **This is the file uploaded to Aleatory.** |
-| `index.html` | Public demo (GitHub Pages). `makimono.html` plus one script tag that loads three.js from a CDN, so the game works on the open web. **Do not mint.** The v2 demo also has a V1 button. |
+| `makimono.html` | Source. Commented, readable version of the piece and the game. |
+| `makimono.mint.html` | Mint build: the source with comments and the local seed harness removed. **This is the file on Aleatory.** |
+| `index.html` | The original public demo: the source plus the three.js CDN script. |
 
-Each file is self-contained: the font is embedded and there are no image or script files next to them. The only outside resource is the three.js CDN script in `index.html`.
-
-## Viewing the demo
-
-Every load generates a new piece; pin one with a seed:
-
-```
-https://makimono.psr.fyi/?seed=<hex>       v2
-https://makimono.psr.fyi/v1/?seed=<hex>    v1 (minted)
-```
-
-Opening `makimono.html` directly from disk shows the art, but the game reports "three.js not loaded", because that file expects the mint platform to supply three.js. `makimono.mint.html` only runs inside Aleatory; it has no local seed harness.
+`v2/` has the same three files.
 
 ## Controls
 
@@ -45,6 +41,7 @@ Opening `makimono.html` directly from disk shows the art, but the game reports "
 | `I` (or click / tap the art) | Show / hide the traits band and buttons |
 | `M` | Toggle the hop animation |
 | `G` or the **KATAMAKI** button | Open the game |
+| **SEED** button (player only) | Show this piece's seed, or paste another |
 
 **Katamaki**
 
@@ -58,34 +55,29 @@ Opening `makimono.html` directly from disk shows the art, but the game reports "
 | `Enter` | Start Rolling button | Start rolling · confirm restart |
 | `G` / `Esc` | ✕ button (top right) | Back to the art (pauses the round) |
 
-On touch, the stick appears wherever your thumb lands and is analog: a small push gives a gentle turn. Portrait and landscape both work.
+Touch controls are in the player and v2. The minted v1 game is keyboard only. On touch, the stick appears wherever your thumb lands and is analog: a small push gives a gentle turn. Portrait and landscape both work.
 
 **Adaptive quality.** If a device can't keep up (under 48 fps), the game lowers quality one step at a time: sharpness first, then fewer decor cones and clouds, then no scattered scenery. Collectibles, ants and chopsticks never change, so the goal and difficulty stay the same. A step that doesn't help is undone. Add `?perf=1` to show the frame rate and level (tap it to force one), or `?tier=0`–`3` to force a level.
 
 Reach the goal size before the clock runs out to earn Bronze, Silver or Gold, then keep rolling for as long as you like. Your token's traits set the planet's colours, the time limit, the goal size, the monsters and the roll's style (maki or uramaki).
 
-## Minting on Aleatory
+## Making changes
 
-1. Upload `makimono.mint.html` from the repo root (v2).
+- **Player:** edit `index.html` directly. Keep the art code (everything that turns a seed into the picture) identical to `v1/makimono.html`, so every token still shows its minted art.
+- **v1:** don't edit.
+- **v2:** edit `v2/makimono.html`, then rebuild:
+  1. `v2/makimono.mint.html`:
+     - Remove every comment: `<!-- -->` in HTML, `/* */` in CSS, and `/* */` and `//` in scripts. Keep `//` inside strings and CSS `url(...)` (e.g. `"http://www.w3.org/2000/svg"` and the embedded font data).
+     - Right-trim lines that had a comment removed, and drop blank lines (the game's `<script>` keeps its own blank lines).
+     - Remove the local seed harness: the `if (!window.$alea) { … }` block. Aleatory supplies `$alea` on chain.
+  2. `v2/index.html`: the source with the `<!-- PUBLIC DEMO ... -->` comment and the three.js script added right after `<meta charset="utf-8">`.
+
+Use three.js **0.160.1**: the game reads the global `THREE`, and 0.160.1 is the last release with the classic (non-module) build.
+
+## Minting (v2, if released)
+
+1. Upload `v2/makimono.mint.html`.
 2. Tick the **three.js** library box. The mint UI adds `<meta name="alea:library" content="three@0.160.1">`, and the renderer supplies three.js. Don't add a three.js script tag or a second library tag yourself: the network is blocked on chain.
 3. In the preview, check that the art renders, then press `G` and play a round. On a phone, check the touch controls too.
 
 The v2 mint build is about 115 KB, over the 32 KB that fits in one Tezos operation, so Aleatory publishes it in chunks (several signatures).
-
-## Making changes
-
-Only edit the root (v2) files. Leave `v1/` as it is.
-
-1. Edit `makimono.html`.
-2. Rebuild `makimono.mint.html` from it:
-   - Remove every comment: `<!-- -->` in HTML, `/* */` in CSS, and `/* */` and `//` in scripts. Keep `//` inside strings and CSS `url(...)` (e.g. `"http://www.w3.org/2000/svg"` and the embedded font data).
-   - Right-trim lines that had a comment removed, and drop blank lines (the game's `<script>` keeps its own blank lines).
-   - Remove the local seed harness: the `if (!window.$alea) { … }` block. Aleatory supplies `$alea` on chain.
-3. Rebuild `index.html`: `makimono.html` with these lines added right after `<meta charset="utf-8">`:
-   ```html
-   <!-- PUBLIC DEMO ... -->
-   <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
-   ```
-   and the V1 button script right before `</body>`.
-
-Use three.js **0.160.1**: the game reads the global `THREE`, and 0.160.1 is the last release with the classic (non-module) build.

@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<!-- PUBLIC DEMO (GitHub Pages) -- built from makimono.html plus this one script tag (and a "V1" link before </body>). The script tag loads three.js from a CDN so the game runs on the open web. Do not mint this file: on chain the network is blocked, so this script would fail. Mint makimono.mint.html with the three.js library box ticked instead. -->
+<!-- PLAYER (GitHub Pages, makimono.psr.fyi) -- the minted v1 piece (v1/makimono.html) with the viewer fixes from v1/NOTES.md issues 1, 2 and 4, Katamaki touch controls and adaptive quality, and a SEED button. The art rules are untouched, so a token's seed shows exactly its minted art. Not for minting: the script tag below loads three.js from a CDN. -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Makimono</title>
@@ -185,20 +185,12 @@ const isText=p=>!!MSGOF[p]||p==="text_custom";/* glyph (message) marquee vs sine
 const SPEED_LIMITS=true;
 const SPEED_RULES=[
 [["checker"],null,null,["slow"]],
-[["scroll_h","diagonal","ripple","chase"],["duo","accent"],null,["normal","slow"]],
-[["ripple"],["spectrum","mirror"],null,["normal","slow"]],
+[["scroll_h","diagonal","ripple","chase"],["duo","accent"],["classic","neon"],["normal","slow"]],
+[["ripple"],["spectrum","mirror"],["classic","neon"],["normal","slow"]],
 [["ripple"],["random"],null,["normal","slow"]]];
-const TEXTS=["text_ants","text_tezos","text_paul_hbd","text_yolo"];
-/* lookalike guards: drop patterns where a profile would look the same as another profile or pattern.
-   all palettes (same layout whatever the colors): Duo Diagonal = Checker, Duo Chase = Duo Scroll, Accent Checker = Duo Checker.
-   Mono only (Mono has 4 shades of one hue, so profiles with the same shade count land on the same shades): Text shows only the unique colors,
-   so Accent = Duo and Mirror = Trio, and Random always matches Trio or Spectrum; Mirror's split shade can't be seen on Sparkle, Ripple or Maki */
-const patList=(ramp,cp)=>{const b=ramp==="duo"||ramp==="accent"?["chromie","filling_cycle"]:[];/* two-color ramps: no Squiggle; no Maki either (Maki needs 3+ ramp colors, and in Classic it ignores the ramp) */
-if(ramp==="duo")b.push("diagonal","chase");if(ramp==="accent")b.push("checker");
-if(cp==="mono"){if(ramp==="accent"||ramp==="random")b.push(...TEXTS);if(ramp==="mirror")b.push("sparkle","ripple","filling_cycle",...TEXTS)}
-return b.length?PAT.filter(x=>!b.includes(x[0])):PAT};
+const patList=ramp=>ramp==="duo"||ramp==="accent"?PAT.filter(x=>x[0]!=="chromie"&&x[0]!=="filling_cycle"):PAT;/* two-color ramps: no Squiggle; no Maki either (Maki needs 3+ ramp colors, and in Classic it ignores the ramp) */
 const speedSet=(cp,ramp,pat)=>{let a=[0,1,2];if(SPEED_LIMITS)SPEED_RULES.forEach(r=>{if(r[0].includes(pat)&&(!r[1]||r[1].includes(ramp))&&(!r[2]||r[2].includes(cp)))a=a.filter(i=>r[3].includes(SPD[i][0]))});return a.join()};
-const SPW=(()=>{const sh={};MIX.forEach(m=>RAMP.forEach(r=>{const l=patList(r[0],m[0]);l.forEach(p=>{const k=speedSet(m[0],r[0],p[0]);sh[k]=(sh[k]||0)+wt(m)/sum(MIX)*wt(r)/sum(RAMP)*wt(p)/sum(l)})}));
+const SPW=(()=>{const sh={};MIX.forEach(m=>RAMP.forEach(r=>{const l=patList(r[0]);l.forEach(p=>{const k=speedSet(m[0],r[0],p[0]);sh[k]=(sh[k]||0)+wt(m)/sum(MIX)*wt(r)/sum(RAMP)*wt(p)/sum(l)})}));
 const sl=SPD[1][2]/sum(SPD),fa=SPD[2][2]/sum(SPD),ix=k=>k.split(",").map(Number);let rA=0,fix=0,mix=0;
 for(const k in sh)if(ix(k).includes(2))rA+=sh[k];
 const pf=Math.min(1,fa/rA);
@@ -226,17 +218,12 @@ const cream=r[1]===2||r[1]===3;const rice=cream?"#f6eed9":"#ffffff";/* Option A:
 return{C,CN,bg,nori:NORI[n[1]][1],rice,pr:pt*pn*pr,tone:neutral?"neutral gray bg":"complement "+t[0]+" bg",noriN:NORI[n[1]][0],riceN:cream?"cream":"white"}}
 function lab(h){const[r,g,b]=rgb(h).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)),f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116,X=f((r*.4124+g*.3576+b*.1805)/.95047),Y=f(r*.2126+g*.7152+b*.0722),Z=f((r*.0193+g*.1192+b*.9505)/1.08883);return[116*Y-16,500*(X-Y),200*(Y-Z)]}
 const dE=(a,b)=>{const x=lab(a),y=lab(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])};
-function monoRoles(R,mode){const h=Math.floor(R()*24),a=hue(rcc(h,VIV[h])),[sc0,ps]=wp(R,MONOSCALE),[n,pn]=wp(R,RCN),[r,pr]=wp(R,RCR),[sc,pc]=wp(R,MONOSC),W=sc[1]===1;
+function monoRoles(R){const h=Math.floor(R()*24),a=hue(rcc(h,VIV[h])),[sc0,ps]=wp(R,MONOSCALE),[n,pn]=wp(R,RCN),[r,pr]=wp(R,RCR),[sc,pc]=wp(R,MONOSC),W=sc[1]===1;
 const rice=W?hsl(a,.5,.94):r[1]===0?"#ffffff":r[1]===1?GRAY[0]:r[1]===2?rcc(5,1):rcc(h,1),nori=hsl(a,.6,.1);/* truly mono: nori is always a dark shade of the mono hue, not a canonical seaweed color */
 let hi=W?Math.min(sc0[1],.72):sc0[1],lo=sc0[2];while(contrast(hsl(a,1,hi),rice)<1.3&&hi>.45)hi-=.02;if(hi-lo<.27)lo=Math.max(.16,hi-.27);
 const lv=()=>[0,1,2,3].map(i=>hi-(hi-lo)*i/3);
 for(let t=0;t<10;t++){const cs=lv().map(l=>hsl(a,1,l));let md=99;for(let i=0;i<3;i++)md=Math.min(md,dE(cs[i],cs[i+1]));if(md>=14||lo<=.16)break;lo=Math.max(.16,lo-.03)}
-/* the 6 roles follow the Profile, picking from the 4 shades (indexes into L). Duo and Accent shades sit 2+ steps apart; Random uses 3+ shades */
-const pk=()=>Math.floor(R()*4),far=x=>{let y;do{y=pk()}while(Math.abs(y-x)<2);return y},dist=k=>{const u=[];while(u.length<k){const c=pk();if(!u.includes(c))u.push(c)}return u};
-let I;if(mode==="random"){do{I=[0,1,2,3,4,5].map(pk)}while(new Set(I).size<3)}else if(mode==="trio"){const u=dist(3);I=[u[0],u[0],u[1],u[1],u[2],u[2]]}
-else if(mode==="mirror"){const u=dist(3);I=[u[0],u[1],u[2],u[2],u[1],u[0]]}else if(mode==="duo"){const x=pk(),y=far(x);I=[x,y,x,y,x,y]}
-else if(mode==="accent"){const x=pk(),y=far(x);I=[x,x,x,x,x,y]}else I=[0,1,2,3,2,1];
-const L=lv(),C=I.map(i=>hsl(a,1,L[i]));
+const L=lv(),C=[L[0],L[1],L[2],L[3],L[2],L[1]].map(l=>hsl(a,1,l));
 return{C,CN:Array(6).fill(RCH[h].n+" mono"),bg:W?hsl(a,.7,.82):hsl(a,.7,.92),nori,rice,pr:ps*pc*(W?1:pn*pr),tone:"mono "+RCH[h].n+" ("+sc0[0]+", "+sc[0]+")",noriN:MONOFAM[h]+" Sumi",riceN:MONOFAM[h]+" Shari"}}
 const PAL={cur:"mix"};
 function types(){const g=Array.from({length:11},()=>Array(11).fill("n"));
@@ -262,10 +249,10 @@ const adv=t=>t.split("").reduce((a,c)=>a+(c===" "?2:4),0);
 function gen(seed,opt){opt=opt||{};window.MAKI_TXT=null;const R=rng(seed);let F0=null;
 let cp=PAL.cur,pmix=1;if(cp==="mix"){const[m,q]=wp(R,MIX);cp=m[0];pmix=q}
 const Q=cp!=="classic",[rm,p0]=wp(R,RAMP);let C=ramp(rm[0],R);
-let[pt,pp]=wp(R,patList(rm[0],cp));const[di,pd]=wp(R,DIR);const su=R();let sp,ps;/* speed is drawn here (same RNG position) but resolved after the pattern is final, see pickSpeed */
+let[pt,pp]=wp(R,patList(rm[0]));const[di,pd]=wp(R,DIR);const su=R();let sp,ps;/* speed is drawn here (same RNG position) but resolved after the pattern is final, see pickSpeed */
 let[tn,p1]=wp(R,TONE),[no,p2]=wp(R,Q?[["-","#000000",1]]:NORI),[ri,p3]=wp(R,Q?[["-","#ffffff",1]]:RICE);
 const[sh,p5]=wp(R,SHAPE),[ro,p9]=wp(R,ROLL);
-let QB=null;if(Q){QB=cp==="mono"?monoRoles(R,rm[0]):rcRoles(rm[0],R);no=[QB.noriN,QB.nori];ri=[QB.riceN,QB.rice];p1=1;p2=QB.pr;p3=1;C=QB.C;tn=[QB.tone,null]}
+let QB=null;if(Q){QB=cp==="mono"?monoRoles(R):rcRoles(rm[0],R);no=[QB.noriN,QB.nori];ri=[QB.riceN,QB.rice];p1=1;p2=QB.pr;p3=1;C=QB.C;tn=[QB.tone,null]}
 
 if((pt[0]==="chromie"||(pt[0]==="filling_cycle"&&cp!=="classic"))&&new Set(C).size<3)pt=PAT.find(x=>x[0]==="scroll_h");
 let msg=MSGOF[pt[0]]||"";if(opt.text){pt=["text_custom"];msg=clean(opt.text)||"HI";pp=1}
@@ -322,7 +309,7 @@ const topG='<g><animateTransform class="hop" attributeName="transform" type="tra
 const ovl=[0,9].map(x=>'<rect x="'+x+'" y="9" width="2" height="2" fill="'+bodyC+'" visibility="hidden">'+an("visibility",c=>c==="S"?"visible":"hidden")+'</rect>').join('');
 const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="520" height="520" shape-rendering="crispEdges"><rect width="13" height="13" fill="'+bgCol+'"/><g transform="translate(1,2)"><path fill="'+bodyC+'" d="M0 5h11v5h-11zM1 10h9v1h-9z"/>'+paths(Slo)+ovl+topG+eyes+'</g></svg>';
 const hideRamp=cp==="classic"&&pt[0]==="filling_cycle";/* Classic Maki ignores the ramp entirely (fixed SEM/OC colors, order from seed+"mk"), so Profile is not a real trait there: drop it from tr, the swatch bars and the odds (odds use the ramp-marginal chance of landing on Maki) */
-const rkp=hideRamp?(()=>{const mk=PAT.find(x=>x[0]==="filling_cycle")[1];return RAMP.reduce((a,r)=>{const l=patList(r[0],"classic");return a+(l.some(x=>x[0]==="filling_cycle")?wt(r)/sum(RAMP)*mk/sum(l):0)},0)})():p0*pp;
+const rkp=hideRamp?(()=>{const mk=PAT.find(x=>x[0]==="filling_cycle")[1];return RAMP.reduce((a,r)=>{const l=patList(r[0]);return a+(l.some(x=>x[0]==="filling_cycle")?wt(r)/sum(RAMP)*mk/sum(l):0)},0)})():p0*pp;
 const odds=opt.text?0:1/(pmix*rkp*(isText(pt[0])?1:pd)*ps*p1*p2*p3*p5*p9);
 const tr={"Pattern":dn('pattern',pt[0]),"Direction":isText(pt[0])?"Reverse":dn('direction',di[0]),"Profile":dn('ramp',rm[0]),"Speed":dn('speed',sp[0]),"Palette":dn('palette',cp),"Nori":noriLabel(no[0]),"Rice":riceLabel(ri[0]),"Eye Shape":dn('shape',sh[0]),"Form":dn('roll',ro[0])};
 if(hideRamp)delete tr["Profile"];
@@ -348,7 +335,7 @@ function ensureStage(){
   var frame=document.createElement("div");frame.className="frame";
   artBox=document.createElement("div");artBox.className="art-box";
   band=document.createElement("div");band.className="band";
-  var title=document.createElement("div");title.className="poster-title";title.innerHTML='<div class="poster-title-label">project</div><div class="poster-title-value">MAKIMONO 2.0</div>';
+  var title=document.createElement("div");title.className="poster-title";title.innerHTML='<div class="poster-title-label">project</div><div class="poster-title-value">MAKIMONO</div>';
   var wm=document.createElement("div");wm.className="watermark";wm.innerHTML='<svg viewBox="0 0 90 30" preserveAspectRatio="xMaxYMax meet" xmlns="http://www.w3.org/2000/svg"><g><rect width="24" height="6"/><rect y="16" width="24" height="6"/><rect y="24" width="12" height="6"/><rect x="12" y="8" width="18" height="6"/><rect x="30" y="8" width="24" height="6"/><rect x="30" y="24" width="24" height="6"/><rect x="36" width="24" height="6"/><rect x="36" y="16" width="24" height="6"/><rect x="60" width="24" height="6"/><rect x="60" y="16" width="24" height="6"/><rect x="60" y="24" width="12" height="6"/><rect x="72" y="8" width="18" height="6"/><rect x="78" y="24" width="12" height="6"/></g></svg>';
   var ARR='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 2.133c.294 0 .533.239.533.533v9.38l3.356-3.357a.533.533 0 0 1 .754.754L8.376 13.71a.534.534 0 0 1-.754 0L3.355 9.443a.533.533 0 1 1 .755-.754l3.356 3.356V2.666c0-.294.239-.533.533-.533" clip-rule="evenodd"/></svg>';
   /* game-launch globe, simplified for small sizes: outline + equator + one meridian, stroked at the arrow's ~1.07 weight and height */
@@ -1182,9 +1169,9 @@ alea.ready();
   window.addEventListener("keyup",function(e){keys[e.key]=false});
 })();
 </script>
-<style>@media (hover:none) and (pointer:coarse){.export-bar .v1-link{display:none}}</style><!-- PUBLIC DEMO only: v1 has no mobile tap fix, so the V1 link is hidden on touch-only devices -->
-<script>/* PUBLIC DEMO only: a "V1" pill in the export bar that opens the same seed in the minted version (v1). v2 changed some rules, so a seed's art can differ there */
-(function(){var b=document.querySelector(".export-bar");if(!b||!window.$alea)return;var a=document.createElement("a");a.className="button v1-link";a.href="v1/?seed="+encodeURIComponent($alea.seed);a.setAttribute("aria-label","Open this seed in the minted version");a.innerHTML="<span>V1</span>";b.appendChild(a)})();
+<script>/* PLAYER: a SEED pill in the export bar shows this piece's seed and loads a pasted one (the seed from a token's Aleatory page). It reloads with ?seed= so the address can be shared or bookmarked */
+(function(){var b=document.querySelector(".export-bar");if(!b||!window.$alea)return;var a=document.createElement("a");a.className="button";a.href="#";a.setAttribute("aria-label","Enter a seed");a.innerHTML="<span>SEED</span>";
+a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();var v=prompt("Paste your token's seed (copy it from the token page on Aleatory):",$alea.seed);if(v===null)return;v=v.trim();if(!v||v===$alea.seed)return;location.search="?seed="+encodeURIComponent(v)});b.appendChild(a)})();
 </script>
 </body>
 </html>
