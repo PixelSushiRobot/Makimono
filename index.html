@@ -339,7 +339,7 @@ function ensureStage(){
   var wm=document.createElement("div");wm.className="watermark";wm.innerHTML='<svg viewBox="0 0 90 30" preserveAspectRatio="xMaxYMax meet" xmlns="http://www.w3.org/2000/svg"><g><rect width="24" height="6"/><rect y="16" width="24" height="6"/><rect y="24" width="12" height="6"/><rect x="12" y="8" width="18" height="6"/><rect x="30" y="8" width="24" height="6"/><rect x="30" y="24" width="24" height="6"/><rect x="36" width="24" height="6"/><rect x="36" y="16" width="24" height="6"/><rect x="60" width="24" height="6"/><rect x="60" y="16" width="24" height="6"/><rect x="60" y="24" width="12" height="6"/><rect x="72" y="8" width="18" height="6"/><rect x="78" y="24" width="12" height="6"/></g></svg>';
   var ARR='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 2.133c.294 0 .533.239.533.533v9.38l3.356-3.357a.533.533 0 0 1 .754.754L8.376 13.71a.534.534 0 0 1-.754 0L3.355 9.443a.533.533 0 1 1 .755-.754l3.356 3.356V2.666c0-.294.239-.533.533-.533" clip-rule="evenodd"/></svg>';
   /* game-launch globe, simplified for small sizes: outline + equator + one meridian, stroked at the arrow's ~1.07 weight and height */
-  var GLOBE='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.1"><circle cx="8" cy="8" r="5.3"/><path d="M2.7 8h10.6"/><ellipse cx="8" cy="8" rx="2.3" ry="5.3"/></g></svg>';
+  var GLOBE='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 2.15A5.85 5.85 0 1 1 8 13.85A5.85 5.85 0 1 1 8 2.15ZM8 3.25A4.75 4.75 0 1 0 8 12.75A4.75 4.75 0 1 0 8 3.25ZM8 2.15A2.85 5.85 0 1 1 8 13.85A2.85 5.85 0 1 1 8 2.15ZM8 3.25A1.75 4.75 0 1 0 8 12.75A1.75 4.75 0 1 0 8 3.25ZM2.7 7.45H13.3V8.55H2.7Z"/></svg>';
   var exp=document.createElement("div");exp.className="export-bar";
   exp.innerHTML='<a class="button" href="#" role="button" aria-label="Play Katamaki"><span>KATAMAKI</span>'+GLOBE+'</a><a class="button" download href="about:blank" aria-label="Save SVG"><span>SVG</span>'+ARR+'</a><a class="button" download href="about:blank" aria-label="Save GIF"><span>GIF</span>'+ARR+'</a>';
   var kb=exp.children[0];kb.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(window.KATAMAKI_LAUNCH)window.KATAMAKI_LAUNCH()}); // opens the game's welcome screen (same as G)
@@ -1186,8 +1186,9 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 .export-bar.seeding .seedb input::placeholder{color:var(--ink);opacity:.45;text-transform:uppercase}
 .export-bar.seeding .seedb .sp{display:flex;padding:0 calc(var(--scale-unit)*5) 0 calc(var(--scale-unit)*10)}
 .export-bar.seeding .seedb .sx{display:flex}
-.export-bar .seedb .st:active,.export-bar .seedb .rr:active,.export-bar .seedb .sp:active,.export-bar .seedb .sx:active{opacity:.55}
-.export-bar .seedb:active{background:transparent;color:var(--ink)}
+.export-bar .seedb .rr:active,.export-bar .seedb .sp:active,.export-bar .seedb .sx:active{opacity:.55}
+.export-bar .seedb:active{background:transparent;color:var(--ink)}/* the pill as a whole has no press state (pressing ↻ only dims the icon) */
+.export-bar .seedb.press{background:var(--ink);color:var(--bg,#0b0b0c)}/* pressing SEED: the same press state as the other buttons, until release opens the field */
 </style>
 <script>/* PLAYER: seed pill in the export bar.
    - SEED: the pill grows into a field showing this piece's seed (selected, so it's easy to copy). Type or paste a seed and press Enter
@@ -1196,8 +1197,8 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
    Loading swaps the art in place (no reload) and puts ?seed= in the address, so it can be shared or bookmarked; Back / Forward step through the seeds viewed. */
 (function(){var b=document.querySelector(".export-bar"),stg=document.querySelector(".stage");if(!b||!window.$alea)return;
   try{if(sessionStorage.getItem("mkmn-show")){sessionStorage.removeItem("mkmn-show");stg&&stg.classList.add("show")}}catch(_){}
-  var RR='<svg class="icon" viewBox="0 0 15 15" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M1.90321 7.29677C1.90321 10.341 4.11041 12.4147 6.58893 12.8439C6.87255 12.893 7.06266 13.1627 7.01355 13.4464C6.96444 13.73 6.69471 13.9201 6.41109 13.871C3.49942 13.3668 0.86084 10.9127 0.86084 7.29677C0.860839 5.76009 1.55996 4.55245 2.37639 3.63377C2.96124 2.97568 3.63034 2.44135 4.16846 2.03202L2.53205 2.03202C2.25591 2.03202 2.03205 1.80816 2.03205 1.53202C2.03205 1.25588 2.25591 1.03202 2.53205 1.03202L5.53205 1.03202C5.80819 1.03202 6.03205 1.25588 6.03205 1.53202L6.03205 4.53202C6.03205 4.80816 5.80819 5.03202 5.53205 5.03202C5.25591 5.03202 5.03205 4.80816 5.03205 4.53202L5.03205 2.68645L5.03054 2.68759L5.03045 2.68766L5.03044 2.68767L5.03043 2.68767C4.45896 3.11868 3.76059 3.64538 3.15554 4.3262C2.44102 5.13021 1.90321 6.10154 1.90321 7.29677ZM13.0109 7.70321C13.0109 4.69115 10.8505 2.6296 8.40384 2.17029C8.12093 2.11718 7.93465 1.84479 7.98776 1.56188C8.04087 1.27898 8.31326 1.0927 8.59616 1.14581C11.4704 1.68541 14.0532 4.12605 14.0532 7.70321C14.0532 9.23988 13.3541 10.4475 12.5377 11.3662C11.9528 12.0243 11.2837 12.5586 10.7456 12.968L12.3821 12.968C12.6582 12.968 12.8821 13.1918 12.8821 13.468C12.8821 13.7441 12.6582 13.968 12.3821 13.968L9.38205 13.968C9.10591 13.968 8.88205 13.7441 8.88205 13.468L8.88205 10.468C8.88205 10.1918 9.10591 9.96796 9.38205 9.96796C9.65819 9.96796 9.88205 10.1918 9.88205 10.468L9.88205 12.3135L9.88362 12.3123C10.4551 11.8813 11.1535 11.3546 11.7585 10.6738C12.4731 9.86976 13.0109 8.89844 13.0109 7.70321Z"/></svg>';
-  var X='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.6 2.6L8 7l4.4-4.4 1 1L9 8l4.4 4.4-1 1L8 9l-4.4 4.4-1-1L7 8 2.6 3.6z"/></svg>';
+  var RR='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M6.984 13.761A5.85 5.85 0 0 1 3.863 3.863L4.641 4.641A4.75 4.75 0 0 0 7.175 12.678A.55 .55 0 0 1 6.984 13.761ZM3.863 3.863L4.503 3.223L5.281 4.001L4.641 4.641ZM2.69 3.06H4.89A.55 .55 0 0 1 5.44 3.61V5.81A.55 .55 0 0 1 4.34 5.81V4.16H2.69A.55 .55 0 0 1 2.69 3.06ZM9.016 2.239A5.85 5.85 0 0 1 12.137 12.137L11.359 11.359A4.75 4.75 0 0 0 8.825 3.322A.55 .55 0 0 1 9.016 2.239ZM12.137 12.137L11.497 12.777L10.719 11.999L11.359 11.359ZM13.31 12.94H11.11A.55 .55 0 0 1 10.56 12.39V10.19A.55 .55 0 0 1 11.66 10.19V11.84H13.31A.55 .55 0 0 1 13.31 12.94Z"/></svg>';
+  var X='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.939 3.161L12.839 12.061A.55 .55 0 0 1 12.061 12.839L3.161 3.939A.55 .55 0 0 1 3.939 3.161ZM12.839 3.939L3.939 12.839A.55 .55 0 0 1 3.161 12.061L12.061 3.161A.55 .55 0 0 1 12.839 3.939Z"/></svg>'; /* icons share one optical size: art about 73% of the 16-unit box (like the globe and arrow), lines about 1.1 thick */
   var p=document.createElement("div");p.className="button seedb";
   p.innerHTML='<span class="st" role="button" tabindex="0" aria-label="Show or enter a seed">SEED</span><span class="rr" role="button" tabindex="0" aria-label="New random seed">'+RR+'</span>'+
     '<input type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="go" aria-label="Seed" placeholder="Paste a seed">'+
@@ -1216,6 +1217,14 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   function on(sel,fn){var el=p.querySelector(sel);if(!el)return;el.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();fn()});
     el.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fn()}})}
   on(".st",open);on(".rr",roll);on(".sx",close);
+  // press state for the SEED part only. Like the other buttons it holds while the pointer is down, even if it slides off;
+  // releasing anywhere clears it, and the field only opens if the release lands back on SEED (a normal click)
+  var stEl2=p.querySelector(".st");stEl2.addEventListener("pointerdown",function(){p.classList.add("press")});
+  ["pointerup","pointercancel"].forEach(function(n){window.addEventListener(n,function(){p.classList.remove("press")})});
+  // a press that starts on the pill and is released elsewhere makes the browser send a click to the shared parent (the art),
+  // which would toggle the band. The other buttons are links, so a drag never clicks them. Swallow that stray click.
+  var downIn=false;window.addEventListener("pointerdown",function(e){downIn=p.contains(e.target)},true);
+  window.addEventListener("click",function(e){if(downIn&&!p.contains(e.target)){e.stopImmediatePropagation();e.preventDefault()}downIn=false},true);
   on(".sp",function(){navigator.clipboard.readText().then(function(t){t=(t||"").trim();if(t){inp.value=t;load(t)}else inp.focus()},function(){inp.focus()})}); // if the browser refuses, fall back to pasting into the field
   p.querySelector(".sp")&&p.querySelector(".sp").addEventListener("mousedown",function(e){e.preventDefault()}); // keep focus in the field
   inp.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();load(inp.value)}else if(e.key==="Escape"){e.preventDefault();close()}});
