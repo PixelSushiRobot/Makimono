@@ -12,6 +12,8 @@ https://makimono.psr.fyi/?seed=<your token's seed>
 
 The player draws exactly your minted art, and adds what the minted version can't: a few viewer fixes and Katamaki on phones and tablets. Paste the seed exactly as shown: it's case-sensitive, and a different seed gives a different piece. Without a seed in the address, each visit shows a random piece that no minted token has.
 
+On iPhone or iPad, load your seed first, then use Share → **Add to Home Screen**: the icon is your own piece, and the shortcut opens straight to it.
+
 ## Layout
 
 | Path | What it is |
