@@ -4,19 +4,19 @@ A fully on-chain generative pixel-art collection of animated sushi rolls on [Ale
 
 ## Play your token
 
-Open **[makimono.psr.fyi](https://makimono.psr.fyi/)**, tap or click the art, then **SEED** and paste your token's seed (copy it from the token's page on Aleatory). The page reloads with your piece:
+Open **[makimono.psr.fyi](https://makimono.psr.fyi/)**, tap or click the art, then **SEED**, and paste your token's seed (copy it from the token's page on Aleatory) with **PASTE** or into the field and Enter. Your piece appears right away, and the address updates so you can share or bookmark it:
 
 ```
 https://makimono.psr.fyi/?seed=<your token's seed>
 ```
 
-The player draws exactly your minted art, and adds what the minted version can't: a few viewer fixes and Katamaki on phones and tablets. Paste the seed exactly as shown: it's case-sensitive, and a different seed gives a different piece.
+The player draws exactly your minted art, and adds what the minted version can't: a few viewer fixes and Katamaki on phones and tablets. Paste the seed exactly as shown: it's case-sensitive, and a different seed gives a different piece. Without a seed in the address, each visit shows a random piece that no minted token has.
 
 ## Layout
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | **The player** (the site). The minted v1 piece with the viewer fixes, touch controls, adaptive quality and the SEED button. The art rules are untouched. Not for minting: it loads three.js from a CDN. |
+| `index.html` | **The player** (the site). The minted v1 piece with the viewer fixes, touch controls, adaptive quality and a seed control (show, paste or roll a seed). The art rules are untouched. Not for minting: it loads three.js from a CDN. |
 | [`v1/`](v1/) | **Minted.** The exact files of the collection on Aleatory. Frozen: never edit. Known issues in [`v1/NOTES.md`](v1/NOTES.md). Also tagged in git as `v1-minted`. |
 | [`v2/`](v2/) | **Not released.** A possible future edition: all fixes plus new Mono and lookalike rules, which change some seeds' art. See [`v2/CHANGES.md`](v2/CHANGES.md). |
 
@@ -41,7 +41,8 @@ Each file is self-contained: the font is embedded and there are no image or scri
 | `I` (or click / tap the art) | Show / hide the traits band and buttons |
 | `M` | Toggle the hop animation |
 | `G` or the **KATAMAKI** button | Open the game |
-| **SEED** button (player only) | Show this piece's seed, or paste another |
+| **SEED** (player only) | Opens a field with this piece's seed: copy it, or paste another and press Enter (or tap PASTE) |
+| ↻ next to SEED (player only) | New random seed. Back / Forward in the browser step through the seeds you've viewed |
 
 **Katamaki**
 
