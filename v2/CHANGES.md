@@ -33,4 +33,5 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 ### Other
 
 - The project name in the top-left corner of the traits view reads **MAKIMONO 2.0**.
+- Katamaki's welcome screen shows a small "Welcome to" line above **KATAMAKI** in the game's 3×3 pixel font. The letters take the piece's colours, in the same order a custom message on that piece would, and bob like the letters in the sky. Under the title, your own maki turns slowly, with the same filling layout you play with. It stays still if the device asks for reduced motion.
 
