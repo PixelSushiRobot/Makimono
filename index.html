@@ -2,9 +2,9 @@
 <html>
 <head>
 <meta charset="utf-8">
-<!-- PLAYER (GitHub Pages, makimono.psr.fyi) -- the minted v1 piece (v1/makimono.html) with the viewer fixes from v1/NOTES.md issues 1, 2 and 4, Katamaki touch controls and adaptive quality, and a SEED button. The art rules are untouched, so a token's seed shows exactly its minted art. Not for minting: the script tag below loads three.js from a CDN. -->
+<!-- PLAYER (GitHub Pages, makimono.psr.fyi) -- the minted v1 piece (v1/makimono.html) with the viewer fixes from v1/NOTES.md issues 1, 2 and 4, Katamaki touch controls and adaptive quality, and a seed pill (show, paste or roll a seed). The art rules are untouched, so a token's seed shows exactly its minted art. Not for minting: the script tag below loads three.js from a CDN. -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><!-- maximum-scale=1: iOS Safari otherwise zooms in when the seed field (under 16px) is focused; pinch zoom still works on iOS -->
 <title>Makimono</title>
 <style>
 /* Space Mono embedded as a subset — the Aleatory sandbox blocks the network, so a Google Fonts <link> can't load there.
@@ -477,6 +477,8 @@ function mkmnRender(){
 mkmnRender();
 alea.features(feats);
 alea.ready();
+/* PLAYER: swap to another seed without reloading. The art only reads the seed string (gen builds its own stream from it), so this draws exactly what a fresh load with that seed would. The game rebuilds for the new seed the next time it opens. */
+window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)applyHop();alea.features(feats)};
 
 /* ---- Keys: no visible button. "i" toggles the traits band (.show on the
    stage); the band is hidden from load so it never shows in the static capture. The
@@ -1077,15 +1079,15 @@ alea.ready();
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
 
-  var builtMsg=""; // the art's message when the world was built; a changed Message cell forces a rebuild
+  var builtMsg=""; // the art's message + seed when the world was built; a changed Message cell (or, in the player, a new seed) forces a rebuild
   function artMsg(){return (window.MAKI_TXT&&window.MAKI_TXT.msg)||""}
   async function launch(skipIntro){
     if(running)return;
-    if(built&&artMsg()!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
+    if(built&&artMsg()+"|"+$alea.seed!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
     GAME.classList.add("on");
     if(built&&(phase==="pause"||phase==="confirm"||phase==="end")){if(phase==="confirm")cancelRestart();return} // back from the art: stay on the pause (or end) screen, no welcome
     overlays(skipIntro?null:HUD.start);phase="welcome";
-    if(!built){builtMsg=artMsg();var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
+    if(!built){builtMsg=artMsg()+"|"+$alea.seed;var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
     if(skipIntro)begin();
   }
   function begin(){if(!built)return;overlays(null);phase="play";running=true;lastT=performance.now();PQ.skip=-1;PQ.ws=0;perfApply();raf=requestAnimationFrame(step)}
@@ -1169,9 +1171,57 @@ alea.ready();
   window.addEventListener("keyup",function(e){keys[e.key]=false});
 })();
 </script>
-<script>/* PLAYER: a SEED pill in the export bar shows this piece's seed and loads a pasted one (the seed from a token's Aleatory page). It reloads with ?seed= so the address can be shared or bookmarked */
-(function(){var b=document.querySelector(".export-bar");if(!b||!window.$alea)return;var a=document.createElement("a");a.className="button";a.href="#";a.setAttribute("aria-label","Enter a seed");a.innerHTML="<span>SEED</span>";
-a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();var v=prompt("Paste your token's seed (copy it from the token page on Aleatory):",$alea.seed);if(v===null)return;v=v.trim();if(!v||v===$alea.seed)return;location.search="?seed="+encodeURIComponent(v)});b.appendChild(a)})();
+<style>/* PLAYER: seed pill. SEED shows/edits the seed, the arrows icon rolls a new one.
+   The pill has the same fixed height as the other buttons in both states, and every part only pads sideways,
+   so the field text, PASTE and the icons sit on the same line, at the same height, as the resting labels. */
+.export-bar .seedb{gap:0;padding:0;height:calc(var(--scale-unit)*26 + var(--bw)*2);box-sizing:border-box}
+.export-bar .seedb>*{display:flex;align-items:center;height:100%;cursor:pointer}
+.export-bar .seedb .st{padding:0 0 0 calc(var(--scale-unit)*10)}
+.export-bar .seedb .rr,.export-bar .seedb .sx{position:relative;padding:0 calc(var(--scale-unit)*7) 0 var(--sz-02)}/* same text-to-icon gap and right padding as the other buttons */
+.export-bar .seedb .rr::before,.export-bar .seedb .sx::before{content:"";position:absolute;inset:-8px -6px -8px -4px}/* bigger tap target, no visual change */
+.export-bar .seedb input,.export-bar .seedb .sp,.export-bar .seedb .sx{display:none}
+.export-bar.seeding>.button:not(.seedb){display:none}
+.export-bar.seeding .seedb .st,.export-bar.seeding .seedb .rr{display:none}
+.export-bar.seeding .seedb input{display:block;box-sizing:border-box;width:min(calc(100vw - var(--sz-20)*2 - var(--scale-unit)*130),calc(var(--scale-unit)*540));margin:0;padding:0 0 0 calc(var(--scale-unit)*10);border:0;border-radius:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:var(--sz-15);letter-spacing:.08em;line-height:1;text-transform:none;cursor:text;-webkit-appearance:none;appearance:none;-webkit-user-select:text;user-select:text}
+.export-bar.seeding .seedb input::placeholder{color:var(--ink);opacity:.45;text-transform:uppercase}
+.export-bar.seeding .seedb .sp{display:flex;padding:0 calc(var(--scale-unit)*5) 0 calc(var(--scale-unit)*10)}
+.export-bar.seeding .seedb .sx{display:flex}
+.export-bar .seedb .st:active,.export-bar .seedb .rr:active,.export-bar .seedb .sp:active,.export-bar .seedb .sx:active{opacity:.55}
+.export-bar .seedb:active{background:transparent;color:var(--ink)}
+</style>
+<script>/* PLAYER: seed pill in the export bar.
+   - SEED: the pill grows into a field showing this piece's seed (selected, so it's easy to copy). Type or paste a seed and press Enter
+     to load it; PASTE reads the clipboard and loads straight away; the x or Esc closes the field.
+   - arrows icon: roll a new random seed.
+   Loading swaps the art in place (no reload) and puts ?seed= in the address, so it can be shared or bookmarked; Back / Forward step through the seeds viewed. */
+(function(){var b=document.querySelector(".export-bar"),stg=document.querySelector(".stage");if(!b||!window.$alea)return;
+  try{if(sessionStorage.getItem("mkmn-show")){sessionStorage.removeItem("mkmn-show");stg&&stg.classList.add("show")}}catch(_){}
+  var RR='<svg class="icon" viewBox="0 0 15 15" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M1.90321 7.29677C1.90321 10.341 4.11041 12.4147 6.58893 12.8439C6.87255 12.893 7.06266 13.1627 7.01355 13.4464C6.96444 13.73 6.69471 13.9201 6.41109 13.871C3.49942 13.3668 0.86084 10.9127 0.86084 7.29677C0.860839 5.76009 1.55996 4.55245 2.37639 3.63377C2.96124 2.97568 3.63034 2.44135 4.16846 2.03202L2.53205 2.03202C2.25591 2.03202 2.03205 1.80816 2.03205 1.53202C2.03205 1.25588 2.25591 1.03202 2.53205 1.03202L5.53205 1.03202C5.80819 1.03202 6.03205 1.25588 6.03205 1.53202L6.03205 4.53202C6.03205 4.80816 5.80819 5.03202 5.53205 5.03202C5.25591 5.03202 5.03205 4.80816 5.03205 4.53202L5.03205 2.68645L5.03054 2.68759L5.03045 2.68766L5.03044 2.68767L5.03043 2.68767C4.45896 3.11868 3.76059 3.64538 3.15554 4.3262C2.44102 5.13021 1.90321 6.10154 1.90321 7.29677ZM13.0109 7.70321C13.0109 4.69115 10.8505 2.6296 8.40384 2.17029C8.12093 2.11718 7.93465 1.84479 7.98776 1.56188C8.04087 1.27898 8.31326 1.0927 8.59616 1.14581C11.4704 1.68541 14.0532 4.12605 14.0532 7.70321C14.0532 9.23988 13.3541 10.4475 12.5377 11.3662C11.9528 12.0243 11.2837 12.5586 10.7456 12.968L12.3821 12.968C12.6582 12.968 12.8821 13.1918 12.8821 13.468C12.8821 13.7441 12.6582 13.968 12.3821 13.968L9.38205 13.968C9.10591 13.968 8.88205 13.7441 8.88205 13.468L8.88205 10.468C8.88205 10.1918 9.10591 9.96796 9.38205 9.96796C9.65819 9.96796 9.88205 10.1918 9.88205 10.468L9.88205 12.3135L9.88362 12.3123C10.4551 11.8813 11.1535 11.3546 11.7585 10.6738C12.4731 9.86976 13.0109 8.89844 13.0109 7.70321Z"/></svg>';
+  var X='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.6 2.6L8 7l4.4-4.4 1 1L9 8l4.4 4.4-1 1L8 9l-4.4 4.4-1-1L7 8 2.6 3.6z"/></svg>';
+  var p=document.createElement("div");p.className="button seedb";
+  p.innerHTML='<span class="st" role="button" tabindex="0" aria-label="Show or enter a seed">SEED</span><span class="rr" role="button" tabindex="0" aria-label="New random seed">'+RR+'</span>'+
+    '<input type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="go" aria-label="Seed" placeholder="Paste a seed">'+
+    (navigator.clipboard&&navigator.clipboard.readText?'<span class="sp" role="button" tabindex="0" aria-label="Paste seed from clipboard">PASTE</span>':'')+
+    '<span class="sx" role="button" tabindex="0" aria-label="Close">'+X+'</span>';
+  b.appendChild(p);
+  try{history.replaceState({seed:$alea.seed},"")}catch(_){} // remember the first seed too, so Back can return to it
+  window.addEventListener("popstate",function(e){var s=(e.state&&e.state.seed)||new URLSearchParams(location.search).get("seed");if(s&&s!==$alea.seed&&window.MKMN_RESEED){window.MKMN_RESEED(s);close()}}); // Back / Forward step through the seeds you've viewed
+  var inp=p.querySelector("input");
+  function load(v){v=(v||"").trim();if(!v)return;if(v===$alea.seed){close();return}
+    if(window.MKMN_RESEED&&history.pushState){history.pushState({seed:v},"","?seed="+encodeURIComponent(v));window.MKMN_RESEED(v);close();return} // swap in place: no reload, the band stays open
+    try{sessionStorage.setItem("mkmn-show","1")}catch(_){}location.search="?seed="+encodeURIComponent(v)} // fallback: reload with the seed
+  function roll(){var a=new Uint8Array(32);crypto.getRandomValues(a);load(Array.from(a).map(function(x){return x.toString(16).padStart(2,"0")}).join(""))} // same format as a fresh page load
+  function open(){b.classList.add("seeding");inp.value=$alea.seed;inp.focus();inp.select()}
+  function close(){b.classList.remove("seeding");inp.blur()}
+  function on(sel,fn){var el=p.querySelector(sel);if(!el)return;el.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();fn()});
+    el.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fn()}})}
+  on(".st",open);on(".rr",roll);on(".sx",close);
+  on(".sp",function(){navigator.clipboard.readText().then(function(t){t=(t||"").trim();if(t){inp.value=t;load(t)}else inp.focus()},function(){inp.focus()})}); // if the browser refuses, fall back to pasting into the field
+  p.querySelector(".sp")&&p.querySelector(".sp").addEventListener("mousedown",function(e){e.preventDefault()}); // keep focus in the field
+  inp.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();load(inp.value)}else if(e.key==="Escape"){e.preventDefault();close()}});
+  p.addEventListener("click",function(e){e.stopPropagation()});
+  document.addEventListener("pointerdown",function(e){if(b.classList.contains("seeding")&&!p.contains(e.target))close()},true); // tapping elsewhere closes the field
+})();
 </script>
 </body>
 </html>
