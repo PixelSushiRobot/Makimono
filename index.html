@@ -6,7 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><!-- maximum-scale=1: iOS Safari otherwise zooms in when the seed field (under 16px) is focused; pinch zoom still works on iOS -->
 <title>Makimono</title>
-<meta name="apple-mobile-web-app-title" content="Makimono"><link rel="apple-touch-icon" sizes="180x180" id="mkmnIcon"><!-- home-screen icon: drawn from the piece on screen (script at the end) -->
+<meta name="apple-mobile-web-app-title" content="Makimono"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" id="mkmnIcon"><link rel="icon" type="image/png" sizes="180x180" href="apple-touch-icon.png" id="mkmnFav"><!-- home-screen and tab icon: the default maki until the script at the end swaps in the piece on screen -->
 <style>
 /* Space Mono embedded as a subset — the Aleatory sandbox blocks the network, so a Google Fonts <link> can't load there.
    Paste a woff2 subset below: one weight (400), glyphs A-Z 0-9 space . , ' ? ! - + / = : …  (band text is uppercased).
@@ -1286,7 +1286,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   document.addEventListener("pointerdown",function(e){if(b.classList.contains("seeding")&&!p.contains(e.target))close()},true); // tapping elsewhere closes the field
 })();
 </script>
-<script>/* PLAYER: home-screen icon. "Add to Home Screen" uses the apple-touch-icon, so it's drawn from the piece on screen: the art's first frame,
+<script>/* PLAYER: home-screen icon. "Add to Home Screen" uses the apple-touch-icon (iOS) or the largest icon link (Android), so both are drawn from the piece on screen: the art's first frame,
    read at its 13 x 13 pixels (as the game does) and scaled up with hard edges to 180 x 180. It's redrawn whenever the art changes (a new seed),
    so the icon is the piece you're looking at, and the saved link keeps its ?seed=. */
 (function(){var link=document.getElementById("mkmnIcon");if(!link)return;var last="",tm=0;
@@ -1295,7 +1295,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     var img=new Image();img.onload=function(){try{var g=document.createElement("canvas");g.width=g.height=13;var gx=g.getContext("2d");gx.drawImage(img,0,0,13,13);
       var d=gx.getImageData(0,0,13,13).data,c=document.createElement("canvas");c.width=c.height=180;var x=c.getContext("2d");
       for(var j=0;j<13;j++)for(var i=0;i<13;i++){var k=(j*13+i)*4,x0=Math.round(i*180/13),y0=Math.round(j*180/13);x.fillStyle="rgb("+d[k]+","+d[k+1]+","+d[k+2]+")";x.fillRect(x0,y0,Math.round((i+1)*180/13)-x0,Math.round((j+1)*180/13)-y0)} // each art pixel is a solid 13-14px block
-      link.href=c.toDataURL("image/png")}catch(_){}};
+      var u=c.toDataURL("image/png");link.href=u;var fav=document.getElementById("mkmnFav");if(fav)fav.href=u}catch(_){}}; // apple-touch-icon for iOS; the icon link for Android shortcuts and the browser tab
     img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(str)}
   function soon(){clearTimeout(tm);tm=setTimeout(draw,250)}
   new MutationObserver(function(rs){for(var i=0;i<rs.length;i++){var t=rs[i].target;if(!(t.closest&&t.closest("#game"))){soon();return}}}).observe(document.body,{childList:true,subtree:true}); // a new seed swaps the art's svg in place (the game's HUD changes are ignored)
