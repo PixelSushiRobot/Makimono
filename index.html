@@ -880,10 +880,34 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     function placeObstacle(dir,sc){dir.normalize();if(relief01(dir)<WATER+0.04)return;var k=rnd(),oc=col(p.uniq[(rnd()*p.uniq.length)|0]),g;
       if(k<0.42)g=buildTree(oc);else if(k<0.64)g=buildBush(oc);else if(k<0.8)g=buildRock(oc);else if(k<0.92)g=buildFlower(col((p.pip&&p.pip.length?p.pip:p.uniq)[(rnd()*(p.pip&&p.pip.length?p.pip.length:p.uniq.length))|0]));else g=buildMushroom();
       g.scale.multiplyScalar(sc);g.position.copy(dir.clone().multiplyScalar(surfaceR(dir)));g.quaternion.copy(QT.setFromUnitVectors(YUP,dir));scene.add(g);var gb=makeBlob(g.userData.size||0.7);g.add(gb);g.userData.blob=gb;
-      obstacles.push({g:g,dir:dir.clone(),size:(g.userData.size||0.7)*sc,dead:false});}
-    var CLUST=6;for(var ci=0;ci<CLUST;ci++){var center=fibDir((ci*5+2)%CLUST,CLUST).applyAxisAngle(YUP,rnd()*6.28).normalize();if(relief01(center)<WATER+0.06)continue;
+      obstacles.push({g:g,dir:dir.clone(),size:(g.userData.size||0.7)*sc,dead:false,cl:curCl});}
+    var curCl=-1; // which cluster an obstacle belongs to (-1 = single), so the spawn clear-out can move a cluster as one group
+    var CLUST=6;for(var ci=0;ci<CLUST;ci++){curCl=ci;var center=fibDir((ci*5+2)%CLUST,CLUST).applyAxisAngle(YUP,rnd()*6.28).normalize();if(relief01(center)<WATER+0.06)continue;
       var cnt=7+(rnd()*7|0);for(var kk=0;kk<cnt;kk++){var off=new THREE.Vector3(rnd()-.5,rnd()-.5,rnd()-.5).multiplyScalar(0.2);placeObstacle(center.clone().add(off),0.65+rnd()*0.7)}}
-    obsSingle0=obstacles.length;var SC=30;for(var s=0;s<SC;s++){placeObstacle(fibDir((s*7+3)%SC,SC).applyAxisAngle(YUP,rnd()*2.3),0.7+rnd()*0.8)}
+    curCl=-1;obsSingle0=obstacles.length;var SC=30;for(var s=0;s<SC;s++){placeObstacle(fibDir((s*7+3)%SC,SC).applyAxisAngle(YUP,rnd()*2.3),0.7+rnd()*0.8)}
+  }
+
+  // keep a clear circle around the start point: the start is the top of the planet, which is also slot 0 of the even spread
+  // things are placed on (and the one point the random turn can't move), so pieces could start already stuck to the roll.
+  // Anything inside is slid out to the edge (onto land); counts stay the same. Runs after every random draw, so the rest of the world is unchanged.
+  var SPAWN_CLR=5; // circle radius in surface units (start roll radius is 1.1)
+  function clearSpawn(){
+    var S0=new THREE.Vector3(0,1,0.001).normalize(),a0=SPAWN_CLR/SR,fb=0; // S0 = the player's start direction (pPos)
+    function inC(d){return d.angleTo(S0)<a0}
+    function tangent(d){var t=d.clone().addScaledVector(S0,-d.dot(S0));if(t.lengthSq()<1e-8){fb++;t.set(Math.cos(fb*2.39996),0,Math.sin(fb*2.39996))}return t.normalize()} // dead centre: fan out along golden-angle directions so they don't stack
+    function at(t,a){return S0.clone().multiplyScalar(Math.cos(a)).addScaledVector(t,Math.sin(a)).normalize()}
+    function landOut(t,a,wl){for(var k=0;k<40;k++){var d=at(t,a+k*0.04);if(wl==null||relief01(d)>=wl)return d}return at(t,a)} // keep going outward until it's on land
+    // obstacles: a cluster moves as one group (keeps its shape), singles move alone
+    var groups={};obstacles.forEach(function(o){if(o.cl>=0)(groups[o.cl]=groups[o.cl]||[]).push(o)});
+    Object.keys(groups).forEach(function(k){var G=groups[k];if(!G.some(function(o){return inC(o.dir)}))return;
+      var c=new THREE.Vector3();G.forEach(function(o){c.add(o.dir)});c.normalize();var spread=0;G.forEach(function(o){spread=Math.max(spread,o.dir.angleTo(c))});
+      var q=new THREE.Quaternion().setFromUnitVectors(c,landOut(tangent(c),a0+spread+0.02,WATER+0.06));
+      G.forEach(function(o){o.dir.applyQuaternion(q).normalize();o.mv=true})});
+    obstacles.forEach(function(o){if(o.cl<0&&inC(o.dir)){o.dir.copy(landOut(tangent(o.dir),a0+0.02,WATER+0.04));o.mv=true}});
+    obstacles.forEach(function(o){if(o.mv){o.g.position.copy(o.dir.clone().multiplyScalar(surfaceR(o.dir)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir));o.mv=false}}); // obstacles are placed once, so re-seat the moved ones
+    props.forEach(function(o){if(inC(o.dir))o.dir.copy(landOut(tangent(o.dir),a0+0.02,WATER+0.02))});   // pickups and features are re-seated from dir every frame
+    terrain.forEach(function(o){if(inC(o.dir))o.dir.copy(landOut(tangent(o.dir),a0+0.02,WATER+0.03))});
+    ants.forEach(function(o){var d=o.pos.clone().normalize();if(inC(d))o.pos.copy(at(tangent(d),a0+0.02).multiplyScalar(SR))});
   }
 
   function build(tr,cells){
@@ -932,7 +956,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     clump=new THREE.Group();ball.add(clump);
     ballR=R0;
     core=buildMakiRoll(p);clump.add(core);welG=core.clone(); // the welcome screen's spinning roll: a copy of this exact roll (same filling layout, no extra random draws)
-    spawnWorld(p);
+    spawnWorld(p);clearSpawn();
     banner=null;if(p.isText||tr.Message||window.MAKI_TXT){var msg=((window.MAKI_TXT&&window.MAKI_TXT.msg)||tr.Message||(tr.Pattern||"").replace(/^text\s*/i,"")||"MAKIMONO").trim()||"MAKIMONO";banner=buildBanner(msg,p);scene.add(banner.g)}
     pPos=new THREE.Vector3(0,1,0.001).normalize();pPos.multiplyScalar(surfaceR(pPos)+ballR);
     up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);

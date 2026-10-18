@@ -1,8 +1,8 @@
 # Known issues
 
-**All six are fixed in v2, at the repo root (see [`../CHANGES.md`](../CHANGES.md)).** This folder is the minted v1 and stays unchanged.
+**Fixes:** the player at the site root (`index.html`) has the fixes for issues 1, 2, 4 and 7, and replaces issue 3's fix with a playable mobile game, while keeping v1's art. All seven are fixed in the unreleased [`v2/`](../v2/CHANGES.md). This folder is the minted v1 and stays unchanged.
 
-These issues affect `makimono.html`, `makimono.mint.html` and `index.html`. The minted collection (`makimono.mint.html`) was published before they were found, so the fixes below are **not** in it. Each has a fix recorded here for a future edition and for updating the demo. The fixes for issues 1 and 2 have been tested; the fixes for issues 3 and 4 are written out but not yet built. The fixes for issues 5 and 6 change which art a seed produces, so they are for a future edition only (see the warning under issue 5).
+These issues affect `makimono.html`, `makimono.mint.html` and `index.html`. The minted collection (`makimono.mint.html`) was published before they were found, so the fixes below are **not** in it. Each has a fix recorded here for a future edition and for updating the demo. The fixes for issues 1 and 2 have been tested; the fixes for issues 3 and 4 are written out but not yet built. The fixes for issues 5 and 6 change which art a seed produces, so they are for a future edition only (see the warning under issue 5). The fix for issue 7 is built and only moves things near the start of the game, so it doesn't change the art.
 
 To apply a fix: change `makimono.html` first, then rebuild `makimono.mint.html` (comments stripped) and `index.html` (plus the three.js CDN script), as described in the README.
 
@@ -227,3 +227,15 @@ Then pass the palette at each call:
 Notes:
 - **Odds stay correct.** The pattern odds come from the filtered list, and the speed shares are recomputed from it, so the listed odds still add up.
 - Ship together with issue 5: the Mono rows assume Mono follows the Profile.
+
+---
+
+## 7. Katamaki can start with pieces already stuck to the roll
+
+**Affects:** all three files. Desktop and mobile.
+
+**Symptom.** On some seeds, the round starts with a few pieces already stuck to the maki, or with an ant or tree right on top of it.
+
+**Cause.** The roll starts at the top of the planet. Things are placed on an even spread of points with a random turn around the up axis, but the top is slot 0 of that spread and the one point the turn can't move. So on some seeds a cluster of trees and bushes, a single obstacle, an animated feature, a pickup's backup spot (used when its first spot is water) or one of the ants lands exactly on the start, and anything small enough is rolled up on the first frame.
+
+**Fix (built in the player and `v2/`).** After the world is built, `clearSpawn()` keeps a clear circle 5 units around the start: anything inside slides straight out to the edge, onto land. A cluster moves as one group so it keeps its shape, and things at the exact centre fan out in different directions. Counts, sizes, kinds and colours stay the same, and it runs after every random draw, so the rest of the world is unchanged. Each obstacle also records its cluster (`cl`) so the cluster can be moved together.
