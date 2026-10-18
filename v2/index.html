@@ -935,9 +935,10 @@ alea.ready();
     // chopstick monsters: chase the player and snatch stuck sushi off the clump
     enemies=[];for(var e=0;e<Math.max(2,p.enemyN);e++){var ed=fibDir((e+1)*37%50,50);var em=buildChopstick();var esz=(rnd()<0.22?1.9+rnd()*1.9:0.7+rnd()*0.8)*(p.esize||1);em.scale.setScalar(esz);scene.add(em);em.add(makeBlob(0.5));enemies.push({g:em,pos:ed.multiplyScalar(SR).clone(),sign:e%2?1:-1,cd:0,sz:esz})}
     // ants: roam the planet; too big = they bump you and steal, big enough = you roll them up (they flee)
-    ants=[];var antN=9+(/ants/i.test((tr.Message||"")+" "+(tr.Pattern||""))?6:0);
-    for(var ai=0;ai<antN;ai++){var ad=fibDir((ai*17+5)%64,64);var ag=buildAnt();var asz=0.7+rnd()*0.9;ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;
-      ants.push({g:ag,pos:ad.multiplyScalar(SR),head:null,sz:asz,req:1.5+asz*0.9,cd:0,dead:false,ph:rnd()*6.28})}
+    // ANTS pieces (Message or Pattern mentions ants): the usual 9 plus 21 small ants you can roll up from the start, so the planet reads as an ant planet
+    ants=[];var antBig=9,antN=antBig+(/ants/i.test((tr.Message||"")+" "+(tr.Pattern||""))?21:0);
+    for(var ai=0;ai<antN;ai++){var ad=fibDir((ai*17+5)%64,64);var ag=buildAnt();var small=ai>=antBig,asz=small?0.38+rnd()*0.2:0.7+rnd()*0.9;ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;
+      ants.push({g:ag,pos:ad.multiplyScalar(SR),head:null,sz:asz,req:small?R0:1.5+asz*0.9,gain:small?0.05:0.1+asz*0.08,cd:0,dead:false,ph:rnd()*6.28})} // small ants: rollable at the starting size, smaller growth each
     // player: ball rig (surface-aligned) + clump (rolls) + maki-roll character (pushes, does not roll)
     ball=new THREE.Group();scene.add(ball);
     clump=new THREE.Group();ball.add(clump);
@@ -1030,7 +1031,7 @@ alea.ready();
       an.g.position.copy(an.pos).addScaledVector(nu,Math.abs(Math.sin(t/90+an.ph))*0.05*an.sz);
       an.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(nu,an.head).normalize(),nu,an.head));an.g.rotateZ(Math.sin(t/80+an.ph)*0.06);
       if(ball.position.distanceTo(an.pos)<ballR+0.55*an.sz){
-        if(big){an.dead=true;stickToRoll(an.g);ballR+=0.1+an.sz*0.08;pips++}
+        if(big){an.dead=true;stickToRoll(an.g);ballR+=an.gain;pips++}
         else if(an.cd<=0){an.cd=1.4;var akids=clump.children.filter(function(c){return c!==core});if(akids.length)clump.remove(akids.pop());ballR=Math.max(R0,ballR-0.2);pips=Math.max(0,pips-1);
           bumpV.copy(ball.position.clone().sub(an.pos).normalize().multiplyScalar(12+3*an.sz));if(hopT<=0)hopT=hopDur*0.6;wobT=0.4}} // same knock-back as the chopsticks, a bit softer
     }
