@@ -1,10 +1,10 @@
 # Makimono
 
-A fully on-chain generative pixel-art collection of animated sushi rolls on [Aleatory](https://aleatory.art) (Tezos), with **Katamaki**: a small 3D game where you roll your own token's maki around its own planet.
+A fully on-chain generative pixel-art collection of animated sushi rolls on [Aleatory](https://aleatory.art/generator/KT1EaQfAUBHpwXCniFJdrix8YicvfRVcCaAU) (Tezos), with **Katamaki**: a small 3D game where you roll your own token's maki around its own planet.
 
 ## Play your token
 
-Open **[makimono.psr.fyi](https://makimono.psr.fyi/)**, tap or click the art, then **SEED**, and paste your token's seed (copy it from the token's page on Aleatory) with **PASTE** or into the field and Enter. Your piece appears right away, and the address updates so you can share or bookmark it:
+Open **[makimono.psr.fyi](https://makimono.psr.fyi/)**, tap or click the art, then **SEED**, and paste your token's seed (copy it from the token's page in the [collection on Aleatory](https://aleatory.art/generator/KT1EaQfAUBHpwXCniFJdrix8YicvfRVcCaAU)) with **PASTE** or into the field and Enter. Your piece appears right away, and the address updates so you can share or bookmark it:
 
 ```
 https://makimono.psr.fyi/?seed=<your token's seed>
