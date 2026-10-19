@@ -12,7 +12,7 @@ https://makimono.psr.fyi/?seed=<your token's seed>
 
 The player draws exactly your minted art, and adds what the minted version can't: a few viewer fixes and Katamaki on phones and tablets. Paste the seed exactly as shown: it's case-sensitive, and a different seed gives a different piece. Without a seed in the address, each visit shows a random piece that no minted token has.
 
-On iPhone or iPad, load your seed first, then use Share → **Add to Home Screen**: the icon is your own piece, and the shortcut opens straight to it. On Android, use the browser menu → **Add to Home screen**. Until a piece is drawn, the icon is the default maki, `apple-touch-icon.png`.
+On iPhone or iPad, load your seed first, then use Share → **Add to Home Screen**: the icon is your own piece, and the shortcut opens straight to it. On Android, use the browser menu → **Add to Home screen**. Until a piece is drawn, the icon is the default maki (`apple-touch-icon.png`, and `favicon.png` at 48 × 48 for the tab and search results). If you loaded the seed with SEED, reload the page before saving: Android takes the icon from when the page first loaded.
 
 ## Layout
 
