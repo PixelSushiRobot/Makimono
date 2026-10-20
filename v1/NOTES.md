@@ -1,6 +1,6 @@
 # Known issues
 
-**Fixes:** the player at the site root (`index.html`) has the fixes for issues 1, 2, 4, 7 and 8, and replaces issue 3's fix with a playable mobile game, while keeping v1's art. All but 8 are fixed in the unreleased [`v2/`](../v2/CHANGES.md). This folder is the minted v1 and stays unchanged.
+**Fixes:** the player at the site root (`index.html`) has the fixes for issues 1, 2, 4, 7 and 8, and replaces issue 3's fix with a playable mobile game, while keeping v1's art. All eight are fixed in the unreleased [`v2/`](../v2/CHANGES.md). This folder is the minted v1 and stays unchanged.
 
 These issues affect `makimono.html`, `makimono.mint.html` and `index.html`. The minted collection (`makimono.mint.html`) was published before they were found, so the fixes below are **not** in it. Each has a fix recorded here for a future edition and for updating the demo. The fixes for issues 1 and 2 have been tested; the fixes for issues 3 and 4 are written out but not yet built. The fixes for issues 5 and 6 change which art a seed produces, so they are for a future edition only (see the warning under issue 5). The fix for issue 7 is built and only moves things near the start of the game, so it doesn't change the art.
 
@@ -250,9 +250,9 @@ Notes:
 
 **Cause.** The art is built from layers that move over each other: the filling slides under a clipped window, and the hop translates the top half over a static base. `shape-rendering="crispEdges"` keeps hard edges on desktop, but iPhone Safari still softens the edges of moving layers, so where two shapes meet, whatever is underneath shows through as a hairline.
 
-**Fix (built in the player).** Show the art as flat full frames, like pixel art that redraws every frame: no transforms, no clip, every shape on whole pixels. `MKFLAT` reads the art's own animation values (all discrete, all on the 70ms grid) and paints the 13 × 13 grid for every slot, then writes each distinct frame as one complete, opaque picture (backing = the frame's most common edge colour, then every other pixel), shown one at a time for exactly the slots the original shows it. Timing is unchanged, slot for slot. It doesn't use the browser's animation clock, so it works before the page has loaded and inside a minted file.
+**Fix (built in the player and `v2/`).** Show the art as flat full frames, like pixel art that redraws every frame: no transforms, no clip, every shape on whole pixels. `MKFLAT` reads the art's own animation values (all discrete, all on the 70ms grid) and paints the 13 × 13 grid for every slot, then writes each distinct frame as one complete, opaque picture (backing = the frame's most common edge colour, then every other pixel), shown one at a time for exactly the slots the original shows it. Timing is unchanged, slot for slot. It doesn't use the browser's animation clock, so it works before the page has loaded and inside a minted file.
 
 - **Checked pixel-identical** to the live art on every minted seed and over 100 random ones, with hop on and off, by sampling both slot by slot.
 - **Hop off** shows a second flat version built without the hop animations (rest pose, fills keep running).
 - **GIF and SVG export** use the flat frames; the GIF always uses the hopped version, as before.
-- For v2, the same writer would run inside the generator, so the token itself is flat.
+- **Built in `v2/` too:** the same writer runs inside the generator, so a v2 token is flat itself.

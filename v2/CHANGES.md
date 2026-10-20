@@ -2,7 +2,7 @@
 
 ## v2
 
-**Not released.** v2 is a possible future edition, kept here in `v2/` and not linked from the site. v1, the minted collection, is kept unchanged in [`v1/`](../v1/). Its known issues are in [`v1/NOTES.md`](../v1/NOTES.md); v2 fixes all seven. The player at the site root already has the viewer fixes (1, 2 and 4), the spawn fix (7) and the mobile game, with v1's art.
+**Not released.** v2 is a possible future edition, kept here in `v2/` and not linked from the site. v1, the minted collection, is kept unchanged in [`v1/`](../v1/). Its known issues are in [`v1/NOTES.md`](../v1/NOTES.md); v2 fixes all eight. The player at the site root already has the viewer fixes (1, 2, 4 and 8), the spawn fix (7) and the mobile game, with v1's art.
 
 **Same seed, different art.** Changes 5 and 6 change how a seed is turned into traits, so many seeds produce different art in v2 than their v1 token. To see a seed as minted, open it in the player at the site root (`makimono.psr.fyi/?seed=<hex>`).
 
@@ -13,6 +13,7 @@
 3. **Katamaki plays on phones and tablets.** Instead of hiding the KATAMAKI button on mobile, the game now has touch controls (see below). ([v1 issue 3](../v1/NOTES.md#3-katamaki-button-shows-on-mobile-where-the-game-isnt-supported))
 4. **GIF export follows the current art.** The cached GIF is only reused while the art (including the Message) is the same as when it was rendered. Every GIF shows the hopped version, whatever the hop toggle. ([v1 issue 4](../v1/NOTES.md#4-gif-export-keeps-an-earlier-version-after-the-message-changes))
 7. **Katamaki starts with a clear spot.** Nothing starts stuck to the roll: anything placed near the start is moved just outside a small clear circle, onto land. The rest of the world is unchanged. ([v1 issue 7](../v1/NOTES.md#7-katamaki-can-start-with-pieces-already-stuck-to-the-roll))
+8. **No seams on iPhone Safari.** The art is drawn as flat full frames: each distinct frame is one complete picture on whole pixels, with no sliding layers or clip, shown for exactly the 70ms slots the layered art shows it. The animation reads the same, slot for slot, and iPhone Safari no longer shows hairlines around the filling or along the edge. Hop off is a second flat version (rest pose, fills keep running). ([v1 issue 8](../v1/NOTES.md#8-hairline-seams-around-the-filling-and-the-arts-edge-on-iphone-safari))
 
 ### Rule changes
 

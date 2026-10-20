@@ -60,6 +60,69 @@ body{background:#0b0b0c;display:grid;place-items:center;font-family:'Space Mono'
 </head>
 <body>
 <script>
+/* MKFLAT: rewrite a layered Makimono SVG as flat full frames, without the browser's animation clock.
+   The art's animations are all discrete (visibility, a translate, an eye y) on one 70ms grid, so every frame can be worked out by reading the
+   values/keyTimes directly: at each slot, take each animation's current value, then paint the 13x13 grid in document order, sampling pixel centres.
+   Distinct grids become complete, opaque frames (backing = the frame's most common edge colour, then every other pixel), one visible at a time,
+   held for exactly as many slots as the original shows them. MKFLAT.flatten(svg, noHop) -> {svg, grids, Ls, L, off}. */
+(function(){var SLOT=840/12;
+function gcd(a,b){while(b){var t=a%b;a=b;b=t}return a}
+function ms(v){var m=/^\s*([\d.]+)(ms|s)?\s*$/.exec(String(v||""));if(!m)return 0;return m[2]==="s"?+m[1]*1000:+m[1]}
+function polys(d){var t=d.match(/[MmHhVvLlZz]|-?\d*\.?\d+(?:e-?\d+)?/g)||[],P=[],cur=null,x=0,y=0,sx=0,sy=0,i=0,c="";
+  function num(){return +t[i++]}
+  while(i<t.length){if(/[A-Za-z]/.test(t[i]))c=t[i++];
+    if(c==="M"||c==="m"){var nx=num(),ny=num();if(c==="m"){nx+=x;ny+=y}x=nx;y=ny;sx=x;sy=y;cur=[[x,y]];P.push(cur);c=c==="m"?"l":"L"}
+    else if(c==="H"){x=num();cur.push([x,y])}else if(c==="h"){x+=num();cur.push([x,y])}
+    else if(c==="V"){y=num();cur.push([x,y])}else if(c==="v"){y+=num();cur.push([x,y])}
+    else if(c==="L"){x=num();y=num();cur.push([x,y])}else if(c==="l"){x+=num();y+=num();cur.push([x,y])}
+    else if(c==="Z"||c==="z"){x=sx;y=sy;cur=null}else i++}
+  return P}
+function wind(P,px,py){var w=0;P.forEach(function(p){for(var k=0;k<p.length;k++){var a=p[k],b=p[(k+1)%p.length];
+  if(a[1]<=py){if(b[1]>py&&(b[0]-a[0])*(py-a[1])-(px-a[0])*(b[1]-a[1])>0)w++}else if(b[1]<=py&&(b[0]-a[0])*(py-a[1])-(px-a[0])*(b[1]-a[1])<0)w--}});return w}
+function tr(s){var m=/translate\(\s*(-?[\d.]+)(?:[\s,]+(-?[\d.]+))?/.exec(s||"");return m?[+m[1],+(m[2]||0)]:[0,0]}
+function anims(root){var A=[];root.querySelectorAll("animate,animateTransform").forEach(function(n){var kt=n.getAttribute("keyTimes");
+  A.push({el:n.parentNode,attr:n.localName==="animateTransform"?"transform":n.getAttribute("attributeName"),vals:(n.getAttribute("values")||"").split(";").map(function(v){return v.trim()}),
+    kt:kt?kt.split(";").map(Number):null,dur:ms(n.getAttribute("dur")),begin:ms(n.getAttribute("begin"))})});return A}
+function valAt(a,t){if(t<a.begin||!(a.dur>0))return null;var f=((t-a.begin)%a.dur)/a.dur,n=a.vals.length,i=0; // discrete: value i holds from keyTime i to keyTime i+1 (no keyTimes: n equal parts)
+  if(a.kt){for(var j=0;j<a.kt.length;j++){if(a.kt[j]<=f+1e-9)i=j;else break}}else i=Math.min(n-1,Math.floor(f*n));return a.vals[Math.min(i,n-1)]}
+function paint(root,A,t){var ov=new Map();A.forEach(function(a){var v=valAt(a,t);if(v==null)return;var o=ov.get(a.el)||{};o[a.attr]=v;ov.set(a.el,o)});
+  var G=new Array(169).fill("#000000"),doc=root.ownerDocument;
+  function walk(n,tx,ty,vis,fill,clips){if(n.nodeType!==1)return;var tag=n.localName;if(tag==="clipPath"||tag==="defs"||/^(animate|set)/.test(tag))return;
+    var o=ov.get(n)||{},v=o.visibility!=null?o.visibility:(n.getAttribute("visibility")||vis),f=n.getAttribute("fill")||fill;
+    var T=o.transform!=null?tr("translate("+o.transform+")"):tr(n.getAttribute("transform"));tx+=T[0];ty+=T[1];
+    var cp=n.getAttribute("clip-path");if(cp){var id=/#([^)]+)\)/.exec(cp),ce=id&&doc.getElementById(id[1]),cr=ce&&ce.querySelector("rect");
+      if(cr)clips=clips.concat([[+cr.getAttribute("x")+tx,+cr.getAttribute("y")+ty,+cr.getAttribute("width"),+cr.getAttribute("height")]])}
+    function ok(px,py){for(var k=0;k<clips.length;k++){var c=clips[k];if(px<c[0]||py<c[1]||px>c[0]+c[2]||py>c[1]+c[3])return false}return true}
+    if(tag==="rect"||tag==="path"){if(v!=="visible"||!f||f==="none")return;
+      if(tag==="rect"){var x=+(n.getAttribute("x")||0)+tx,y=+(o.y!=null?o.y:(n.getAttribute("y")||0))+ty,w=+n.getAttribute("width"),h=+n.getAttribute("height");
+        for(var j=0;j<13;j++)for(var i=0;i<13;i++){var px=i+.5,py=j+.5;if(px>x&&px<x+w&&py>y&&py<y+h&&ok(px,py))G[j*13+i]=f}}
+      else{var P=polys(n.getAttribute("d")||"").map(function(p){return p.map(function(q){return[q[0]+tx,q[1]+ty]})});
+        for(var j2=0;j2<13;j2++)for(var i2=0;i2<13;i2++){var px2=i2+.5,py2=j2+.5;if(wind(P,px2,py2)!==0&&ok(px2,py2))G[j2*13+i2]=f}}
+      return}
+    for(var ch=n.firstChild;ch;ch=ch.nextSibling)walk(ch,tx,ty,v,f,clips)}
+  walk(root,0,0,"visible",null,[]);return G}
+function grids(svgStr,noHop){var root=new DOMParser().parseFromString(svgStr,"image/svg+xml").documentElement;
+  if(noHop)Array.prototype.slice.call(root.querySelectorAll(".hop")).forEach(function(a){a.parentNode.removeChild(a)}); // hop off = rest pose (the base attributes), fills keep running
+  var A=anims(root),Ls=1,off=false;A.forEach(function(a){var s=a.dur/SLOT;if(Math.abs(s-Math.round(s))>1e-6)off=true;s=Math.max(1,Math.round(s));Ls=Ls/gcd(Ls,s)*s});
+  var G=[];for(var k=0;k<Ls;k++)G.push(paint(root,A,(k+.5)*SLOT));return{grids:G,Ls:Ls,off:off}}
+function cellPaths(cells){var by={};cells.forEach(function(c){(by[c.f]=by[c.f]||[]).push(c.k)});var o="";
+  Object.keys(by).forEach(function(f){var ks=by[f].sort(function(a,b){return a-b}),d="";
+    for(var i=0;i<ks.length;){var j=i;while(j+1<ks.length&&ks[j+1]===ks[j]+1&&Math.floor(ks[j+1]/13)===Math.floor(ks[i]/13))j++;var w=j-i+1;d+="M"+(ks[i]%13)+" "+Math.floor(ks[i]/13)+"h"+w+"v1h-"+w+"z";i=j+1}
+    o+='<path fill="'+f+'" d="'+d+'"/>'});return o}
+function build(G,Ls){var segs=[];G.forEach(function(g,k){var key=g.join("");if(segs.length&&segs[segs.length-1].key===key)segs[segs.length-1].n++;else segs.push({key:key,g:g,s:k,n:1})});
+  var uniq={},order=[];segs.forEach(function(sg){if(!uniq[sg.key]){uniq[sg.key]={g:sg.g,iv:[]};order.push(sg.key)}uniq[sg.key].iv.push([sg.s,sg.s+sg.n])});
+  var L=Ls*SLOT,body="";
+  order.forEach(function(key){var U=uniq[key],cnt={};U.g.forEach(function(f,k){var x=k%13,y=(k-x)/13;if(x===0||y===0||x===12||y===12)cnt[f]=(cnt[f]||0)+1}); /* backing = the most common edge colour, so the art's outer edge is never drawn over a different colour */
+    var bf=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]})[0],rest=[];U.g.forEach(function(f,k){if(f!==bf)rest.push({f:f,k:k})});
+    var inner='<rect width="13" height="13" fill="'+bf+'"/>'+cellPaths(rest);
+    if(order.length===1){body+=inner;return}
+    var bp=[[0,"hidden"]];U.iv.forEach(function(v){bp.push([v[0],"visible"]);if(v[1]<Ls)bp.push([v[1],"hidden"])});
+    var m=[];bp.sort(function(a,b){return a[0]-b[0]}).forEach(function(p){if(m.length&&m[m.length-1][0]===p[0])m[m.length-1]=p;else m.push(p)});
+    body+='<g visibility="'+m[0][1]+'"><animate attributeName="visibility" calcMode="discrete" dur="'+L+'ms" repeatCount="indefinite" values="'+m.map(function(p){return p[1]}).join(";")+'" keyTimes="'+m.map(function(p){return+(p[0]/Ls).toFixed(6)}).join(";")+'"/>'+inner+'</g>'});
+  return{svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="520" height="520" shape-rendering="crispEdges">'+body+'</svg>',frames:order.length,L:L}}
+window.MKFLAT={SLOT:SLOT,grids:grids,flatten:function(svgStr,noHop){var R=grids(svgStr,noHop),B=build(R.grids,R.Ls);return{svg:B.svg,grids:R.grids,Ls:R.Ls,L:B.L,frames:B.frames,off:R.off}}};
+})();
+window.MKMN_FLAT=(function(){var c={};return function(src,noHop){var k=(noHop?"n:":"h:")+src;if(c[k])return c[k];var o;try{o=MKFLAT.flatten(src,noHop).svg}catch(e){return src}return c[k]=o}})(); /* the art is shown as flat full frames (hop and hop-off versions, cached per piece); if flattening ever fails, the layered art is shown */
 (function () {
 // Dev harness: only runs when opened outside the Aleatory sandbox. Reload for a
 // new seed, pin one with ?seed=<hex>. On chain $alea is installed by the renderer,
@@ -427,7 +490,7 @@ function wireMessage(basePreset){
     if(!v&&msgv.innerHTML!=="")msgv.innerHTML="";/* drop the stray <br> contenteditable leaves behind, so :empty (the ADD… placeholder) matches again */
     var res=gen(alea.seed,v?{text:v}:undefined),isType=/^text_/.test(res.mode);
     feats=v?Object.assign({},res.tr,{Pattern:"Text",Message:v}):res.tr;
-    curSvg=res.svg;artBox.innerHTML=curSvg;if(!hopOn)applyHop();bars.innerHTML=barsHTML(res.pal,res.usage);
+    curSvg=MKMN_FLAT(res.svg);window.MKMN_SRC=res.svg;artBox.innerHTML=curSvg;if(!hopOn)applyHop();bars.innerHTML=barsHTML(res.pal,res.usage);
     patV.textContent=isType?"Text":res.tr.Pattern;dirV.textContent=res.tr.Direction;band.querySelector(".drow.bot").innerHTML=botHTML(res.tr);/* a custom message turns Classic Maki into Type, where the ramp matters again */
   }
   msgv.addEventListener("input",applyMsg);
@@ -438,10 +501,10 @@ function wireMessage(basePreset){
     msgv.scrollLeft=0;/* show a long/truncated message from the start, not the caret end */
   });
 }
-/* Hop toggle: the three .hop SMIL animations (upper-half translate, eye y, squash overlays)
-   stop/restart via endElement/beginElement. Stopped, each reverts to its resting base value =
-   the standard pose; the fill/scroll animations are untagged and keep running. */
-function applyHop(){var svg=artBox&&artBox.querySelector("svg");if(!svg)return;var l=svg.querySelectorAll(".hop");for(var i=0;i<l.length;i++){try{hopOn?l[i].beginElement():l[i].endElement()}catch(e){}}}
+/* Hop toggle: the art is shown as flat full frames, so the hop can't be stopped in place. Hop off shows a second flat version built without
+   the three .hop animations (upper-half translate, eye y, squash overlays): each sits at its resting base value = the standard pose,
+   and the fill/scroll animations keep running. */
+function applyHop(){if(!artBox||!window.MKMN_SRC)return;artBox.innerHTML=hopOn?curSvg:MKMN_FLAT(MKMN_SRC,true)}
 /* Build a standalone .svg of the live artwork and point the Save link at it as a blob: URL. Clone, stamp
    width/height so it opens at a real size (viewBox stays 0 0 13 13 — the unit grid), guarantee xmlns,
    serialize. Rebuilt on each pointerdown/focus so the href is current (e.g. after a message edit); the
@@ -476,12 +539,12 @@ function gBake(src,t){var clone=src.cloneNode(true);clone.querySelectorAll("anim
 function gRaster(clone){clone.setAttribute("width",GPX);clone.setAttribute("height",GPX);if(!clone.getAttribute("xmlns"))clone.setAttribute("xmlns","http://www.w3.org/2000/svg");var str=new XMLSerializer().serializeToString(clone);var url="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(str);return new Promise(function(res,rej){var img=new Image();img.width=GPX;img.height=GPX;img.onload=function(){var fin=function(){var c=document.createElement("canvas");c.width=GPX;c.height=GPX;var ctx=c.getContext("2d");ctx.imageSmoothingEnabled=false;try{ctx.drawImage(img,0,0,GPX,GPX)}catch(e){return rej(new Error("drawImage: "+e.message))}var d;try{d=ctx.getImageData(0,0,GPX,GPX).data}catch(e){return rej(new Error("getImageData: "+e.message))}var op=false;for(var i=3;i<d.length;i+=4){if(d[i]!==0){op=true;break}}if(!op)return rej(new Error("raster blank"));res(d)};if(img.decode)img.decode().then(fin,function(){fin()});else fin()};img.onerror=function(){rej(new Error("svg image load error"))};img.src=url})}
 function gLzw(px,minCode){var clear=1<<minCode,eoi=clear+1,codeSize=minCode+1,next=eoi+1,dict=new Map();var out=[],cur=0,n=0;function wr(code){cur|=code<<n;n+=codeSize;while(n>=8){out.push(cur&255);cur>>=8;n-=8}}wr(clear);var prefix=px[0];for(var i=1;i<px.length;i++){var k=px[i],key=(prefix<<8)|k,c=dict.get(key);if(c!==undefined){prefix=c}else{wr(prefix);if(next<4096){dict.set(key,next++);if(next>(1<<codeSize)&&codeSize<12)codeSize++}else{wr(clear);dict.clear();next=eoi+1;codeSize=minCode+1}prefix=k}}wr(prefix);wr(eoi);if(n>0)out.push(cur&255);return out}
 function gGif(idxs,w,h,palette,delayCs){var p=0;while((1<<(p+1))<palette.length)p++;var tableCount=1<<(p+1),minCode=Math.max(2,p+1),out=[];function b(v){out.push(v&255)}function sh(v){out.push(v&255);out.push((v>>8)&255)}function st(s){for(var i=0;i<s.length;i++)out.push(s.charCodeAt(i)&255)}st("GIF89a");sh(w);sh(h);b(0x80|(p<<4)|p);b(0);b(0);for(var i=0;i<tableCount;i++){var c=palette[i]||[0,0,0];b(c[0]);b(c[1]);b(c[2])}b(0x21);b(0xFF);b(11);st("NETSCAPE2.0");b(3);b(1);sh(0);b(0);for(var fi=0;fi<idxs.length;fi++){b(0x21);b(0xF9);b(4);b(0);sh(delayCs);b(0);b(0);b(0x2C);sh(0);sh(0);sh(w);sh(h);b(0);b(minCode);var data=gLzw(idxs[fi],minCode),o=0;while(o<data.length){var nn=Math.min(255,data.length-o);b(nn);for(var j=0;j<nn;j++)b(data[o+j]);o+=nn}b(0)}b(0x3B);return new Uint8Array(out)}
-function generateGif(){var live=artBox&&artBox.querySelector("svg");if(!live)return Promise.reject(new Error("no svg"));var loop=gLoop(live),frames=Math.max(1,Math.round(loop/GSLOT)),N=GPX*GPX,map={},palette=[],idxs=[];var step=function(k){if(k>=frames)return Promise.resolve();return gRaster(gBake(live,(k+0.5)*GSLOT)).then(function(data){var idx=new Uint8Array(N);for(var pp=0;pp<N;pp++){var key=(data[pp*4]<<16)|(data[pp*4+1]<<8)|data[pp*4+2],ci=map[key];if(ci===undefined){ci=palette.length;if(ci>255)throw new Error("too many colors");map[key]=ci;palette.push([data[pp*4],data[pp*4+1],data[pp*4+2]])}idx[pp]=ci}idxs.push(idx);return step(k+1)})};return step(0).then(function(){return new Blob([gGif(idxs,GPX,GPX,palette,Math.round(GSLOT/10))],{type:"image/gif"})})}
+function generateGif(){var gtmp=document.createElement("div");gtmp.innerHTML=curSvg;var live=gtmp.querySelector("svg"); /* always the hopped flat version, whatever the hop toggle */if(!live)return Promise.reject(new Error("no svg"));var loop=gLoop(live),frames=Math.max(1,Math.round(loop/GSLOT)),N=GPX*GPX,map={},palette=[],idxs=[];var step=function(k){if(k>=frames)return Promise.resolve();return gRaster(gBake(live,(k+0.5)*GSLOT)).then(function(data){var idx=new Uint8Array(N);for(var pp=0;pp<N;pp++){var key=(data[pp*4]<<16)|(data[pp*4+1]<<8)|data[pp*4+2],ci=map[key];if(ci===undefined){ci=palette.length;if(ci>255)throw new Error("too many colors");map[key]=ci;palette.push([data[pp*4],data[pp*4+1],data[pp*4+2]])}idx[pp]=ci}idxs.push(idx);return step(k+1)})};return step(0).then(function(){return new Blob([gGif(idxs,GPX,GPX,palette,Math.round(GSLOT/10))],{type:"image/gif"})})}
 function mkmnRender(){
   ensureStage();
   var res=gen(alea.seed),msg=MSGOF[res.mode]||"";
   feats=msg?Object.assign({},res.tr,{Pattern:"Text",Message:msg}):res.tr;
-  curSvg=res.svg;artBox.innerHTML=curSvg;
+  curSvg=MKMN_FLAT(res.svg);window.MKMN_SRC=res.svg;artBox.innerHTML=curSvg;
   stage.style.setProperty("--bg",res.bg);
   stage.style.setProperty("--ink-rgb",hexRGB(res.ink));
   band.innerHTML=bandHTML(res);
