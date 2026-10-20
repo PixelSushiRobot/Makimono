@@ -1187,15 +1187,15 @@ alea.ready();
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
 
-  var builtMsg=""; // the art's message when the world was built; a changed Message cell forces a rebuild
+  var builtMsg=""; // the art's message + seed when the world was built; a changed Message cell (or, in the preview, a new seed) forces a rebuild
   function artMsg(){return (window.MAKI_TXT&&window.MAKI_TXT.msg)||""}
   async function launch(skipIntro){
     if(running)return;
-    if(built&&artMsg()!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
+    if(built&&artMsg()+"|"+$alea.seed!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
     GAME.classList.add("on");
     if(built&&(phase==="pause"||phase==="confirm"||phase==="end")){if(phase==="confirm")cancelRestart();return} // back from the art: stay on the pause (or end) screen, no welcome
     overlays(skipIntro?null:HUD.start);phase="welcome";
-    if(!built){builtMsg=artMsg();var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
+    if(!built){builtMsg=artMsg()+"|"+$alea.seed;var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
     if(skipIntro)begin();else welStart();
   }
   // welcome title: KATAMAKI built from the same cube letters as the sky banner (buildBanner), coloured like a custom message on this piece

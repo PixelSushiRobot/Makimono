@@ -1006,11 +1006,11 @@ alea.ready();
   function artMsg(){return (window.MAKI_TXT&&window.MAKI_TXT.msg)||""}
   async function launch(skipIntro){
     if(running)return;
-    if(built&&artMsg()!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]}
+    if(built&&artMsg()+"|"+$alea.seed!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]}
     GAME.classList.add("on");
     if(built&&(phase==="pause"||phase==="confirm"||phase==="end")){if(phase==="confirm")cancelRestart();return}
     overlays(skipIntro?null:HUD.start);phase="welcome";
-    if(!built){builtMsg=artMsg();var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
+    if(!built){builtMsg=artMsg()+"|"+$alea.seed;var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
     if(skipIntro)begin();else welStart();
   }
   var welG=null,wel=null;

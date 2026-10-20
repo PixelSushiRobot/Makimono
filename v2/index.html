@@ -554,6 +554,8 @@ function mkmnRender(){
 mkmnRender();
 alea.features(feats);
 alea.ready();
+/* PREVIEW ONLY (added when building v2/index.html): swap to another seed without reloading, for the seed pill. The art only reads the seed string (gen builds its own stream from it), so this draws exactly what a fresh load with that seed would. The game rebuilds for the new seed the next time it opens. */
+window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)applyHop();alea.features(feats)};
 
 /* ---- Keys: no visible button. "i" toggles the traits band (.show on the
    stage); the band is hidden from load so it never shows in the static capture. The
@@ -1189,15 +1191,15 @@ alea.ready();
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
 
-  var builtMsg=""; // the art's message when the world was built; a changed Message cell forces a rebuild
+  var builtMsg=""; // the art's message + seed when the world was built; a changed Message cell (or, in the preview, a new seed) forces a rebuild
   function artMsg(){return (window.MAKI_TXT&&window.MAKI_TXT.msg)||""}
   async function launch(skipIntro){
     if(running)return;
-    if(built&&artMsg()!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
+    if(built&&artMsg()+"|"+$alea.seed!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
     GAME.classList.add("on");
     if(built&&(phase==="pause"||phase==="confirm"||phase==="end")){if(phase==="confirm")cancelRestart();return} // back from the art: stay on the pause (or end) screen, no welcome
     overlays(skipIntro?null:HUD.start);phase="welcome";
-    if(!built){builtMsg=artMsg();var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
+    if(!built){builtMsg=artMsg()+"|"+$alea.seed;var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
     if(skipIntro)begin();else welStart();
   }
   // welcome title: KATAMAKI built from the same cube letters as the sky banner (buildBanner), coloured like a custom message on this piece
@@ -1303,6 +1305,67 @@ alea.ready();
     if(PQ.last>=0){if(fps<PQ.prev*1.1){PQ.tier=PQ.last;PQ.lock=true;PQ.last=-1;perfApply();return}PQ.last=-1} // the last step didn't help: undo it and stop
     if(fps<48&&PQ.tier<3){PQ.last=PQ.tier;PQ.prev=fps;PQ.tier++;perfApply();PQ.skip=t+1000}}
   window.addEventListener("keyup",function(e){keys[e.key]=false});
+})();
+</script>
+<style>/* PREVIEW ONLY (added when building v2/index.html, not in makimono.html or the mint): seed pill. SEED shows/edits the seed, the arrows icon rolls a new one.
+   The pill has the same fixed height as the other buttons in both states, and every part only pads sideways,
+   so the field text, PASTE and the icons sit on the same line, at the same height, as the resting labels. */
+.export-bar .seedb{gap:0;padding:0;height:calc(var(--scale-unit)*26 + var(--bw)*2);box-sizing:border-box}
+.export-bar .seedb>*{display:flex;align-items:center;height:100%;cursor:pointer}
+.export-bar .seedb .st{padding:0 0 0 calc(var(--scale-unit)*10)}
+.export-bar .seedb .rr,.export-bar .seedb .sx{position:relative;padding:0 calc(var(--scale-unit)*7) 0 var(--sz-02)}/* same text-to-icon gap and right padding as the other buttons */
+.export-bar .seedb .rr::before,.export-bar .seedb .sx::before{content:"";position:absolute;inset:-8px -6px -8px -4px}/* bigger tap target, no visual change */
+.export-bar .seedb input,.export-bar .seedb .sp,.export-bar .seedb .sx{display:none}
+.export-bar.seeding>.button:not(.seedb){display:none}
+.export-bar.seeding .seedb .st,.export-bar.seeding .seedb .rr{display:none}
+.export-bar.seeding .seedb input{display:block;box-sizing:border-box;width:min(calc(100vw - var(--sz-20)*2 - var(--scale-unit)*130),calc(var(--scale-unit)*540));margin:0;padding:0 0 0 calc(var(--scale-unit)*10);border:0;border-radius:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:var(--sz-15);letter-spacing:.08em;line-height:1;text-transform:none;cursor:text;-webkit-appearance:none;appearance:none;-webkit-user-select:text;user-select:text}
+.export-bar.seeding .seedb input::placeholder{color:var(--ink);opacity:.45;text-transform:uppercase}
+.export-bar.seeding .seedb .sp{display:flex;padding:0 calc(var(--scale-unit)*5) 0 calc(var(--scale-unit)*10)}
+.export-bar.seeding .seedb .sx{display:flex}
+.export-bar .seedb .rr:active,.export-bar .seedb .sp:active,.export-bar .seedb .sx:active{opacity:.55}
+.export-bar .seedb:active{background:transparent;color:var(--ink)}/* the pill as a whole has no press state (pressing ↻ only dims the icon) */
+.export-bar .seedb.press{background:var(--ink);color:var(--bg,#0b0b0c)}/* pressing SEED: the same press state as the other buttons, until release opens the field */
+</style>
+<script>/* PREVIEW ONLY (added when building v2/index.html, not in makimono.html or the mint): seed pill in the export bar.
+   - SEED: the pill grows into a field showing this piece's seed (selected, so it's easy to copy). Type or paste a seed and press Enter
+     to load it; PASTE reads the clipboard and loads straight away; the x or Esc closes the field.
+   - arrows icon: roll a new random seed.
+   Loading swaps the art in place (no reload) and puts ?seed= in the address, so it can be shared or bookmarked; Back / Forward step through the seeds viewed. */
+(function(){var b=document.querySelector(".export-bar"),stg=document.querySelector(".stage");if(!b||!window.$alea)return;
+  try{if(sessionStorage.getItem("mkmn-show")){sessionStorage.removeItem("mkmn-show");stg&&stg.classList.add("show")}}catch(_){}
+  var RR='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M6.984 13.761A5.85 5.85 0 0 1 3.863 3.863L4.641 4.641A4.75 4.75 0 0 0 7.175 12.678A.55 .55 0 0 1 6.984 13.761ZM3.863 3.863L4.503 3.223L5.281 4.001L4.641 4.641ZM2.69 3.06H4.89A.55 .55 0 0 1 5.44 3.61V5.81A.55 .55 0 0 1 4.34 5.81V4.16H2.69A.55 .55 0 0 1 2.69 3.06ZM9.016 2.239A5.85 5.85 0 0 1 12.137 12.137L11.359 11.359A4.75 4.75 0 0 0 8.825 3.322A.55 .55 0 0 1 9.016 2.239ZM12.137 12.137L11.497 12.777L10.719 11.999L11.359 11.359ZM13.31 12.94H11.11A.55 .55 0 0 1 10.56 12.39V10.19A.55 .55 0 0 1 11.66 10.19V11.84H13.31A.55 .55 0 0 1 13.31 12.94Z"/></svg>';
+  var X='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.939 3.161L12.839 12.061A.55 .55 0 0 1 12.061 12.839L3.161 3.939A.55 .55 0 0 1 3.939 3.161ZM12.839 3.939L3.939 12.839A.55 .55 0 0 1 3.161 12.061L12.061 3.161A.55 .55 0 0 1 12.839 3.939Z"/></svg>'; /* icons share one optical size: art about 73% of the 16-unit box (like the globe and arrow), lines about 1.1 thick */
+  var p=document.createElement("div");p.className="button seedb";
+  p.innerHTML='<span class="st" role="button" tabindex="0" aria-label="Show or enter a seed">SEED</span><span class="rr" role="button" tabindex="0" aria-label="New random seed">'+RR+'</span>'+
+    '<input type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="go" aria-label="Seed" placeholder="Paste a seed">'+
+    (navigator.clipboard&&navigator.clipboard.readText?'<span class="sp" role="button" tabindex="0" aria-label="Paste seed from clipboard">PASTE</span>':'')+
+    '<span class="sx" role="button" tabindex="0" aria-label="Close">'+X+'</span>';
+  b.appendChild(p);
+  try{history.replaceState({seed:$alea.seed},"")}catch(_){} // remember the first seed too, so Back can return to it
+  window.addEventListener("popstate",function(e){var s=(e.state&&e.state.seed)||new URLSearchParams(location.search).get("seed");if(s&&s!==$alea.seed&&window.MKMN_RESEED){window.MKMN_RESEED(s);close()}}); // Back / Forward step through the seeds you've viewed
+  var inp=p.querySelector("input");
+  function load(v){v=(v||"").trim();if(!v)return;if(v===$alea.seed){close();return}
+    if(window.MKMN_RESEED&&history.pushState){history.pushState({seed:v},"","?seed="+encodeURIComponent(v));window.MKMN_RESEED(v);close();return} // swap in place: no reload, the band stays open
+    try{sessionStorage.setItem("mkmn-show","1")}catch(_){}location.search="?seed="+encodeURIComponent(v)} // fallback: reload with the seed
+  function roll(){var a=new Uint8Array(32);crypto.getRandomValues(a);load(Array.from(a).map(function(x){return x.toString(16).padStart(2,"0")}).join(""))} // same format as a fresh page load
+  function open(){b.classList.add("seeding");inp.value=$alea.seed;inp.focus();inp.select()}
+  function close(){b.classList.remove("seeding");inp.blur()}
+  function on(sel,fn){var el=p.querySelector(sel);if(!el)return;el.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();fn()});
+    el.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fn()}})}
+  on(".st",open);on(".rr",roll);on(".sx",close);
+  // press state for the SEED part only. Like the other buttons it holds while the pointer is down, even if it slides off;
+  // releasing anywhere clears it, and the field only opens if the release lands back on SEED (a normal click)
+  var stEl2=p.querySelector(".st");stEl2.addEventListener("pointerdown",function(){p.classList.add("press")});
+  ["pointerup","pointercancel"].forEach(function(n){window.addEventListener(n,function(){p.classList.remove("press")})});
+  // a press that starts on the pill and is released elsewhere makes the browser send a click to the shared parent (the art),
+  // which would toggle the band. The other buttons are links, so a drag never clicks them. Swallow that stray click.
+  var downIn=false;window.addEventListener("pointerdown",function(e){downIn=p.contains(e.target)},true);
+  window.addEventListener("click",function(e){if(downIn&&!p.contains(e.target)){e.stopImmediatePropagation();e.preventDefault()}downIn=false},true);
+  on(".sp",function(){navigator.clipboard.readText().then(function(t){t=(t||"").trim();if(t){inp.value=t;load(t)}else inp.focus()},function(){inp.focus()})}); // if the browser refuses, fall back to pasting into the field
+  p.querySelector(".sp")&&p.querySelector(".sp").addEventListener("mousedown",function(e){e.preventDefault()}); // keep focus in the field
+  inp.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();load(inp.value)}else if(e.key==="Escape"){e.preventDefault();close()}});
+  p.addEventListener("click",function(e){e.stopPropagation()});
+  document.addEventListener("pointerdown",function(e){if(b.classList.contains("seeding")&&!p.contains(e.target))close()},true); // tapping elsewhere closes the field
 })();
 </script>
 </body>
