@@ -1,6 +1,6 @@
 # Known issues
 
-**Fixes:** the player at the site root (`index.html`) has the fixes for issues 1, 2, 4 and 7, and replaces issue 3's fix with a playable mobile game, while keeping v1's art. All seven are fixed in the unreleased [`v2/`](../v2/CHANGES.md). This folder is the minted v1 and stays unchanged.
+**Fixes:** the player at the site root (`index.html`) has the fixes for issues 1, 2, 4, 7 and 8, and replaces issue 3's fix with a playable mobile game, while keeping v1's art. All but 8 are fixed in the unreleased [`v2/`](../v2/CHANGES.md). This folder is the minted v1 and stays unchanged.
 
 These issues affect `makimono.html`, `makimono.mint.html` and `index.html`. The minted collection (`makimono.mint.html`) was published before they were found, so the fixes below are **not** in it. Each has a fix recorded here for a future edition and for updating the demo. The fixes for issues 1 and 2 have been tested; the fixes for issues 3 and 4 are written out but not yet built. The fixes for issues 5 and 6 change which art a seed produces, so they are for a future edition only (see the warning under issue 5). The fix for issue 7 is built and only moves things near the start of the game, so it doesn't change the art.
 
@@ -239,3 +239,20 @@ Notes:
 **Cause.** The roll starts at the top of the planet. Things are placed on an even spread of points with a random turn around the up axis, but the top is slot 0 of that spread and the one point the turn can't move. So on some seeds a cluster of trees and bushes, a single obstacle, an animated feature, a pickup's backup spot (used when its first spot is water) or one of the ants lands exactly on the start, and anything small enough is rolled up on the first frame.
 
 **Fix (built in the player and `v2/`).** After the world is built, `clearSpawn()` keeps a clear circle 5 units around the start: anything inside slides straight out to the edge, onto land. A cluster moves as one group so it keeps its shape, and things at the exact centre fan out in different directions. Counts, sizes, kinds and colours stay the same, and it runs after every random draw, so the rest of the world is unchanged. Each obstacle also records its cluster (`cl`) so the cluster can be moved together.
+
+---
+
+## 8. Hairline seams around the filling and the art's edge on iPhone Safari
+
+**Affects:** all three files. iPhone Safari (WebKit at 3× display scale); desktop browsers are clean.
+
+**Symptom.** On some seeds, thin lines show around the filling window and, in the hop's up pose, along the art's edge against the background. Which seeds show it depends on how much the colours under the shared edges contrast.
+
+**Cause.** The art is built from layers that move over each other: the filling slides under a clipped window, and the hop translates the top half over a static base. `shape-rendering="crispEdges"` keeps hard edges on desktop, but iPhone Safari still softens the edges of moving layers, so where two shapes meet, whatever is underneath shows through as a hairline.
+
+**Fix (built in the player).** Show the art as flat full frames, like pixel art that redraws every frame: no transforms, no clip, every shape on whole pixels. `MKFLAT` reads the art's own animation values (all discrete, all on the 70ms grid) and paints the 13 × 13 grid for every slot, then writes each distinct frame as one complete, opaque picture (backing = the frame's most common edge colour, then every other pixel), shown one at a time for exactly the slots the original shows it. Timing is unchanged, slot for slot. It doesn't use the browser's animation clock, so it works before the page has loaded and inside a minted file.
+
+- **Checked pixel-identical** to the live art on every minted seed and over 100 random ones, with hop on and off, by sampling both slot by slot.
+- **Hop off** shows a second flat version built without the hop animations (rest pose, fills keep running).
+- **GIF and SVG export** use the flat frames; the GIF always uses the hopped version, as before.
+- For v2, the same writer would run inside the generator, so the token itself is flat.
