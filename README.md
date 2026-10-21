@@ -73,10 +73,11 @@ Reach the goal size before the clock runs out to earn Bronze, Silver or Gold, th
      - Remove every comment: `<!-- -->` in HTML, `/* */` in CSS, and `/* */` and `//` in scripts. Keep `//` inside strings and CSS `url(...)` (e.g. `"http://www.w3.org/2000/svg"` and the embedded font data).
      - Right-trim lines that had a comment removed, and drop blank lines (the game's `<script>` keeps its own blank lines).
      - Remove the local seed harness: the `if (!window.$alea) { … }` block. Aleatory supplies `$alea` on chain.
-  2. `v2/index.html` (the preview), the source plus three preview-only additions:
+  2. `v2/index.html` (the preview), the source plus four preview-only additions:
      - The `<!-- PUBLIC DEMO ... -->` comment and the three.js script, right after `<meta charset="utf-8">`.
      - The `window.MKMN_RESEED` line from the player, right after `alea.ready();`.
      - The player's seed pill (its `<style>` and `<script>` blocks), right before `</body>`. On chain, Aleatory sets the seed, so the pill is never in `makimono.html` or the mint build.
+     - The player's home-screen icon: its icon tags (without the default images) after the three.js script, and its icon `<script>` after the seed pill. The icon is drawn from the piece on screen. A minted token can't set the home-screen icon, so this is never in the mint build either.
 
 Use three.js **0.160.1**: the game reads the global `THREE`, and 0.160.1 is the last release with the classic (non-module) build.
 
