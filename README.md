@@ -58,7 +58,7 @@ Each file is self-contained: the font is embedded and there are no image or scri
 | `Enter` | Start Rolling button | Start rolling · confirm restart |
 | `G` / `Esc` | ✕ button (top right) | Back to the art (pauses the round) |
 
-Touch controls are in the player and v2. The minted v1 game is keyboard only. On touch, the stick appears wherever your thumb lands and is analog: a small push gives a gentle turn. Portrait and landscape both work.
+Touch controls are in the player and v2. The minted v1 game is keyboard only. On touch, the stick appears wherever your thumb lands and is analog: a small push gives a gentle turn. Portrait and landscape both work. In v2, touch steering works like driving a car instead: drag the way you want to go on screen, and the camera follows from a fixed angle (see [`v2/CHANGES.md`](v2/CHANGES.md)).
 
 **Adaptive quality.** If a device can't keep up (under 48 fps), the game lowers quality one step at a time: sharpness first, then fewer decor cones and clouds, then no scattered scenery. Collectibles, ants and chopsticks never change, so the goal and difficulty stay the same. A step that doesn't help is undone. Add `?perf=1` to show the frame rate and level (tap it to force one), or `?tier=0`–`3` to force a level.
 

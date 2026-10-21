@@ -26,7 +26,8 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 
 ### Katamaki on mobile
 
-- **Touch controls.** Drag anywhere for an analog stick that appears under your thumb (up/down roll, left/right steer). An arrow button hops. Small icon buttons under the timer pause or go back to the art. The page doesn't scroll or zoom while playing.
+- **Touch controls.** Drag anywhere for an analog stick that appears under your thumb: drag the way you want to roll (see Driving, below). An arrow button hops. Small icon buttons under the timer pause or go back to the art. The page doesn't scroll or zoom while playing.
+- **Driving.** The roll handles like a car's front wheel, and the camera follows it from a fixed angle, high and 40° down, without swinging round behind it, so up the screen always means the same way. Drag the way you want to go: the roll steers toward it and curves round, turning faster the faster it rolls (it can still pivot slowly when stopped). Drag well behind it to back up that way. It takes about a second to reach full speed and coasts to a stop over about a second when you let go, turning is a quarter heavier at full speed, and hitting something too big stops it. Pushing up after a turn no longer straightens the roll. On the keyboard, W/S are the throttle and A/D steer, with the same momentum.
 - **Portrait and landscape.** The HUD keeps clear of the notch and home bar, the controls sit above the size bar in portrait, and portrait gets a wider camera view.
 - **Pauses when hidden.** Switching apps or locking the phone pauses the round.
 - **Adaptive quality.** Under 48 fps, quality steps down: sharpness capped at 1.5×, then 1× with fewer decor cones and clouds and no antialiasing from the next round, then 0.75× with no scattered scenery. Collectibles, ants and chopsticks never change. A step that doesn't help is undone. `?perf=1` shows the frame rate and level; `?tier=0`–`3` forces a level.

@@ -679,8 +679,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   var blobTex,blobMat,playerShadow; // flat contact-shadow assets
   var freeRoll=false; // after a medal, keep rolling with no clock
   var bumpV=new THREE.Vector3(),wobT=0,banner=null,ants=[]; // monster knockback velocity, hit wobble timer, sky message banner, roaming ants // monster knockback velocity, hit wobble timer, sky message banner
-  var ballR,timeLeft,pips=0,up,fwd,pPos,hopT=0,hopDur=0.42,lastT=0,params={};
-  var camSide=1,camSideCur=1; // RC-car chase cam: preferred shoulder (+1/-1), eased
+  var ballR,timeLeft,pips=0,up,fwd,pPos,hopT=0,vel=0,camF=null,hopDur=0.42,lastT=0,params={};
 
   function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   function hash(s){var h=2166136261;s=String(s||"makimono");for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -1037,7 +1036,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     banner=null;if(p.isText||tr.Message||window.MAKI_TXT){var msg=((window.MAKI_TXT&&window.MAKI_TXT.msg)||tr.Message||(tr.Pattern||"").replace(/^text\s*/i,"")||"MAKIMONO").trim()||"MAKIMONO";banner=buildBanner(msg,p);scene.add(banner.g)}
     pPos=new THREE.Vector3(0,1,0.001).normalize();pPos.multiplyScalar(surfaceR(pPos)+ballR);
     up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);
-    pips=0;hopT=0;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
+    pips=0;hopT=0;vel=0;camF=null;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
     HUD.traits.innerHTML="<b>OBJECTS</b>0"; // traits hidden in-game; top-left shows the objects count
     HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"x your size before the "+Math.round(params.time)+"s clock runs out.";
     built=true;onResize();
@@ -1069,10 +1068,18 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     perfSample(t,t-lastT);var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;
     up.copy(pPos).normalize();
     fwd.addScaledVector(up,-fwd.dot(up));if(fwd.lengthSq()<1e-6)fwd.set(up.z,up.x,up.y);fwd.normalize();
-    var turn=2.2,mv=0,SPEED=7.5;
-    var st=((keys.a||keys.ArrowLeft)?1:0)-((keys.d||keys.ArrowRight)?1:0)-stick.x;st=Math.max(-1,Math.min(1,st)); // keys give full turn, the stick is analog
-    if(st)fwd.applyAxisAngle(up,turn*dt*st);
-    if(keys.w||keys.ArrowUp)mv+=1;if(keys.s||keys.ArrowDown)mv-=1;mv=Math.max(-1,Math.min(1,mv-stick.y)); // stick up = forward
+    var turn=2.2,mv=0,SPEED=7.5,heavy=1-0.25*Math.abs(vel); // turning is a quarter heavier at full speed
+    var kx=((keys.d||keys.ArrowRight)?1:0)-((keys.a||keys.ArrowLeft)?1:0),ky=((keys.w||keys.ArrowUp)?1:0)-((keys.s||keys.ArrowDown)?1:0),tmv=0;
+    if(!camF)camF=fwd.clone();camF.addScaledVector(up,-camF.dot(up));if(camF.lengthSq()<1e-6)camF.copy(fwd);camF.normalize(); // the camera's heading, carried along over the planet
+    var ix=stick.x,iy=-stick.y,im=Math.min(1,Math.hypot(ix,iy));
+    if(!im&&(kx||ky)){tmv=ky;if(kx)fwd.applyAxisAngle(up,-turn*dt*kx*heavy)} // keys: W/S throttle, A/D steer
+    else if(im>0.01){ // drag the way you want to go on screen: the roll steers toward it like a car's front wheel, faster the faster it rolls
+      var cR=new THREE.Vector3().crossVectors(camF,up),dW=camF.clone().multiplyScalar(iy).addScaledVector(cR,ix).normalize(),lf=new THREE.Vector3().crossVectors(up,fwd);
+      var ang=Math.atan2(dW.dot(lf),dW.dot(fwd)),back=Math.abs(ang)>2.0||(vel<-0.05&&Math.abs(ang)>1.2); // drag well behind its side to back up; once backing it stays in reverse until you drag clearly ahead
+      if(back)ang+=ang>0?-Math.PI:Math.PI; // backing up: the back end steers toward the drag
+      var rate=(0.9+2.2*Math.abs(vel))*heavy*dt;fwd.applyAxisAngle(up,Math.max(-rate,Math.min(rate,ang))); // pivots slowly when stopped
+      tmv=(back?-1:1)*im}
+    var rt=tmv*vel<0?2:1;vel+=Math.max(-rt*dt,Math.min(rt*dt,tmv-vel));mv=vel; // momentum: about 1s to full speed and 1s to coast to a stop, braking twice as fast
     var prevDir=pPos.clone().normalize();
     if(mv){var axis=new THREE.Vector3().crossVectors(up,fwd).normalize();pPos.applyAxisAngle(axis,(SPEED/SR)*dt*mv)} // W: travel +fwd (forward), matches the forward roll below
     if(bumpV.lengthSq()>0.01){var bu=bumpV.clone();bu.addScaledVector(up,-bu.dot(up));var bl=bu.length();if(bl>1e-3)pPos.applyAxisAngle(new THREE.Vector3().crossVectors(up,bu).normalize(),bl/SR*dt);bumpV.multiplyScalar(Math.pow(0.02,dt))}else bumpV.set(0,0,0); // monster knockback, decays fast; walls still stop it
@@ -1088,7 +1095,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
       }
     }
     for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req)wall(bo.dir,ballR*0.85+bo.foot*0.7)} // oversized ingredients block too
-    if(blocked)pdir.copy(prevDir);
+    if(blocked){pdir.copy(prevDir);vel*=Math.pow(0.001,dt)} // a wall soaks up the momentum
     up.copy(pdir);
     pPos.copy(pdir).multiplyScalar(surfaceR(pdir)+ballR+hop);ball.position.copy(pPos);
     if(playerShadow){playerShadow.position.copy(pdir).multiplyScalar(surfaceR(pdir)+0.05);playerShadow.quaternion.copy(QT.setFromUnitVectors(YUP,pdir));playerShadow.scale.setScalar(ballR*2.3)} // single clean shadow under the roll
@@ -1130,13 +1137,12 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
         else if(an.cd<=0){an.cd=1.4;var akids=clump.children.filter(function(c){return c!==core});if(akids.length)clump.remove(akids.pop());ballR=Math.max(R0,ballR-0.2);pips=Math.max(0,pips-1);
           bumpV.copy(ball.position.clone().sub(an.pos).normalize().multiplyScalar(12+3*an.sz));if(hopT<=0)hopT=hopDur*0.6;wobT=0.4}} // same knock-back as the chopsticks, a bit softer
     }
-    // RC-car chase cam: sits behind + above + off one shoulder; distance grows with the roll
-    camSideCur+=(camSide-camSideCur)*(1-Math.pow(0.00005,dt)); // ease shoulder switch over ~0.3s
-    var want=pPos.clone().addScaledVector(up,ballR*2.0+5).addScaledVector(fwd,-(ballR*3.0+7)).addScaledVector(side,(ballR*1.7+4.5)*camSideCur);
+    // follow cam (fixed angle): rides along with the roll over the planet, high and 40° down, but never swings round, so up the screen stays the same way; distance grows with the roll
+    var cD=ballR*4+13,cA=40*Math.PI/180,want=pPos.clone().addScaledVector(up,cD*Math.sin(cA)).addScaledVector(camF,-cD*Math.cos(cA));
     var minH=surfaceR(want.clone().normalize())+ballR*1.2+1.5;if(want.length()<minH)want.setLength(minH); // keep above terrain to avoid clipping
     cam.position.lerp(want,1-Math.pow(0.0016,dt));cam.up.copy(up);
-    // aim at the roll, biased slightly toward the near end-face so the filling stays in view
-    cam.lookAt(ball.position.clone().addScaledVector(up,ballR*0.3).addScaledVector(side,camSideCur*ballR*0.35));
+    // aim a little ahead of the roll
+    cam.lookAt(ball.position.clone().addScaledVector(up,ballR*0.3).addScaledVector(camF,ballR*2));
     // goal: reach the target size before the clock runs out; after a medal the clock is gone (free roll)
     var curMul=ballR/R0,hit=curMul>=params.targetMul;
     if(!freeRoll){timeLeft-=dt;if(timeLeft<0)timeLeft=0}
@@ -1250,22 +1256,22 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     if(k==="Enter"&&phase==="confirm"){e.preventDefault();restart();return}
     if(k==="Enter"&&phase==="welcome"&&built&&!HUD.start.classList.contains("hidden")){e.preventDefault();begin();return} // Start Rolling
     if(phase!=="play")return;
-    keys[e.key]=true;if(k==="a"||k==="ArrowLeft")camSide=1;if(k==="d"||k==="ArrowRight")camSide=-1;if(k===" "&&running&&hopT<=0)hopT=hopDur;if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
+    keys[e.key]=true;if(k===" "&&running&&hopT<=0)hopT=hopDur;if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
   });
-  // ---- touch controls: floating stick (left thumb: up/down roll, left/right steer, analog), hop button (arrow), pause and back-to-art icon buttons.
+  // ---- touch controls: floating stick (drag the way you want to roll, analog), hop button (arrow), pause and back-to-art icon buttons.
   // the touch layout turns on for touch-only devices, after any touch on the game, or with ?touch=1 (a mouse can drive the stick, for checking on desktop).
   var stick={x:0,y:0};
   var hintEl=GAME.querySelector(".hint");
-  function useTouch(){if(GAME.classList.contains("touch"))return;GAME.classList.add("touch");hintEl.textContent="Drag anywhere to roll and steer · tap the arrow to hop"}
+  function useTouch(){if(GAME.classList.contains("touch"))return;GAME.classList.add("touch");hintEl.textContent="Drag the way you want to roll · tap the arrow to hop"}
   if(matchMedia("(hover:none) and (pointer:coarse)").matches||/[?&]touch=1/.test(location.search))useTouch();
   GAME.addEventListener("pointerdown",function(e){if(e.pointerType==="touch")useTouch()},true);
   var tpad=GAME.querySelector(".tpad"),stEl=tpad.querySelector(".stick"),knob=stEl.querySelector("i"),hopB=tpad.querySelector(".hopb"),SR_PX=60,DZ=.12,sid=null,ox=0,oy=0;
   function setStick(dx,dy){var d=Math.hypot(dx,dy);
     if(d>SR_PX){ox+=dx*(1-SR_PX/d);oy+=dy*(1-SR_PX/d);dx*=SR_PX/d;dy*=SR_PX/d;d=SR_PX;stEl.style.left=ox+"px";stEl.style.top=oy+"px"} // dragging past the rim pulls the stick along, so reversing is quick
     knob.style.transform="translate("+dx+"px,"+dy+"px)";
-    var m=d/SR_PX;m=m<DZ?0:(m-DZ)/(1-DZ);var ux=d?dx/d:0,uy=d?dy/d:0,x=ux*m;
-    stick.x=(x<0?-1:1)*Math.pow(Math.abs(x),1.5);stick.y=uy*m; // softer steering near the centre
-    if(stick.x<-.35)camSide=1;else if(stick.x>.35)camSide=-1}
+    var m=d/SR_PX;m=m<DZ?0:(m-DZ)/(1-DZ);var ux=d?dx/d:0,uy=d?dy/d:0;
+    stick.x=ux*m;stick.y=uy*m; // screen direction and push, for drive steering
+  }
   function releaseStick(){sid=null;stick.x=stick.y=0;knob.style.transform="";stEl.classList.remove("on");stEl.style.left=stEl.style.top=""}
   tpad.addEventListener("pointerdown",function(e){if(e.target.closest("button")||sid!==null||phase!=="play")return;e.preventDefault();
     sid=e.pointerId;try{tpad.setPointerCapture(sid)}catch(_){}ox=e.clientX;oy=e.clientY;stEl.classList.add("on");stEl.style.left=ox+"px";stEl.style.top=oy+"px";setStick(0,0)});
