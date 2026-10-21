@@ -5,6 +5,7 @@
 <!-- PUBLIC DEMO (GitHub Pages) -- built from makimono.html plus this one script tag. The script tag loads three.js from a CDN so the game runs on the open web. Do not mint this file: on chain the network is blocked, so this script would fail. Mint makimono.mint.html with the three.js library box ticked instead. -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
 <title>Makimono</title>
 <style>
 /* Space Mono embedded as a subset — the Aleatory sandbox blocks the network, so a Google Fonts <link> can't load there.
@@ -546,6 +547,7 @@ function mkmnRender(){
   feats=msg?Object.assign({},res.tr,{Pattern:"Text",Message:msg}):res.tr;
   curSvg=MKMN_FLAT(res.svg);window.MKMN_SRC=res.svg;artBox.innerHTML=curSvg;
   stage.style.setProperty("--bg",res.bg);
+  document.documentElement.style.background=document.body.style.background=res.bg;var tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.content=res.bg; // the whole page takes the piece's background, and so does the browser bar (theme-color, read by iPhone Safari and Android Chrome)
   stage.style.setProperty("--ink-rgb",hexRGB(res.ink));
   band.innerHTML=bandHTML(res);
   wireMessage(msg);

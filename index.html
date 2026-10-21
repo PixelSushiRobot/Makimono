@@ -5,6 +5,7 @@
 <!-- PLAYER (GitHub Pages, makimono.psr.fyi) -- the minted v1 piece (v1/makimono.html) with the viewer fixes from v1/NOTES.md issues 1, 2, 4, 7 and 8 (the art is shown as flat full frames, MKFLAT below), Katamaki touch controls and adaptive quality, and a seed pill (show, paste or roll a seed). The art rules are untouched, so a token's seed shows exactly its minted art. Not for minting: the script tag below loads three.js from a CDN. -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><!-- maximum-scale=1: iOS Safari otherwise zooms in when the seed field (under 16px) is focused; pinch zoom still works on iOS -->
+<meta name="theme-color" content="#0b0b0c">
 <title>Makimono</title>
 <meta name="apple-mobile-web-app-title" content="Makimono"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" id="mkmnIcon"><link rel="icon" type="image/png" sizes="48x48" href="favicon.png" id="mkmnFav48"><link rel="icon" type="image/png" sizes="180x180" href="apple-touch-icon.png" id="mkmnFav"><!-- home-screen and tab icon: the default maki until the script at the end swaps in the piece on screen -->
 <style>
@@ -536,6 +537,7 @@ function mkmnRender(){
   feats=msg?Object.assign({},res.tr,{Pattern:"Text",Message:msg}):res.tr;
   window.MKMN_SRC=res.svg;curSvg=MKMN_FLAT(res.svg);artBox.innerHTML=curSvg;
   stage.style.setProperty("--bg",res.bg);
+  document.documentElement.style.background=document.body.style.background=res.bg;var tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.content=res.bg; // the whole page takes the piece's background, and so does the browser bar (theme-color, read by iPhone Safari and Android Chrome)
   stage.style.setProperty("--ink-rgb",hexRGB(res.ink));
   band.innerHTML=bandHTML(res);
   wireMessage(msg);

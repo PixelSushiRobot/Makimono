@@ -18,7 +18,7 @@ On iPhone or iPad, load your seed first, then use Share → **Add to Home Screen
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | **The player** (the site). The minted v1 piece with the viewer fixes (including flat full frames, so iPhone Safari draws no seams), a clear start spot in Katamaki, touch controls, adaptive quality and a seed control (show, paste or roll a seed). The art rules are untouched. Not for minting: it loads three.js from a CDN. |
+| `index.html` | **The player** (the site). The minted v1 piece with the viewer fixes (including flat full frames, so iPhone Safari draws no seams), a clear start spot in Katamaki, touch controls, adaptive quality and a seed control (show, paste or roll a seed), and the page and browser bar filled with the piece's background colour. The art rules are untouched. Not for minting: it loads three.js from a CDN. |
 | [`v1/`](v1/) | **Minted.** The exact files of the collection on Aleatory. Frozen: never edit. Known issues in [`v1/NOTES.md`](v1/NOTES.md). Also tagged in git as `v1-minted`. |
 | [`v2/`](v2/) | **Not released.** A possible future edition: all fixes plus new Mono and lookalike rules, which change some seeds' art. See [`v2/CHANGES.md`](v2/CHANGES.md). |
 

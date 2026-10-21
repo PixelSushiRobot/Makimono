@@ -42,3 +42,4 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 - The two wave patterns are renamed for what they are: **Wiggle** is now **Wave**, and **Turbo Wiggle** (the same wave at half the wavelength) is now **Short Wave**. Only the names change.
 
 - The preview (`v2/index.html`) has the player's **SEED** pill: show, paste or roll a seed, and the art swaps in place with `?seed=` in the address. It's added only when building the preview, so it isn't in `makimono.html` or the mint build. Katamaki now rebuilds its world when the seed changes, like the player; on chain the seed never changes, so nothing differs there.
+- The page around the art takes the piece's background colour, edge to edge, with or without the traits shown, and so does the browser bar on iPhone Safari and Android Chrome (`theme-color`). Before, the art sat on a dark grey page. The player has this too.
