@@ -1353,14 +1353,14 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   var X='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.939 3.161L12.839 12.061A.55 .55 0 0 1 12.061 12.839L3.161 3.939A.55 .55 0 0 1 3.939 3.161ZM12.839 3.939L3.939 12.839A.55 .55 0 0 1 3.161 12.061L12.061 3.161A.55 .55 0 0 1 12.839 3.939Z"/></svg>'; /* icons share one optical size: art about 73% of the 16-unit box (like the globe and arrow), lines about 1.1 thick */
   var p=document.createElement("div");p.className="button seedb";
   p.innerHTML='<span class="st" role="button" tabindex="0" aria-label="Show or enter a seed">SEED</span><span class="rr" role="button" tabindex="0" aria-label="New random seed">'+RR+'</span>'+
-    '<input type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="go" aria-label="Seed" placeholder="Paste a seed">'+
+    '<input type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="go" aria-label="Seed, token number, Aleatory or objkt link, wallet address or .tez name" placeholder="Seed, token number, link, wallet or .tez">'+
     (navigator.clipboard&&navigator.clipboard.readText?'<span class="sp" role="button" tabindex="0" aria-label="Paste seed from clipboard">PASTE</span>':'')+
     '<span class="sx" role="button" tabindex="0" aria-label="Close">'+X+'</span>';
   b.appendChild(p);
   try{history.replaceState({seed:$alea.seed},"")}catch(_){} // remember the first seed too, so Back can return to it
   window.addEventListener("popstate",function(e){var s=(e.state&&e.state.seed)||new URLSearchParams(location.search).get("seed");if(s&&s!==$alea.seed&&window.MKMN_RESEED){window.MKMN_RESEED(s);close()}}); // Back / Forward step through the seeds you've viewed
   var inp=p.querySelector("input");
-  function load(v){v=(v||"").trim();if(!v)return;if(v===$alea.seed){close();return}
+  function load(v,raw){v=(v||"").trim();if(!v)return;if(!raw&&window.MKMN_FIND&&MKMN_FIND(v,load,inp,close))return; /* token numbers, links and wallets: see MKMN_FIND below */if(v===$alea.seed){close();return}
     if(window.MKMN_RESEED&&history.pushState){history.pushState({seed:v},"","?seed="+encodeURIComponent(v));window.MKMN_RESEED(v);close();return} // swap in place: no reload, the band stays open
     try{sessionStorage.setItem("mkmn-show","1")}catch(_){}location.search="?seed="+encodeURIComponent(v)} // fallback: reload with the seed
   function roll(){var a=new Uint8Array(32);crypto.getRandomValues(a);load(Array.from(a).map(function(x){return x.toString(16).padStart(2,"0")}).join(""))} // same format as a fresh page load
@@ -1384,6 +1384,58 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   document.addEventListener("pointerdown",function(e){if(b.classList.contains("seeding")&&!p.contains(e.target))close()},true); // tapping elsewhere closes the field
 })();
 </script>
+<script>/* PLAYER: the seed field also takes
+   - a token number: 51 or #51 (Makimono #51, which is token 50 on chain: token numbers start at 0, names at 1)
+   - an Aleatory or objkt link to a token (…/KT1EaQ…/50), or a makimono.psr.fyi link with ?seed=
+   - a wallet address (tz1… etc.) or a .tez name: one piece loads straight away, several show a list to pick from
+   Anything else is treated as a seed, as before. Lookups use TzKT (the public Tezos indexer); the list of minted seeds is fetched once.
+   ?token=51 in the address opens that token (and the address keeps it, so the link can be shared). */
+(function(){var C="KT1EaQfAUBHpwXCniFJdrix8YicvfRVcCaAU",API="https://api.tzkt.io/v1/",all=null,bar=document.querySelector(".export-bar");
+  function j(u){return fetch(API+u).then(function(r){if(!r.ok)throw new Error("TzKT "+r.status);return r.json()})}
+  function list(){if(all)return Promise.resolve(all);return j("tokens?contract="+C+"&select=tokenId,metadata&sort.asc=tokenId&limit=1000").then(function(l){var a={};l.forEach(function(t){var m=t.metadata||{};if(m.aleaSeed)a[t.tokenId]={id:+t.tokenId,seed:m.aleaSeed,name:m.name||("Makimono #"+(+t.tokenId+1))}});return all=a})}
+  function val(x,k){return x&&typeof x==="object"?(x[k]!=null?x[k]:x):x}
+  function owned(addr){return j("tokens/balances?account="+addr+"&token.contract="+C+"&balance.gt=0&select=token.tokenId&limit=1000").then(function(r){return r.map(function(x){var v=val(x,"token.tokenId");return +(v&&v.tokenId!=null?v.tokenId:v)})})}
+  /* a .tez name: the address it points to, or, when it points nowhere (common for subdomains like name.hack.tez), its owner */
+  function domain(n){return j("domains?name="+encodeURIComponent(n.toLowerCase())+"&limit=1").then(function(r){var d=r&&r[0],a=d&&(d.address||d.owner);a=a&&typeof a==="object"?a.address:a;if(!a)throw new Error("none");return a})}
+  function parse(v){var m;
+    if(/^https?:\/\//i.test(v)){try{var u=new URL(v),s=u.searchParams.get("seed"),tk=u.searchParams.get("token");if(s)return{seed:s};if(tk&&/^\d+$/.test(tk))return{num:+tk};m=u.pathname.match(/KT1EaQfAUBHpwXCniFJdrix8YicvfRVcCaAU\/(\d+)/);if(m)return{id:+m[1]};return{bad:"Not a Makimono link"}}catch(_){return{bad:"Not a Makimono link"}}}
+    if((m=v.match(/^(?:makimono\s*)?#?\s*(\d{1,5})$/i)))return{num:+m[1]};
+    if(/^(tz[1-4]|KT1)[1-9A-HJ-NP-Za-km-z]{33}$/.test(v)&&v!==C)return{addr:v};
+    if(/^[a-z0-9-]+(\.[a-z0-9-]+)*\.tez$/i.test(v))return{tez:v};
+    return null}
+  var pick=null;function unpick(){if(pick){pick.remove();pick=null}}
+  /* thumbnails: each token's first frame (minted art), drawn on a 13 x 13 canvas, one per frame so the list shows at once. Kept per seed */
+  var TH={};function thumbs(q){var i=0;(function next(){if(i>=q.length||!pick)return;var c=q[i][0],s=q[i][1];i++;
+    try{if(!TH[s]){var t=window.MAKI_TXT,p=window.MAKI_PAL;TH[s]=MKFLAT.grids(MKMN_GEN1(s).svg,false).grids[0];window.MAKI_TXT=t;window.MAKI_PAL=p}
+      var g=TH[s],x=c.getContext("2d");for(var k=0;k<169;k++)if(g[k]){x.fillStyle=g[k];x.fillRect(k%13,(k/13)|0,1,1)}}catch(_){}
+    requestAnimationFrame(next)})()}
+  document.addEventListener("pointerdown",function(e){if(pick&&!pick.contains(e.target))unpick()},true);
+  function share(t){try{var q=new URLSearchParams(location.search);q.set("token",t.id+1);q.set("seed",t.seed);history.replaceState(history.state,"","?"+q)}catch(_){}}
+  /* called by the seed field before it loads what was typed; true = handled here (load(seed,true) is called once found) */
+  window.MKMN_FIND=function(v,load,inp,close){var p=parse(v);if(!p)return false;
+    var ph=inp.getAttribute("data-ph")||inp.placeholder;inp.setAttribute("data-ph",ph);
+    function say(t){inp.value="";inp.placeholder=t;inp.focus();inp.addEventListener("input",function f(){inp.placeholder=ph;inp.removeEventListener("input",f)})}
+    function go(t){unpick();load(t.seed,true);share(t)}
+    if(p.bad){say(p.bad);return true}
+    if(p.seed){load(p.seed,true);return true}
+    say("Looking up…");
+    var ids=p.id!=null?Promise.resolve([p.id]):p.num!=null?Promise.resolve([p.num-1]):p.addr?owned(p.addr):domain(p.tez).then(owned);
+    Promise.all([ids,list()]).then(function(r){var ts=r[0].map(function(i){return r[1][i]}).filter(Boolean);
+      if(!ts.length){say(p.num!=null?"No Makimono #"+p.num+" yet":p.id!=null?"No such Makimono":"No Makimono in this wallet");return}
+      if(ts.length===1){inp.placeholder=ph;go(ts[0]);return}
+      inp.placeholder=ph;close();unpick();ts.sort(function(a,b){return a.id-b.id}); // several: a list to pick from, styled like the ⋯ menu
+      pick=document.createElement("div");pick.className="mkmenu open";pick.style.maxHeight="60vh";pick.style.overflowY="auto";
+      var q=[];ts.forEach(function(t){var a=document.createElement("a");a.className="mi tk";a.href="#";a.innerHTML="<canvas width=13 height=13></canvas><span></span>";a.lastChild.textContent=t.name;q.push([a.firstChild,t.seed]);a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();go(t)});pick.appendChild(a)});
+      bar.appendChild(pick);thumbs(q)},function(e){say(/none/.test(e&&e.message)?"No such .tez name":"Lookup failed. Paste the seed instead")});
+    return true};
+  /* ?token=51 on its own: the page drew a random piece first, so swap in the token as soon as it's found */
+  try{var q=new URLSearchParams(location.search),tk=q.get("token");if(tk&&/^\d+$/.test(tk)&&!q.get("seed")&&window.MKMN_RESEED){var st=document.querySelector(".stage");if(st)st.style.opacity="0";
+    list().then(function(a){var t=a[+tk-1];if(t){MKMN_RESEED(t.seed);share(t)}}).catch(function(){}).then(function(){if(st)st.style.opacity=""})}}catch(_){}
+})();</script>
+<style>/* PLAYER: the wallet list, with a thumbnail before each name */
+.export-bar .mkmenu .mi.tk{justify-content:flex-start;gap:calc(var(--scale-unit)*12)}
+.export-bar .mkmenu .mi.tk canvas{width:calc(var(--scale-unit)*28);height:calc(var(--scale-unit)*28);flex-shrink:0;image-rendering:pixelated;border-radius:calc(var(--scale-unit)*4)}
+</style>
 <script>/* PLAYER: home-screen icon. "Add to Home Screen" uses the apple-touch-icon (iOS) or the largest icon link (Android), so both are drawn from the piece on screen: the art's first frame,
    read at its 13 x 13 pixels (as the game does) and scaled up with hard edges to 180 x 180. It's redrawn whenever the art changes (a new seed),
    so the icon is the piece you're looking at, and the saved link keeps its ?seed=. */

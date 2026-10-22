@@ -75,4 +75,5 @@ The traits use the new wave names (Wave, Short Wave) on both sides.
 - **Keyboard shortcuts:** the v2 edition's keys (above), plus `B` B-side, `V` view seed and `N` new seed. The shortcuts card lists them all.
 - **Katamaki** is the v2 edition's game, with the keys, hints, scoreboard and end-screen lines above.
 - **Lighter page:** three.js loads after the art is drawn, so the piece never waits for the game's library. Pressing `G` or KATAMAKI before it has arrived marks the button as loading, and the game opens as soon as it's ready. Space Mono comes from Google Fonts instead of being embedded (the mint build still embeds it), and only its regular weight is used.
+- **Find your token without the seed:** the seed field also takes a token number (`51` or `#51`), an Aleatory or objkt link, or a wallet address or `.tez` name, which lists the wallet's pieces with thumbnails. Lookups use TzKT. `?token=51` in the address opens that token.
 - The SEED pill, the home-screen icon, the background fill and the art at the bottom are as in the player.

@@ -4,9 +4,17 @@ A fully on-chain generative pixel-art collection of animated sushi rolls on [Ale
 
 ## Play your token
 
-Open **[makimono.psr.fyi](https://makimono.psr.fyi/)**, tap or click the art, then **⋯** → **View Seed** (or press `V`), and paste your token's seed (copy it from the token's page in the [collection on Aleatory](https://aleatory.art/generator/KT1EaQfAUBHpwXCniFJdrix8YicvfRVcCaAU)) with **PASTE** or into the field and Enter. Your piece appears right away, and the address updates so you can share or bookmark it:
+Open **[makimono.psr.fyi](https://makimono.psr.fyi/)**, tap or click the art, then **⋯** → **View Seed** (or press `V`), and enter any of these with **PASTE** or into the field and Enter:
+
+- your token number: `51` or `#51` (the number in its name, Makimono #51)
+- its link on [Aleatory](https://aleatory.art/generator/KT1EaQfAUBHpwXCniFJdrix8YicvfRVcCaAU) or objkt
+- your wallet address (`tz1…`) or `.tez` name: one piece opens straight away; several show a list with thumbnails to pick from
+- its seed, from the token's page
+
+Lookups use [TzKT](https://tzkt.io), the public Tezos indexer; pasting a seed works without it. Your piece appears right away, and the address updates so you can share or bookmark it:
 
 ```
+https://makimono.psr.fyi/?token=51
 https://makimono.psr.fyi/?seed=<your token's seed>
 ```
 
