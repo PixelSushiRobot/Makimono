@@ -41,5 +41,29 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 - **Chase** pieces get a magnet in Katamaki instead of pulling every pickup in at the start. Pickups and ants you can already roll up are drawn in from within a range around the roll (about 6.5 units at the start, growing as the roll grows), faster the closer they get. Anything still too big stays put until you've grown, so the magnet reaches further as you get bigger. To balance it, Chase pieces have 9 chopsticks instead of 3.
 - The two wave patterns are renamed for what they are: **Wiggle** is now **Wave**, and **Turbo Wiggle** (the same wave at half the wavelength) is now **Short Wave**. Only the names change.
 
-- The preview (`v2/index.html`) has the player's **SEED** pill: show, paste or roll a seed, and the art swaps in place with `?seed=` in the address. It's added only when building the preview, so it isn't in `makimono.html` or the mint build. Katamaki now rebuilds its world when the seed changes, like the player; on chain the seed never changes, so nothing differs there.
+- Katamaki rebuilds its world when the seed changes, like the player. On chain the seed never changes, so nothing differs there.
 - The page around the art takes the piece's background colour, edge to edge, with or without the traits shown, and so does the browser bar on iPhone Safari and Android Chrome (`theme-color`). Before, the art sat on a dark grey page. The player has this too. With the traits hidden, the art sits at the bottom of the screen in portrait; with them shown it's centred.
+
+## The preview page: B-SIDE
+
+`v2/index.html` is no longer a preview of the edition above. It's the player (minted art, exactly as on the token) plus **B-SIDE**: an optional alternate take on each minted token, drawn with gentler rules than the v2 edition. The minted token itself never changes, and nothing on Aleatory changes. It also has v2's Katamaki (driving, Chase magnet, ant planets) and the changes below. It isn't linked from the site yet; the root player stays as it is for now.
+
+### B-SIDE rules
+
+A branch of the v2 edition's rules that keeps each token recognisable:
+
+- **Kept exactly as minted:** pattern, message and speed (v1's speed rules and shares), and every other random choice: profile, direction, tone, nori, rice, shape, roll and the details. The main random stream advances exactly as in v1. The lookalike rules (6) are off; they only matter when picking new seeds.
+- **Changed:** Mono colours follow the Profile, as in rule 5 (Trio `a a b b c c`, Mirror `a b c c b a`, Duo and Accent two shades 2+ steps apart, Random 3+ shades, Spectrum unchanged). The shade picks come from their own stream (`seed + "|alt"`), so nothing else moves. Rice can turn white if a new shade is too close to it (v1's contrast rule).
+- **Offered only when it's visible:** the biggest colour change of any pixel, over the whole loop, is at least 30 ΔE. Below that the B-SIDE button doesn't show and the piece shows its minted art.
+
+The traits use the new wave names (Wave, Short Wave) on both sides.
+
+### The page
+
+- **Buttons:** KATAMAKI · B-SIDE · ⋯. B-SIDE is a toggle (it stays pressed while on) and adds `&art=b` to the address, so a shared link opens on the B-side. A new seed starts on its minted art. ⋯ opens a menu: Download SVG, Download GIF, View Seed (opens the seed field) and Random Seed, each with its key.
+- **Keyboard shortcuts**, one meaning per key. Art: `I` traits, `M` hop, `B` B-side, `V` view seed, `N` new seed, `E` SVG, `Shift`+`E` GIF. Both: `G` art / game, `Esc` back, `?` a shortcuts card. The card takes the piece's colours, and a click on it or anywhere else closes it.
+- **Katamaki keys:** `P` only pauses and resumes. `Enter` is the go key: start, keep rolling, confirm restart. `R` restarts. `Esc` cancels the restart question, otherwise goes back to the art. The buttons show these keys as keycaps. Before, `P` also meant Keep rolling and Cancel, and on the end screen it did nothing (Keep rolling is now on every end screen).
+- **Game hints:** the keys show as keycaps in groups, at the bottom (roll, steer, hop, pause, restart) and at the top (`G` / `Esc` art). Both fade out after 8 seconds of play and come back on any pause or end screen. Touch keeps its text hint.
+- **Size and goal** show as a scoreboard row over the bar, in the same style as OBJECTS and the timer. The timer no longer adds a ★ once the goal is reached.
+- **Lighter page:** three.js loads after the art is drawn, so the piece never waits for the game's library. Pressing `G` or KATAMAKI before it has arrived marks the button as loading, and the game opens as soon as it's ready. Space Mono comes from Google Fonts instead of being embedded (the mint build still embeds it), and only its regular weight is used.
+- The SEED pill, the home-screen icon, the background fill and the art at the bottom are as in the player.

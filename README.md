@@ -20,9 +20,9 @@ On iPhone or iPad, load your seed first, then use Share → **Add to Home Screen
 | --- | --- |
 | `index.html` | **The player** (the site). The minted v1 piece with the viewer fixes (including flat full frames, so iPhone Safari draws no seams), a clear start spot in Katamaki, touch controls, adaptive quality and a seed control (show, paste or roll a seed), and the page and browser bar filled with the piece's background colour (the art alone sits at the bottom in portrait). The art rules are untouched. Not for minting: it loads three.js from a CDN. |
 | [`v1/`](v1/) | **Minted.** The exact files of the collection on Aleatory. Frozen: never edit. Known issues in [`v1/NOTES.md`](v1/NOTES.md). Also tagged in git as `v1-minted`. |
-| [`v2/`](v2/) | **Not released.** A possible future edition: all fixes plus new Mono and lookalike rules, which change some seeds' art. See [`v2/CHANGES.md`](v2/CHANGES.md). |
+| [`v2/`](v2/) | **Not released.** A possible future edition (`makimono.html` and its mint build): all fixes plus new Mono and lookalike rules, which change some seeds' art. Its `index.html` is the next player: the minted art plus **B-SIDE**, an optional alternate take on each token with gentler rules, and v2's Katamaki. See [`v2/CHANGES.md`](v2/CHANGES.md). |
 
-Each file is self-contained: the font is embedded and there are no image or script files next to them. The only outside resource is the three.js CDN script in the player and the demos.
+Each file is self-contained: there are no image or script files next to them. The minted files and the root player embed the font. The only outside resources are the three.js CDN script, and in `v2/index.html` also Space Mono from Google Fonts.
 
 ### v1 files
 
@@ -32,7 +32,7 @@ Each file is self-contained: the font is embedded and there are no image or scri
 | `makimono.mint.html` | Mint build: the source with comments and the local seed harness removed. **This is the file on Aleatory.** |
 | `index.html` | The original public demo: the source plus the three.js CDN script. |
 
-`v2/` has the same three files.
+`v2/` has the same `makimono.html` and `makimono.mint.html`. Its `index.html` is the B-SIDE player instead (see Making changes).
 
 ## Controls
 
@@ -58,6 +58,8 @@ Each file is self-contained: the font is embedded and there are no image or scri
 | `Enter` | Start Rolling button | Start rolling · confirm restart |
 | `G` / `Esc` | ✕ button (top right) | Back to the art (pauses the round) |
 
+**In `v2/index.html`** the keys are tidied so each means one thing. Art: `B` B-side, `V` view seed, `N` new seed, `E` SVG, `Shift`+`E` GIF, and `?` shows every shortcut (in the game too). Katamaki: `P` only pauses and resumes, `Enter` also keeps rolling on the end screen, and `Esc` cancels the restart question. See [`v2/CHANGES.md`](v2/CHANGES.md).
+
 Touch controls are in the player and v2. The minted v1 game is keyboard only. On touch, the stick appears wherever your thumb lands and is analog: a small push gives a gentle turn. Portrait and landscape both work. In v2, touch steering works like driving a car instead: drag the way you want to go on screen, and the camera follows from a fixed angle (see [`v2/CHANGES.md`](v2/CHANGES.md)).
 
 **Adaptive quality.** If a device can't keep up (under 48 fps), the game lowers quality one step at a time: sharpness first, then fewer decor cones and clouds, then no scattered scenery. Collectibles, ants and chopsticks never change, so the goal and difficulty stay the same. A step that doesn't help is undone. Add `?perf=1` to show the frame rate and level (tap it to force one), or `?tier=0`–`3` to force a level.
@@ -68,16 +70,11 @@ Reach the goal size before the clock runs out to earn Bronze, Silver or Gold, th
 
 - **Player:** edit `index.html` directly. Keep the art code (everything that turns a seed into the picture) identical to `v1/makimono.html`, so every token still shows its minted art.
 - **v1:** don't edit.
-- **v2:** edit `v2/makimono.html`, then rebuild:
-  1. `v2/makimono.mint.html`:
-     - Remove every comment: `<!-- -->` in HTML, `/* */` in CSS, and `/* */` and `//` in scripts. Keep `//` inside strings and CSS `url(...)` (e.g. `"http://www.w3.org/2000/svg"` and the embedded font data).
-     - Right-trim lines that had a comment removed, and drop blank lines (the game's `<script>` keeps its own blank lines).
-     - Remove the local seed harness: the `if (!window.$alea) { … }` block. Aleatory supplies `$alea` on chain.
-  2. `v2/index.html` (the preview), the source plus four preview-only additions:
-     - The `<!-- PUBLIC DEMO ... -->` comment and the three.js script, right after `<meta charset="utf-8">`.
-     - The `window.MKMN_RESEED` line from the player, right after `alea.ready();`.
-     - The player's seed pill (its `<style>` and `<script>` blocks), right before `</body>`. On chain, Aleatory sets the seed, so the pill is never in `makimono.html` or the mint build.
-     - The player's home-screen icon: its icon tags (without the default images) after the three.js script, and its icon `<script>` after the seed pill. The icon is drawn from the piece on screen. A minted token can't set the home-screen icon, so this is never in the mint build either.
+- **v2 edition:** edit `v2/makimono.html`, then rebuild `v2/makimono.mint.html`:
+  - Remove every comment: `<!-- -->` in HTML, `/* */` in CSS, and `/* */` and `//` in scripts. Keep `//` inside strings and CSS `url(...)` (e.g. `"http://www.w3.org/2000/svg"` and the embedded font data).
+  - Right-trim lines that had a comment removed, and drop blank lines (the game's `<script>` keeps its own blank lines).
+  - Remove the local seed harness: the `if (!window.$alea) { … }` block. Aleatory supplies `$alea` on chain.
+- **v2 player (`v2/index.html`):** edit it directly, like the root player, and keep its minted art code identical to the root player's (B-SIDE off must show exactly the minted art). Its Katamaki is v2's: a game change made in `v2/makimono.html` goes here too, inside `mkmnGame()`. The game starts only once three.js has loaded (the loader script after the B-SIDE generator), so nothing outside `mkmnGame()` can use `THREE`. The B-SIDE rules live in the `MKMN_ALT` generator script.
 
 Use three.js **0.160.1**: the game reads the global `THREE`, and 0.160.1 is the last release with the classic (non-module) build.
 
