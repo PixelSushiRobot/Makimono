@@ -2,18 +2,14 @@
 <html>
 <head>
 <meta charset="utf-8">
-<!-- PLAYER (GitHub Pages, makimono.psr.fyi) -- the minted v1 piece (v1/makimono.html) with the viewer fixes from v1/NOTES.md issues 1, 2, 4, 7 and 8 (the art is shown as flat full frames, MKFLAT below), Katamaki touch controls and adaptive quality, and a seed pill (show, paste or roll a seed). The art rules are untouched, so a token's seed shows exactly its minted art. Not for minting: the script tag below loads three.js from a CDN. -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+<!-- PLAYER (GitHub Pages, makimono.psr.fyi) -- the minted v1 piece (v1/makimono.html) with the viewer fixes (flat full frames, MKFLAT below), plus B-SIDE: an alternate take on each minted token, drawn with gentler rules (see v2/CHANGES.md), offered only when it looks visibly different. With B-SIDE off the art is exactly the minted art. Katamaki is the v2 game (touch controls, adaptive quality, driving steering). Also a seed field, a ⋯ menu, keyboard shortcuts (? shows them) and the home-screen icon. Not for minting: it loads three.js (after the art is drawn) and Space Mono from the web. v2/index.html is the same page, for trying changes first. -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><!-- maximum-scale=1: iOS Safari otherwise zooms in when the seed field (under 16px) is focused; pinch zoom still works on iOS -->
 <meta name="theme-color" content="#0b0b0c">
 <title>Makimono</title>
 <meta name="apple-mobile-web-app-title" content="Makimono"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" id="mkmnIcon"><link rel="icon" type="image/png" sizes="48x48" href="favicon.png" id="mkmnFav48"><link rel="icon" type="image/png" sizes="180x180" href="apple-touch-icon.png" id="mkmnFav"><!-- home-screen and tab icon: the default maki until the script at the end swaps in the piece on screen -->
 <style>
-/* Space Mono embedded as a subset — the Aleatory sandbox blocks the network, so a Google Fonts <link> can't load there.
-   Paste a woff2 subset below: one weight (400), glyphs A-Z 0-9 space . , ' ? ! - + / = : …  (band text is uppercased).
-   e.g.  glyphhanger --subset=SpaceMono-Regular.woff2 --whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,'?!-+/=:…" --formats=woff2
-   Until the base64 is pasted, the band falls back to the system monospace in the body font stack below. */
-@font-face{font-family:'Space Mono';font-style:normal;font-weight:400;font-display:swap;src:url(data:font/woff2;base64,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) format('woff2')}
+/* Space Mono (regular only) comes from Google Fonts, linked in the head. The mint build embeds it instead: the network is blocked on chain. */
 html,body{margin:0;height:100%}
 body{background:#0b0b0c;display:grid;place-items:center;font-family:'Space Mono',ui-monospace,Menlo,Consolas,monospace}
 body:has(.stage:not(.show)){place-items:end center}/* art alone sits at the bottom of the screen (portrait), the piece's colour filling above; with the traits shown it's centred */
@@ -233,7 +229,7 @@ const RCT=[["tint",1,45],["pastel",2,45],["vivid",3,10]],RCN=[["black",0,72],["c
 const MIX=[["classic",40],["neon",40],["mono",20]],ROLL=[["maki",0,92],["uramaki",1,8]];
 /* Display-name mapping: internal ids/weights are kept unchanged; these map ids to the exposed trait values. */
 const DNAME={
-pattern:{"scroll_h":"Scroll","diagonal":"Diagonal","ripple":"Ripple","chase":"Chase","checker":"Checker","sparkle":"Sparkle","wave_1":"Wiggle","wave_2":"Turbo Wiggle","chromie":"Squiggle","filling_cycle":"Maki","text_ants":"Text ANTS","text_tezos":"Text TEZOS","text_paul_hbd":"Text PAUL HBD","text_yolo":"Text YOLO","text_custom":"Text"},
+pattern:{"scroll_h":"Scroll","diagonal":"Diagonal","ripple":"Ripple","chase":"Chase","checker":"Checker","sparkle":"Sparkle","wave_1":"Wave","wave_2":"Short Wave","chromie":"Squiggle","filling_cycle":"Maki","text_ants":"Text ANTS","text_tezos":"Text TEZOS","text_paul_hbd":"Text PAUL HBD","text_yolo":"Text YOLO","text_custom":"Text"},
 palette:{"classic":"Classic","neon":"Neon","mono":"Mono"},
 direction:{"forward":"Forward","reverse":"Reverse"},
 ramp:{"random":"Random","trio":"Trio","mirror":"Mirror","duo":"Duo","accent":"Accent","spectrum":"Spectrum"},
@@ -449,7 +445,7 @@ function ensureStage(){
         if(pass){pass=false;return}/* the click that follows a fresh render: let the download go through */
         if(fresh())return;/* cached GIF still matches the art: download it as-is */
         e.preventDefault();render(function(){pass=true;gl.click()});return}
-      if(linked&&!fresh()){linked=false;gs.textContent="GIF";gl.setAttribute("aria-label","Save GIF")}/* drop a stale link before reusing it */
+      if(linked&&!fresh()){linked=false;gs.textContent=window.MKMN_GIFLABEL||"GIF";gl.setAttribute("aria-label","Save GIF")}/* drop a stale link before reusing it */
       e.preventDefault();
       if(busy)return;
       if(!linked){render(function(){linked=true;gs.textContent="Link to GIF";gl.setAttribute("aria-label","Link to GIF")});return}
@@ -480,7 +476,7 @@ function wireMessage(basePreset){
   function applyMsg(){
     var v=msgv.textContent.replace(/\s+/g," ").trim();
     if(!v&&msgv.innerHTML!=="")msgv.innerHTML="";/* drop the stray <br> contenteditable leaves behind, so :empty (the ADD… placeholder) matches again */
-    var res=gen(alea.seed,v?{text:v}:undefined),isType=/^text_/.test(res.mode);
+    var res=mkGen(alea.seed,v?{text:v}:undefined),isType=/^text_/.test(res.mode);
     feats=v?Object.assign({},res.tr,{Pattern:"Text",Message:v}):res.tr;
     window.MKMN_SRC=res.svg;curSvg=MKMN_FLAT(res.svg);artBox.innerHTML=curSvg;if(!hopOn)applyHop();bars.innerHTML=barsHTML(res.pal,res.usage);
     patV.textContent=isType?"Text":res.tr.Pattern;dirV.textContent=res.tr.Direction;band.querySelector(".drow.bot").innerHTML=botHTML(res.tr);/* a custom message turns Classic Maki into Type, where the ramp matters again */
@@ -532,9 +528,10 @@ function gRaster(clone){clone.setAttribute("width",GPX);clone.setAttribute("heig
 function gLzw(px,minCode){var clear=1<<minCode,eoi=clear+1,codeSize=minCode+1,next=eoi+1,dict=new Map();var out=[],cur=0,n=0;function wr(code){cur|=code<<n;n+=codeSize;while(n>=8){out.push(cur&255);cur>>=8;n-=8}}wr(clear);var prefix=px[0];for(var i=1;i<px.length;i++){var k=px[i],key=(prefix<<8)|k,c=dict.get(key);if(c!==undefined){prefix=c}else{wr(prefix);if(next<4096){dict.set(key,next++);if(next>(1<<codeSize)&&codeSize<12)codeSize++}else{wr(clear);dict.clear();next=eoi+1;codeSize=minCode+1}prefix=k}}wr(prefix);wr(eoi);if(n>0)out.push(cur&255);return out}
 function gGif(idxs,w,h,palette,delayCs){var p=0;while((1<<(p+1))<palette.length)p++;var tableCount=1<<(p+1),minCode=Math.max(2,p+1),out=[];function b(v){out.push(v&255)}function sh(v){out.push(v&255);out.push((v>>8)&255)}function st(s){for(var i=0;i<s.length;i++)out.push(s.charCodeAt(i)&255)}st("GIF89a");sh(w);sh(h);b(0x80|(p<<4)|p);b(0);b(0);for(var i=0;i<tableCount;i++){var c=palette[i]||[0,0,0];b(c[0]);b(c[1]);b(c[2])}b(0x21);b(0xFF);b(11);st("NETSCAPE2.0");b(3);b(1);sh(0);b(0);for(var fi=0;fi<idxs.length;fi++){b(0x21);b(0xF9);b(4);b(0);sh(delayCs);b(0);b(0);b(0x2C);sh(0);sh(0);sh(w);sh(h);b(0);b(minCode);var data=gLzw(idxs[fi],minCode),o=0;while(o<data.length){var nn=Math.min(255,data.length-o);b(nn);for(var j=0;j<nn;j++)b(data[o+j]);o+=nn}b(0)}b(0x3B);return new Uint8Array(out)}
 function generateGif(){var gtmp=document.createElement("div");gtmp.innerHTML=curSvg;var live=gtmp.querySelector("svg"); /* PLAYER: always the hopped flat version, whatever the hop toggle */if(!live)return Promise.reject(new Error("no svg"));var loop=gLoop(live),frames=Math.max(1,Math.round(loop/GSLOT)),N=GPX*GPX,map={},palette=[],idxs=[];var step=function(k){if(k>=frames)return Promise.resolve();return gRaster(gBake(live,(k+0.5)*GSLOT)).then(function(data){var idx=new Uint8Array(N);for(var pp=0;pp<N;pp++){var key=(data[pp*4]<<16)|(data[pp*4+1]<<8)|data[pp*4+2],ci=map[key];if(ci===undefined){ci=palette.length;if(ci>255)throw new Error("too many colors");map[key]=ci;palette.push([data[pp*4],data[pp*4+1],data[pp*4+2]])}idx[pp]=ci}idxs.push(idx);return step(k+1)})};return step(0).then(function(){return new Blob([gGif(idxs,GPX,GPX,palette,Math.round(GSLOT/10))],{type:"image/gif"})})}
+function mkGen(s,o){return window.MKMN_BSIDE&&window.MKMN_ALT?MKMN_ALT(s,o):gen(s,o)}window.MKMN_GEN1=gen; /* B-SIDE: draws the alternate (MKMN_ALT) while it's on; MKMN_GEN1 = the minted rules, for the visible-change check */
 function mkmnRender(){
   ensureStage();
-  var res=gen(alea.seed),msg=MSGOF[res.mode]||"";
+  var res=mkGen(alea.seed),msg=MSGOF[res.mode]||"";
   feats=msg?Object.assign({},res.tr,{Pattern:"Text",Message:msg}):res.tr;
   window.MKMN_SRC=res.svg;curSvg=MKMN_FLAT(res.svg);artBox.innerHTML=curSvg;
   stage.style.setProperty("--bg",res.bg);
@@ -597,16 +594,30 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 #game .traits{position:absolute;top:14px;left:16px;font-size:22px;font-weight:700;letter-spacing:.04em;line-height:1} /* now the objects counter, styled to match the timer */
 #game .traits b{font-size:11px;font-weight:600;opacity:.6;letter-spacing:.1em;margin-right:8px;vertical-align:middle}
 #game .timer{position:absolute;top:14px;right:16px;font-size:22px;font-weight:700;letter-spacing:.04em}
-#game .exit{position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:11px;opacity:.5}
-#game .sizebar{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);width:min(62vw,380px);height:12px;border:1.5px solid rgba(255,255,255,.65);border-radius:999px;overflow:hidden}
+#game .exit{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;opacity:.85;transition:opacity .6s} /* G / Esc  ART, keyboard only (touch has the ✕ button); fades with the bottom hint */
+#game .exit.gone{opacity:0}
+#game .sizebar{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);width:min(62vw,380px);height:10px;border:1.5px solid rgba(255,255,255,.65);border-radius:999px;overflow:hidden}
 #game .sizebar>i{display:block;height:100%;width:0;background:#fff;transition:width .12s linear}
-#game .sizelab{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);font-size:11px;opacity:.8}
+#game .sizelab{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);width:min(62vw,380px);display:flex;justify-content:space-between;align-items:baseline;font-size:22px;font-weight:700;letter-spacing:.04em;line-height:1} /* size and goal as a scoreboard row over the bar, styled like OBJECTS and the timer */
+#game .sizelab b{font-size:11px;font-weight:600;opacity:.6;letter-spacing:.1em;margin-right:8px}
+#game .sizelab .gl{font-size:13px}
+#game .sizelab .gl b{margin-right:6px}
 #game .hint{position:absolute;left:50%;top:calc(100% - 50px);transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);font-size:11px;line-height:1.5;opacity:.6;text-align:center;text-wrap:balance} /* anchored just under the bar and grows downward, so a wrap never climbs into the bar */
+#game .hint.caps{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 16px;opacity:.85;transition:opacity .6s} /* keyboard: the keys as keycaps, in groups; fades after 8 s of play */
+#game .hint.gone{opacity:0} /* keyboard and touch hints both fade after 8 s of play */
+#game.touch .hint{transition:opacity .6s}
+#game .hint.caps,#game .exit{font:400 10px 'Space Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em}
+#game .hint .g,#game .exit .g{display:inline-flex;align-items:center;gap:4px}
+#game .hint .t,#game .exit .t{margin-left:3px}
+#game .exit .sl{opacity:.6;margin:0 1px}
 #game .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(5,6,10,.74);text-align:center;color:#fff;pointer-events:auto;padding:24px}
 #game .overlay h2{margin:0;font-size:26px;font-weight:700;letter-spacing:.03em}
 #game .overlay p{margin:0;opacity:.82;font-size:13px;line-height:1.5;max-width:380px;text-wrap:pretty}
 #game .overlay button{margin-top:10px;padding:11px 22px;border:1.5px solid #fff;background:transparent;color:#fff;border-radius:999px;font:600 13px ui-monospace,monospace;cursor:pointer;text-transform:uppercase;letter-spacing:.1em;display:inline-flex;align-items:center;gap:10px}
-#game .overlay button kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:18px;height:18px;padding:0 5px;margin-right:-8px;border:1px solid currentColor;border-radius:5px;font:700 10px ui-monospace,monospace;letter-spacing:0;opacity:.7} /* keyboard shortcut badge, right of the label */
+#game:not(.touch) .overlay button:has(kbd){padding-right:10px} /* keyboard only (touch hides the keys): the key sits as far from the right edge as from the top and bottom */
+#game .hint kbd,#game .exit kbd,#game .overlay button kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:18px;height:18px;padding:0;border:1px solid currentColor;border-radius:5px;font:400 10px 'Space Mono',ui-monospace,monospace;letter-spacing:0;text-transform:uppercase} /* keycaps, square; Enter, Space and Esc spelled out on a wider cap (.w) */
+#game .overlay button kbd{opacity:.85}
+#game .hint kbd.w,#game .exit kbd.w,#game .overlay button kbd.w{width:auto;padding:0 5px}
 #game .overlay button:active{background:#fff;color:#05060a}
 #game .overlay .grade{font:800 15px ui-monospace,monospace;letter-spacing:.24em;margin:0}
 #game .overlay .medal{line-height:0;margin:0}
@@ -627,20 +638,20 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 #game .hopb{position:absolute;right:calc(26px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom));width:84px;height:84px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.12)}
 #game .hopb svg{width:38px;height:38px}
 #game .hopb.on{background:#fff;color:#05060a}
-/* pause + back-to-art: small round icon buttons tucked under the timer, top-right */
-#game .tbtns{position:absolute;top:calc(48px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));display:flex;gap:8px}
-#game .tbtns button{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);background:rgba(5,6,10,.3)}
-#game .tbtns button svg{width:16px;height:16px}
-#game .tbtns button:active{background:rgba(255,255,255,.25)}
+/* pause: one round icon button under the timer, top-right, styled like the hop button. Back to art is on the pause screen, so it's never one stray tap away */
+#game .tbtns{position:absolute;top:calc(50px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));display:flex;gap:8px}
+#game .tbtns button{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.12)}
+#game .tbtns button svg{width:18px;height:18px}
+#game .tbtns button:active{background:#fff;color:#05060a}
 #game.touch .exit,#game.touch .overlay button kbd{display:none}
 #game.touch .traits{top:calc(14px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left))}
 #game.touch .timer{top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right))}
 /* size bar, label and hint stay at the bottom like desktop, lifted clear of the home bar */
 #game.touch .sizebar{bottom:calc(60px + env(safe-area-inset-bottom))}
-#game.touch .sizelab{bottom:calc(76px + env(safe-area-inset-bottom))}
+#game.touch .sizelab{bottom:calc(80px + env(safe-area-inset-bottom))}
 #game.touch .hint{top:calc(100% - 50px - env(safe-area-inset-bottom))}
 /* landscape: the bar sits between the stick and HOP, so keep it out of their way */
-@media (orientation:landscape){#game.touch .sizebar{width:min(calc(100vw - 380px),380px)}#game.touch .hint{max-width:calc(100vw - 360px)}}
+@media (orientation:landscape){#game.touch .sizebar{width:min(calc(100vw - 380px),380px)}#game.touch .sizelab{width:min(calc(100vw - 380px),380px)}#game.touch .hint{max-width:calc(100vw - 360px)}}
 /* portrait: the controls move up above the bar and its label */
 @media (orientation:portrait){#game .stick{bottom:calc(112px + env(safe-area-inset-bottom))}#game .hopb{bottom:calc(130px + env(safe-area-inset-bottom))}}
 </style>
@@ -648,19 +659,19 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   <div class="hud">
     <div class="traits"></div>
     <div class="timer"></div>
-    <div class="exit">G / ESC for art</div>
+    <div class="exit"><span class="g"><kbd>G</kbd><span class="sl">/</span><kbd class="w">Esc</kbd><span class="t">Art</span></span></div>
     <div class="sizelab"></div>
     <div class="sizebar"><i></i></div>
     <div class="hint">W / S roll &middot; A / D steer &middot; Space hop &middot; P pause &middot; R restart</div>
   </div>
-  <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button><button class="tart" aria-label="Back to the art"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 1.8L8 6.6l4.8-4.8 1.4 1.4L9.4 8l4.8 4.8-1.4 1.4L8 9.4l-4.8 4.8-1.4-1.4L6.6 8 1.8 3.2z"/></svg></button></div></div>
-  <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd>Enter</kbd></button></div>
-  <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd>P</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
-  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Continue Rolling<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button></div>
-  <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd>P</kbd></button></div>
+  <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button></div></div>
+  <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd class="w">Enter</kbd></button></div>
+  <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd class="w">Enter</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
+  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Resume<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button><button class="toart">Back to art<kbd>G</kbd></button></div>
+  <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd class="w">Esc</kbd></button></div>
 </div>
 <script>
-(function(){
+function mkmnGame(){ /* the game: started by the three.js loader further down, once the library has arrived (or failed to) */
   var GAME=document.getElementById("game"),HUD={traits:GAME.querySelector(".traits"),timer:GAME.querySelector(".timer"),bar:GAME.querySelector(".sizebar>i"),sizelab:GAME.querySelector(".sizelab"),start:GAME.querySelector(".overlay.start"),end:GAME.querySelector(".overlay.end"),desc:GAME.querySelector(".desc"),et:GAME.querySelector(".et"),em:GAME.querySelector(".em"),medal:GAME.querySelector(".medal"),grade:GAME.querySelector(".grade"),again:GAME.querySelector(".again"),keep:GAME.querySelector(".keep"),pause:GAME.querySelector(".overlay.pause"),confirm:GAME.querySelector(".overlay.confirm"),pstat:GAME.querySelector(".pstat")};
   if(!window.THREE){ // three.js not supplied (e.g. opened from disk without the declared library): keep the page alive, say so in the game overlay
     var noLib=function(){GAME.classList.add("on");HUD.end.classList.add("hidden");HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="(three.js not loaded)";HUD.desc.appendChild(es);GAME.querySelector(".go").style.display="none"};
@@ -672,8 +683,10 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   var blobTex,blobMat,playerShadow; // flat contact-shadow assets
   var freeRoll=false; // after a medal, keep rolling with no clock
   var bumpV=new THREE.Vector3(),wobT=0,banner=null,ants=[]; // monster knockback velocity, hit wobble timer, sky message banner, roaming ants // monster knockback velocity, hit wobble timer, sky message banner
-  var ballR,timeLeft,pips=0,up,fwd,pPos,hopT=0,hopDur=0.42,lastT=0,params={};
-  var camSide=1,camSideCur=1; // RC-car chase cam: preferred shoulder (+1/-1), eased
+  var ballR,timeLeft,pips=0,up,fwd,pPos,hopT=0,vel=0,camF=null,hopDur=0.42,lastT=0,params={};
+  var hopD=0.42,hopH=2.0,hopMine=false; // this hop's length and height; hopMine = a hop you made (Space or the button), not the bounce from a hit
+  // a hop grows with the roll, so it still feels like a jump at gold size: about 4x higher and 0.75s long by then (0.42s and 2 at the start)
+  function startHop(){if(!running||hopT>0)return;var s=ballR/R0;hopH=2.0*Math.pow(s,0.75);hopD=0.42*Math.pow(s,0.3);hopMine=true;hopT=hopD}
 
   function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   function hash(s){var h=2166136261;s=String(s||"makimono");for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -695,7 +708,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     p.time=fast?30:slow?50:40;
     p.targetMul=fast?4.0:slow?2.6:3.2;
     p.chase=/chase/.test(p.pattern);
-    p.enemyN=p.chase?3:/sparkle|checker|ripple/.test(p.pattern)?2:1;
+    p.enemyN=p.chase?9:/sparkle|checker|ripple/.test(p.pattern)?2:1;
     p.stepMs=fast?70:slow?210:140;
     p.dir=/left|ccw|west|anti/.test((tr.Direction||"").toLowerCase())?-1:1;
     p.isText=/text|marquee/.test(p.pattern);
@@ -1017,9 +1030,10 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     // chopstick monsters: chase the player and snatch stuck sushi off the clump
     enemies=[];for(var e=0;e<Math.max(2,p.enemyN);e++){var ed=fibDir((e+1)*37%50,50);var em=buildChopstick();var esz=(rnd()<0.22?1.9+rnd()*1.9:0.7+rnd()*0.8)*(p.esize||1);em.scale.setScalar(esz);scene.add(em);em.add(makeBlob(0.5));enemies.push({g:em,pos:ed.multiplyScalar(SR).clone(),sign:e%2?1:-1,cd:0,sz:esz})}
     // ants: roam the planet; too big = they bump you and steal, big enough = you roll them up (they flee)
-    ants=[];var antN=9+(/ants/i.test((tr.Message||"")+" "+(tr.Pattern||""))?6:0);
-    for(var ai=0;ai<antN;ai++){var ad=fibDir((ai*17+5)%64,64);var ag=buildAnt();var asz=0.7+rnd()*0.9;ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;
-      ants.push({g:ag,pos:ad.multiplyScalar(SR),head:null,sz:asz,req:1.5+asz*0.9,cd:0,dead:false,ph:rnd()*6.28})}
+    // ANTS pieces (Message or Pattern mentions ants): the usual 9 plus 21 small ants you can roll up from the start, so the planet reads as an ant planet
+    ants=[];var antBig=9,antN=antBig+(/ants/i.test((tr.Message||"")+" "+(tr.Pattern||""))?21:0);
+    for(var ai=0;ai<antN;ai++){var ad=fibDir((ai*17+5)%64,64);var ag=buildAnt();var small=ai>=antBig,asz=small?0.38+rnd()*0.2:0.7+rnd()*0.9;ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;
+      ants.push({g:ag,pos:ad.multiplyScalar(SR),head:null,sz:asz,req:small?R0:1.5+asz*0.9,gain:small?0.05:0.1+asz*0.08,cd:0,dead:false,ph:rnd()*6.28})} // small ants: rollable at the starting size, smaller growth each
     // player: ball rig (surface-aligned) + clump (rolls) + maki-roll character (pushes, does not roll)
     ball=new THREE.Group();scene.add(ball);
     clump=new THREE.Group();ball.add(clump);
@@ -1029,9 +1043,9 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     banner=null;if(p.isText||tr.Message||window.MAKI_TXT){var msg=((window.MAKI_TXT&&window.MAKI_TXT.msg)||tr.Message||(tr.Pattern||"").replace(/^text\s*/i,"")||"MAKIMONO").trim()||"MAKIMONO";banner=buildBanner(msg,p);scene.add(banner.g)}
     pPos=new THREE.Vector3(0,1,0.001).normalize();pPos.multiplyScalar(surfaceR(pPos)+ballR);
     up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);
-    pips=0;hopT=0;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
+    pips=0;hopT=0;hopMine=false;vel=0;camF=null;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
     HUD.traits.innerHTML="<b>OBJECTS</b>0"; // traits hidden in-game; top-left shows the objects count
-    HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"x your size before the "+Math.round(params.time)+"s clock runs out.";
+    HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"× your size before the "+Math.round(params.time)+"s clock runs out.";
     built=true;onResize();
   }
 
@@ -1041,6 +1055,10 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 
   // collected things stand on the roll's surface (base pressed into the barrel), never over the filling ends,
   // and ride the surface outward as the roll grows (see placeStuck)
+  // Chase pieces: a magnet. Pickups and ants you can already roll up are pulled in from within a range that grows with the roll,
+  // faster the closer they get; anything still too big stays put until you've grown. 9 chopsticks balance it.
+  function magR(){return 3+ballR*3.2}                         // range in surface units: about 6.5 at the start
+  function magPull(d){return 2.5+5*(1-d/magR())}              // pull speed, surface units per second
   function stickToRoll(g){clump.updateWorldMatrix(true,false);var lp=clump.worldToLocal(g.getWorldPosition(new THREE.Vector3()));scene.remove(g);
     if(g.userData.blob){g.remove(g.userData.blob);g.userData.blob=null}
     var rd=new THREE.Vector3(0,lp.y,lp.z);if(rd.lengthSq()<1e-6)rd.set(0,1,0);rd.normalize();           // direction out from the roll's axis
@@ -1057,29 +1075,38 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     perfSample(t,t-lastT);var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;
     up.copy(pPos).normalize();
     fwd.addScaledVector(up,-fwd.dot(up));if(fwd.lengthSq()<1e-6)fwd.set(up.z,up.x,up.y);fwd.normalize();
-    var turn=2.2,mv=0,SPEED=7.5;
-    var st=((keys.a||keys.ArrowLeft)?1:0)-((keys.d||keys.ArrowRight)?1:0)-stick.x;st=Math.max(-1,Math.min(1,st)); // keys give full turn, the stick is analog
-    if(st)fwd.applyAxisAngle(up,turn*dt*st);
-    if(keys.w||keys.ArrowUp)mv+=1;if(keys.s||keys.ArrowDown)mv-=1;mv=Math.max(-1,Math.min(1,mv-stick.y)); // stick up = forward
+    var turn=2.2,mv=0,SPEED=7.5,heavy=1-0.25*Math.abs(vel); // turning is a quarter heavier at full speed
+    var kx=((keys.d||keys.ArrowRight)?1:0)-((keys.a||keys.ArrowLeft)?1:0),ky=((keys.w||keys.ArrowUp)?1:0)-((keys.s||keys.ArrowDown)?1:0),tmv=0;
+    if(!camF)camF=fwd.clone();camF.addScaledVector(up,-camF.dot(up));if(camF.lengthSq()<1e-6)camF.copy(fwd);camF.normalize(); // the camera's heading, carried along over the planet
+    var ix=stick.x,iy=-stick.y,im=Math.min(1,Math.hypot(ix,iy));
+    if(!im&&(kx||ky)){tmv=ky;if(kx)fwd.applyAxisAngle(up,-turn*dt*kx*heavy)} // keys: W/S throttle, A/D steer
+    else if(im>0.01){ // drag the way you want to go on screen: the roll steers toward it like a car's front wheel, faster the faster it rolls
+      var cR=new THREE.Vector3().crossVectors(camF,up),dW=camF.clone().multiplyScalar(iy).addScaledVector(cR,ix).normalize(),lf=new THREE.Vector3().crossVectors(up,fwd);
+      var ang=Math.atan2(dW.dot(lf),dW.dot(fwd)),back=Math.abs(ang)>2.0||(vel<-0.05&&Math.abs(ang)>1.2); // drag well behind its side to back up; once backing it stays in reverse until you drag clearly ahead
+      if(back)ang+=ang>0?-Math.PI:Math.PI; // backing up: the back end steers toward the drag
+      var rate=(0.9+2.2*Math.abs(vel))*heavy*dt;fwd.applyAxisAngle(up,Math.max(-rate,Math.min(rate,ang))); // pivots slowly when stopped
+      tmv=(back?-1:1)*im}
+    var rt=tmv*vel<0?2:1;vel+=Math.max(-rt*dt,Math.min(rt*dt,tmv-vel));mv=vel; // momentum: about 1s to full speed and 1s to coast to a stop, braking twice as fast
     var prevDir=pPos.clone().normalize();
     if(mv){var axis=new THREE.Vector3().crossVectors(up,fwd).normalize();pPos.applyAxisAngle(axis,(SPEED/SR)*dt*mv)} // W: travel +fwd (forward), matches the forward roll below
     if(bumpV.lengthSq()>0.01){var bu=bumpV.clone();bu.addScaledVector(up,-bu.dot(up));var bl=bu.length();if(bl>1e-3)pPos.applyAxisAngle(new THREE.Vector3().crossVectors(up,bu).normalize(),bl/SR*dt);bumpV.multiplyScalar(Math.pow(0.02,dt))}else bumpV.set(0,0,0); // monster knockback, decays fast; walls still stop it
-    var hop=0;if(hopT>0){hopT-=dt;hop=Math.sin((1-hopT/hopDur)*Math.PI)*2.0}
+    var hop=0;if(hopT>0){hopT-=dt;hop=Math.sin(Math.min(1,1-hopT/hopD)*Math.PI)*(hopMine?hopH:2.0)}if(hopT<=0)hopMine=false;
+    var air=hopMine&&hop>hopH*0.3; // in the air: your own hop, past the first 30% of its height. Low things don't block you (chopsticks and ants still can)
     var pdir=pPos.clone().normalize();
     // anything too big to collect is a wall: you can't move closer into it, but you can always back away (never stuck)
     var blocked=false;
-    function wall(dir,reach){var dn=pdir.angleTo(dir)*SR;if(dn<reach&&dn<prevDir.angleTo(dir)*SR)blocked=true}
+    function wall(dir,reach,h){if(air&&hop>h)return;var dn=pdir.angleTo(dir)*SR;if(dn<reach&&dn<prevDir.angleTo(dir)*SR)blocked=true}
     for(var oi=0;oi<obstacles.length;oi++){var ob=obstacles[oi];if(ob.dead)continue;
       if(pdir.angleTo(ob.dir)*SR<ballR+ob.size){
         if(ballR>ob.size*0.9){ob.dead=true;ob.g.scale.multiplyScalar(0.75);stickToRoll(ob.g);ballR+=Math.min(0.18,ob.size*0.12)}
-        else wall(ob.dir,ballR+ob.size);
+        else wall(ob.dir,ballR+ob.size,ob.size*1.4); // h: about how tall it is, to hop over
       }
     }
-    for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req)wall(bo.dir,ballR*0.85+bo.foot*0.7)} // oversized ingredients block too
-    if(blocked)pdir.copy(prevDir);
+    for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req)wall(bo.dir,ballR*0.85+bo.foot*0.7,bo.foot*1.1)} // oversized ingredients block too
+    if(blocked){pdir.copy(prevDir);vel*=Math.pow(0.001,dt)} // a wall soaks up the momentum
     up.copy(pdir);
     pPos.copy(pdir).multiplyScalar(surfaceR(pdir)+ballR+hop);ball.position.copy(pPos);
-    if(playerShadow){playerShadow.position.copy(pdir).multiplyScalar(surfaceR(pdir)+0.05);playerShadow.quaternion.copy(QT.setFromUnitVectors(YUP,pdir));playerShadow.scale.setScalar(ballR*2.3)} // single clean shadow under the roll
+    if(playerShadow){playerShadow.position.copy(pdir).multiplyScalar(surfaceR(pdir)+0.05);playerShadow.quaternion.copy(QT.setFromUnitVectors(YUP,pdir));playerShadow.scale.setScalar(ballR*2.3*(1-0.45*Math.min(1,hop/Math.max(2,hopH))))} // single clean shadow under the roll
     var side=new THREE.Vector3().crossVectors(up,fwd).normalize();
     if(keyLight){keyLight.target.position.copy(ball.position);keyLight.position.copy(ball.position).addScaledVector(up,36).addScaledVector(side,12).addScaledVector(fwd,6);keyLight.target.updateMatrixWorld()}
     ball.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(side,up,fwd));
@@ -1089,47 +1116,49 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     for(var sc=0,sS=ballR/R0;sc<clump.children.length;sc++){var sk=clump.children[sc];if(sk.userData.stick)placeStuck(sk,sS)} // push stuck objects out with the growing (or shrinking) roll
     // animate ONLY the sparse filling features (grow up/down); the planet surface is static
     for(var ti=0;ti<terrain.length;ti++){var c=terrain[ti];var sy=Math.max(0.12,c.h0*(0.55+0.45*wave(c,params,t)));c.g.scale.set(c.foot,sy,c.foot);var fr=surfaceR(c.dir);c.g.position.copy(c.dir.clone().multiplyScalar(fr));c.g.quaternion.copy(QT.setFromUnitVectors(YUP,c.dir))}
-    // clouds drift slowly
-    for(var ci=0;ci<clouds.length;ci++){var cl=clouds[ci];cl.dir.applyAxisAngle(YUP,cl.spd*dt).normalize();cl.g.position.copy(cl.dir.clone().multiplyScalar(cl.rad));cl.g.quaternion.copy(QT.setFromUnitVectors(YUP,cl.dir))}
+    // clouds drift slowly. Once the top of the roll (with a hop) reaches one, it's rolled up like anything else: around the goal size over the sea, sooner from high ground
+    for(var ci=0;ci<clouds.length;ci++){var cl=clouds[ci];if(cl.dead)continue;cl.dir.applyAxisAngle(YUP,cl.spd*dt).normalize();cl.g.position.copy(cl.dir.clone().multiplyScalar(cl.rad));cl.g.quaternion.copy(QT.setFromUnitVectors(YUP,cl.dir));
+      var csz=cl.g.scale.x*0.9;if(pdir.angleTo(cl.dir)*SR<ballR*0.9+csz&&surfaceR(pdir)+ballR*2+hop>cl.rad-csz*0.6){cl.dead=true;cl.g.visible=true;cl.g.scale.multiplyScalar(0.6);stickToRoll(cl.g);ballR+=0.15;pips++}}
     // collect ingredients (they sit on the land; chase makes them drift toward you)
     for(var i=0;i<props.length;i++){var o=props[i];if(o.dead)continue;
-      if(params.chase){var tp=pdir.clone().sub(o.dir);tp.addScaledVector(o.dir,-tp.dot(o.dir));if(tp.lengthSq()>1e-5){tp.normalize();o.dir.applyAxisAngle(new THREE.Vector3().crossVectors(o.dir,tp).normalize(),0.4*dt)}}
+      if(params.chase){var dA=pdir.angleTo(o.dir)*SR;if(ballR>=o.req&&dA<magR()){var tp=pdir.clone().sub(o.dir);tp.addScaledVector(o.dir,-tp.dot(o.dir));
+        if(tp.lengthSq()>1e-5){tp.normalize();o.dir.applyAxisAngle(new THREE.Vector3().crossVectors(o.dir,tp).normalize(),magPull(dA)/SR*dt)}}} // magnet (see magR)
       o.dir.normalize();o.g.position.copy(o.dir.clone().multiplyScalar(surfaceR(o.dir)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir));o.g.rotateY(o.spin+t/900);
       if(ballR>=o.req&&ball.position.angleTo(o.dir)*SR<ballR+o.foot){o.dead=true;stickToRoll(o.g);ballR+=o.gain;pips++}}
     // chopstick monsters roam and snatch stuck sushi off the clump
     for(var e=0;e<enemies.length;e++){var en=enemies[e];en.cd=Math.max(0,en.cd-dt);var eu=en.pos.clone().normalize();var toB=ball.position.clone().sub(en.pos);toB.addScaledVector(eu,-toB.dot(eu));if(toB.lengthSq()>1e-5)toB.normalize();var dist=en.pos.angleTo(ball.position)*SR;var tang=new THREE.Vector3().crossVectors(eu,toB).multiplyScalar(en.sign);var orbit=dist<(ballR+5)?0.85:0.25;var edir=toB.multiplyScalar(1-orbit).addScaledVector(tang,orbit);if(edir.lengthSq()>1e-5)edir.normalize();en.pos.applyAxisAngle(new THREE.Vector3().crossVectors(eu,edir).normalize(),2.4*(params.espeed||1)/SR*dt);var endir=en.pos.clone().normalize();en.pos.copy(endir).multiplyScalar(surfaceR(endir));en.g.position.copy(en.pos);var ef=ball.position.clone().sub(en.pos);ef.addScaledVector(endir,-ef.dot(endir));if(ef.lengthSq()<1e-6)ef.set(endir.z,endir.x,endir.y);ef.normalize();var es=new THREE.Vector3().crossVectors(endir,ef).normalize();en.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(es,endir,ef));en.g.rotateZ(Math.sin(t/150+e)*0.16); // always faces the roll (eyes on you), waddling side to side
       if(en.cd<=0&&ball.position.distanceTo(en.pos)<ballR+0.8*(en.sz||1)){en.cd=1.8;var kids=clump.children.filter(function(c){return c!==core});for(var k=0;k<2&&kids.length;k++)clump.remove(kids.pop());ballR=Math.max(R0,ballR-0.34);pips=Math.max(0,pips-1);
-        var away=ball.position.clone().sub(en.pos);bumpV.copy(away.normalize().multiplyScalar(16+4*(en.sz||1)));if(hopT<=0)hopT=hopDur*0.75;wobT=0.5} // knocked away: shove + little hop + wobble
+        var away=ball.position.clone().sub(en.pos);bumpV.copy(away.normalize().multiplyScalar(16+4*(en.sz||1)));if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.75}wobT=0.5} // knocked away: shove + little hop + wobble
     }
     // ants wander; within sight they come at you while you're small, and run once you can roll them up
     for(var ai=0;ai<ants.length;ai++){var an=ants[ai];if(an.dead)continue;an.cd=Math.max(0,an.cd-dt);var au=an.pos.clone().normalize();
       if(!an.head){an.head=new THREE.Vector3(au.y,au.z,au.x).cross(au).normalize()}
       an.head.applyAxisAngle(au,Math.sin(t/650+an.ph)*1.6*dt);                                   // meander
       var big=ballR>=an.req,ad2=an.pos.angleTo(ball.position)*SR,spd=1.6;
-      if(ad2<10){var tb=ball.position.clone().sub(an.pos);tb.addScaledVector(au,-tb.dot(au));if(tb.lengthSq()>1e-5){tb.normalize();if(big){tb.negate();spd=2.3}an.head.lerp(tb,Math.min(1,dt*2.5)).normalize()}}
+      var antMag=params.chase&&big&&ad2<magR(); // Chase magnet: rollable ants in range are dragged in instead of running away
+      if(ad2<Math.max(10,antMag?magR():0)){var tb=ball.position.clone().sub(an.pos);tb.addScaledVector(au,-tb.dot(au));if(tb.lengthSq()>1e-5){tb.normalize();if(antMag)spd=magPull(ad2);else if(big){tb.negate();spd=2.3}an.head.lerp(tb,Math.min(1,dt*2.5)).normalize()}}
       var aax=new THREE.Vector3().crossVectors(au,an.head);if(aax.lengthSq()>1e-6)an.pos.applyAxisAngle(aax.normalize(),spd/SR*dt);
       var nu=an.pos.clone().normalize();an.pos.copy(nu).multiplyScalar(surfaceR(nu));an.head.addScaledVector(nu,-an.head.dot(nu)).normalize();
       an.g.position.copy(an.pos).addScaledVector(nu,Math.abs(Math.sin(t/90+an.ph))*0.05*an.sz);
       an.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(nu,an.head).normalize(),nu,an.head));an.g.rotateZ(Math.sin(t/80+an.ph)*0.06);
       if(ball.position.distanceTo(an.pos)<ballR+0.55*an.sz){
-        if(big){an.dead=true;stickToRoll(an.g);ballR+=0.1+an.sz*0.08;pips++}
+        if(big){an.dead=true;stickToRoll(an.g);ballR+=an.gain;pips++}
         else if(an.cd<=0){an.cd=1.4;var akids=clump.children.filter(function(c){return c!==core});if(akids.length)clump.remove(akids.pop());ballR=Math.max(R0,ballR-0.2);pips=Math.max(0,pips-1);
-          bumpV.copy(ball.position.clone().sub(an.pos).normalize().multiplyScalar(12+3*an.sz));if(hopT<=0)hopT=hopDur*0.6;wobT=0.4}} // same knock-back as the chopsticks, a bit softer
+          bumpV.copy(ball.position.clone().sub(an.pos).normalize().multiplyScalar(12+3*an.sz));if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.6}wobT=0.4}} // same knock-back as the chopsticks, a bit softer
     }
-    // RC-car chase cam: sits behind + above + off one shoulder; distance grows with the roll
-    camSideCur+=(camSide-camSideCur)*(1-Math.pow(0.00005,dt)); // ease shoulder switch over ~0.3s
-    var want=pPos.clone().addScaledVector(up,ballR*2.0+5).addScaledVector(fwd,-(ballR*3.0+7)).addScaledVector(side,(ballR*1.7+4.5)*camSideCur);
+    // follow cam (fixed angle): rides along with the roll over the planet, high and 40° down, but never swings round, so up the screen stays the same way; distance grows with the roll
+    var cD=ballR*4+13,cA=40*Math.PI/180,want=pPos.clone().addScaledVector(up,cD*Math.sin(cA)).addScaledVector(camF,-cD*Math.cos(cA));
     var minH=surfaceR(want.clone().normalize())+ballR*1.2+1.5;if(want.length()<minH)want.setLength(minH); // keep above terrain to avoid clipping
     cam.position.lerp(want,1-Math.pow(0.0016,dt));cam.up.copy(up);
-    // aim at the roll, biased slightly toward the near end-face so the filling stays in view
-    cam.lookAt(ball.position.clone().addScaledVector(up,ballR*0.3).addScaledVector(side,camSideCur*ballR*0.35));
+    // aim a little ahead of the roll
+    cam.lookAt(ball.position.clone().addScaledVector(up,ballR*0.3).addScaledVector(camF,ballR*2));
     // goal: reach the target size before the clock runs out; after a medal the clock is gone (free roll)
     var curMul=ballR/R0,hit=curMul>=params.targetMul;
     if(!freeRoll){timeLeft-=dt;if(timeLeft<0)timeLeft=0}
     HUD.bar.style.width=Math.min(100,(curMul/params.targetMul)*100)+"%";
-    HUD.sizelab.textContent="SIZE "+curMul.toFixed(1)+"x / GOAL "+params.targetMul.toFixed(1)+"x";
+    var szk=curMul.toFixed(1)+"|"+params.targetMul.toFixed(1);if(HUD.sizelab._k!==szk){HUD.sizelab._k=szk;HUD.sizelab.innerHTML="<span><b>SIZE</b>"+curMul.toFixed(1)+"×</span><span class=\"gl\"><b>GOAL</b>"+params.targetMul.toFixed(1)+"×</span>"} // size and goal as a scoreboard row, rebuilt only when a number changes
     if(HUD.traits._n!==pips){HUD.traits._n=pips;HUD.traits.innerHTML="<b>OBJECTS</b>"+pips}
-    HUD.timer.textContent=freeRoll?"FREE ROLL":Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2)+(hit?"  ★":"");
+    HUD.timer.textContent=freeRoll?"FREE ROLL":Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2);
     stepBanner(dt,t);
     renderer.render(scene,cam);
     if(!freeRoll&&timeLeft<=0){end(hit);return}
@@ -1140,13 +1169,13 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   }
   // ---- end-screen copy: one random line per slot, never the same line twice in a row (memory only) ----
   var COPY={
-    win:{GOLD:["THIS IS A HEALTH CODE VIOLATION.","THE HEALTH INSPECTOR IS CRYING.","THAT'S HUGE!","YOU ARE QUITE A COLLECTOR!"],
-         SILVER:["ABSOLUTE ROLL.","NOW THAT'S A ROLL.","CHEF'S KISS."],
-         BRONZE:["THAT'S... SOMETHING.","IT'S ROUND. IT'S A ROLL.","WELL, IT HOLDS TOGETHER."]},
-    fail:["TIME'S UP","OUT OF TIME, CHEF.","THE CLOCK WINS THIS ONE."],
-    failBody:{low:["Only {current}x of {target}x. The ants are very pleased with themselves. Try again?","Only {current}x of {target}x. Even the chopsticks felt bad. Try again?","Only {current}x of {target}x. The ants have already started the victory party. Try again?"],
-              mid:["{current}x of {target}x. Over halfway to legend. The ants are nervous. Try again?","{current}x of {target}x. Respectable roll, dubious pace. Try again?","{current}x of {target}x. The chopsticks saw you coming. Try again?"],
-              high:["SO CLOSE! {current}x of {target}x. One more crumb. Try again?","{current}x of {target}x. You could taste it. So could the ants. Try again?","{current}x of {target}x. The ants have never been this worried. Try again?"]}},
+    win:{GOLD:["THIS IS A HEALTH CODE VIOLATION.","LEGALLY, THIS IS A PLANET.","THIS ROLL HAS ITS OWN ZIP CODE.","NOTHING LEFT TO ROLL.","THE CHOPSTICKS WANT A WORD."],
+         SILVER:["ABSOLUTE ROLL.","NOW THAT'S A ROLL.","CHEF'S KISS.","TIGHT, ROUND, DANGEROUS."],
+         BRONZE:["THAT'S... SOMETHING.","WELL, IT HOLDS TOGETHER.","IT ROLLS. TECHNICALLY.","GOOD ENOUGH FOR LUNCH."]},
+    fail:["TIME'S UP.","OUT OF TIME, CHEF.","THE CLOCK WINS THIS ONE.","THE RICE HAS GONE COLD.","ORDER UP. NOT QUITE.","ALMOST A MEAL."], // no ants in the titles: the messages below have one ant line per band
+    failBody:{low:["Only {current}× of {target}×. The ants are very pleased with themselves. Try again?","Only {current}× of {target}×. Even the chopsticks felt bad. Try again?","Only {current}× of {target}×. The planet barely noticed you. Try again?"],
+              mid:["{current}× of {target}×. Over halfway to legend. The ants are nervous. Try again?","{current}× of {target}×. Respectable roll, dubious pace. Try again?","{current}× of {target}×. The chopsticks saw you coming. Try again?"],
+              high:["SO CLOSE! {current}× of {target}×. One more crumb. Try again?","{current}× of {target}×. You could taste it. So could the ants. Try again?","{current}× of {target}×. One more lap would have done it. Try again?"]}},
     lastPick={};
   function pick(slot,pool){var i=(Math.random()*pool.length)|0;if(pool.length>1&&i===lastPick[slot])i=(i+1+((Math.random()*(pool.length-1))|0))%pool.length;lastPick[slot]=i;return pool[i]}
   function fill(s,v){return s.replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m})}
@@ -1158,13 +1187,13 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     HUD.grade.textContent=win?grade:"";HUD.grade.style.color=pal?pal[0]:"#fff";
     if(win){
       HUD.et.textContent=pick("win"+grade,COPY.win[grade]);
-      HUD.em.textContent=fill("You rolled up to {current}x (target {target}x) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
+      HUD.em.textContent=fill("You rolled up to {current}× (target {target}×) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
     } else {
       var band=ratio<0.5?"low":ratio<0.8?"mid":"high";                 // progress bands: under 50%, 50-79%, 80%+
       HUD.et.textContent=pick("fail",COPY.fail);
       HUD.em.textContent=fill(pick("fail"+band,COPY.failBody[band]),v);
     }
-    HUD.keep.classList.toggle("hidden",!win);HUD.again.querySelector(".al").textContent=win?"Restart":"Try again";
+    /* Keep rolling (Enter) shows on every end screen */HUD.again.querySelector(".al").textContent=win?"Restart":"Try again";
     HUD.end.classList.remove("hidden");phase="end"}
   function keepRolling(){freeRoll=true;begin()}
   // ---- round phases: welcome -> play <-> pause (<-> confirm) -> end. Leaving for the art mid-round pauses it. ----
@@ -1172,20 +1201,20 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
   function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};releaseStick();
     var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
-    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"x / Goal "+params.targetMul.toFixed(1)+"x · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
+    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / Goal "+params.targetMul.toFixed(1)+"× · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
     overlays(HUD.pause);phase="pause"}
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
 
-  var builtMsg=""; // the art's message + seed when the world was built; a changed Message cell (or, in the player, a new seed) forces a rebuild
+  var builtMsg=""; // the art's message + seed when the world was built; a changed Message cell (or, in the preview, a new seed) forces a rebuild
   function artMsg(){return (window.MAKI_TXT&&window.MAKI_TXT.msg)||""}
   async function launch(skipIntro){
     if(running)return;
-    if(built&&artMsg()+"|"+$alea.seed!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
+    if(built&&artMsg()+"|"+$alea.seed+"|"+!!window.MKMN_BSIDE!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
     GAME.classList.add("on");
     if(built&&(phase==="pause"||phase==="confirm"||phase==="end")){if(phase==="confirm")cancelRestart();return} // back from the art: stay on the pause (or end) screen, no welcome
     overlays(skipIntro?null:HUD.start);phase="welcome";
-    if(!built){builtMsg=artMsg()+"|"+$alea.seed;var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
+    if(!built){builtMsg=artMsg()+"|"+$alea.seed+"|"+!!window.MKMN_BSIDE;var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
     if(skipIntro)begin();else welStart();
   }
   // welcome title: KATAMAKI built from the same cube letters as the sky banner (buildBanner), coloured like a custom message on this piece
@@ -1230,37 +1259,38 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     var on=GAME.classList.contains("on"),k=e.key.length===1?e.key.toLowerCase():e.key;
     if(k==="g"){e.preventDefault();if(on)exit();else launch();return}                 // G: art <-> game (pauses a live round)
     if(!on)return;                                                                   // everything below is game-only; Esc on the art does nothing
-    if(k==="Escape"){e.preventDefault();exit();return}                              // Esc: back to the art (pauses)
-    if(k==="p"){e.preventDefault();if(phase==="play")pauseGame();else if(phase==="pause")begin();else if(phase==="confirm")cancelRestart();else if(phase==="end"&&!HUD.keep.classList.contains("hidden"))keepRolling();return}
+    if(k==="Escape"){e.preventDefault();if(phase==="confirm")cancelRestart();else exit();return} /* on the restart question, Esc cancels */                              // Esc: back to the art (pauses)
+    if(k==="p"){e.preventDefault();if(phase==="play")pauseGame();else if(phase==="pause")begin();else if(phase==="confirm")cancelRestart();return}
     if(k==="r"){e.preventDefault();if(phase==="play"||phase==="pause")askRestart();else if(phase==="confirm"||phase==="end")restart();return}
     if(k==="Enter"&&phase==="confirm"){e.preventDefault();restart();return}
+    if(k==="Enter"&&phase==="end"){e.preventDefault();keepRolling();return} // Enter keeps rolling on the end screen
     if(k==="Enter"&&phase==="welcome"&&built&&!HUD.start.classList.contains("hidden")){e.preventDefault();begin();return} // Start Rolling
     if(phase!=="play")return;
-    keys[e.key]=true;if(k==="a"||k==="ArrowLeft")camSide=1;if(k==="d"||k==="ArrowRight")camSide=-1;if(k===" "&&running&&hopT<=0)hopT=hopDur;if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
+    keys[e.key]=true;if(k===" ")startHop();if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
   });
-  // ---- touch controls: floating stick (left thumb: up/down roll, left/right steer, analog), hop button (arrow), pause and back-to-art icon buttons.
+  // ---- touch controls: floating stick (drag the way you want to roll, analog), hop button (arrow), pause and back-to-art icon buttons.
   // the touch layout turns on for touch-only devices, after any touch on the game, or with ?touch=1 (a mouse can drive the stick, for checking on desktop).
   var stick={x:0,y:0};
   var hintEl=GAME.querySelector(".hint");
-  function useTouch(){if(GAME.classList.contains("touch"))return;GAME.classList.add("touch");hintEl.textContent="Drag anywhere to roll and steer · tap the arrow to hop"}
+  function useTouch(){if(GAME.classList.contains("touch"))return;GAME.classList.add("touch");hintEl.textContent="Drag the way you want to roll · tap the arrow to hop"}
   if(matchMedia("(hover:none) and (pointer:coarse)").matches||/[?&]touch=1/.test(location.search))useTouch();
   GAME.addEventListener("pointerdown",function(e){if(e.pointerType==="touch")useTouch()},true);
   var tpad=GAME.querySelector(".tpad"),stEl=tpad.querySelector(".stick"),knob=stEl.querySelector("i"),hopB=tpad.querySelector(".hopb"),SR_PX=60,DZ=.12,sid=null,ox=0,oy=0;
   function setStick(dx,dy){var d=Math.hypot(dx,dy);
     if(d>SR_PX){ox+=dx*(1-SR_PX/d);oy+=dy*(1-SR_PX/d);dx*=SR_PX/d;dy*=SR_PX/d;d=SR_PX;stEl.style.left=ox+"px";stEl.style.top=oy+"px"} // dragging past the rim pulls the stick along, so reversing is quick
     knob.style.transform="translate("+dx+"px,"+dy+"px)";
-    var m=d/SR_PX;m=m<DZ?0:(m-DZ)/(1-DZ);var ux=d?dx/d:0,uy=d?dy/d:0,x=ux*m;
-    stick.x=(x<0?-1:1)*Math.pow(Math.abs(x),1.5);stick.y=uy*m; // softer steering near the centre
-    if(stick.x<-.35)camSide=1;else if(stick.x>.35)camSide=-1}
+    var m=d/SR_PX;m=m<DZ?0:(m-DZ)/(1-DZ);var ux=d?dx/d:0,uy=d?dy/d:0;
+    stick.x=ux*m;stick.y=uy*m; // screen direction and push, for drive steering
+  }
   function releaseStick(){sid=null;stick.x=stick.y=0;knob.style.transform="";stEl.classList.remove("on");stEl.style.left=stEl.style.top=""}
   tpad.addEventListener("pointerdown",function(e){if(e.target.closest("button")||sid!==null||phase!=="play")return;e.preventDefault();
     sid=e.pointerId;try{tpad.setPointerCapture(sid)}catch(_){}ox=e.clientX;oy=e.clientY;stEl.classList.add("on");stEl.style.left=ox+"px";stEl.style.top=oy+"px";setStick(0,0)});
   tpad.addEventListener("pointermove",function(e){if(e.pointerId!==sid)return;e.preventDefault();setStick(e.clientX-ox,e.clientY-oy)});
   ["pointerup","pointercancel","lostpointercapture"].forEach(function(n){tpad.addEventListener(n,function(e){if(e.pointerId===sid)releaseStick()})});
-  hopB.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();hopB.classList.add("on");if(running&&hopT<=0)hopT=hopDur});
+  hopB.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();hopB.classList.add("on");startHop()});
   ["pointerup","pointercancel","pointerleave"].forEach(function(n){hopB.addEventListener(n,function(){hopB.classList.remove("on")})});
   tpad.querySelector(".tpause").addEventListener("click",function(){pauseGame()});
-  tpad.querySelector(".tart").addEventListener("click",function(){exit()});
+  GAME.querySelector(".toart").addEventListener("click",function(e){e.stopPropagation();exit()}); // pause screen: back to the art (the round stays paused)
   ["touchstart","touchmove"].forEach(function(n){GAME.addEventListener(n,function(e){if(GAME.classList.contains("touch")&&!e.target.closest(".overlay, .tbtns, .perf"))e.preventDefault()},{passive:false})}); // no page scroll, pinch or double-tap zoom while playing
   document.addEventListener("visibilitychange",function(){if(document.hidden)pauseGame()}); // app switch, lock screen, incoming call: pause the round
   // ---- adaptive quality: watch the frame rate while playing and step down only if the device struggles.
@@ -1277,7 +1307,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   function perfPR(){return Math.min(devicePixelRatio||1,[2,1.5,1,.75][PQ.tier])}
   function perfApply(){if(!renderer)return;renderer.setPixelRatio(perfPR());renderer.setSize(innerWidth,innerHeight);
     terrain.forEach(function(c,i){c.g.visible=PQ.tier<2||i%2===0});
-    clouds.forEach(function(c,i){c.g.visible=PQ.tier<2||i%2===0});
+    clouds.forEach(function(c,i){if(!c.dead)c.g.visible=PQ.tier<2||i%2===0});
     obstacles.forEach(function(o,i){if(i<obsSingle0)return;
       if(PQ.tier>=3){if(!o.dead){o.dead=true;o.hid=true;o.g.visible=false}} // hidden scenery also stops blocking
       else if(o.hid){o.dead=false;o.hid=false;o.g.visible=true}});
@@ -1291,7 +1321,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     if(PQ.last>=0){if(fps<PQ.prev*1.1){PQ.tier=PQ.last;PQ.lock=true;PQ.last=-1;perfApply();return}PQ.last=-1} // the last step didn't help: undo it and stop
     if(fps<48&&PQ.tier<3){PQ.last=PQ.tier;PQ.prev=fps;PQ.tier++;perfApply();PQ.skip=t+1000}}
   window.addEventListener("keyup",function(e){keys[e.key]=false});
-})();
+}
 </script>
 <style>/* PLAYER: seed pill. SEED shows/edits the seed, the arrows icon rolls a new one.
    The pill has the same fixed height as the other buttons in both states, and every part only pads sideways,
@@ -1371,5 +1401,349 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   new MutationObserver(function(rs){for(var i=0;i<rs.length;i++){var t=rs[i].target;if(!(t.closest&&t.closest("#game"))){soon();return}}}).observe(document.body,{childList:true,subtree:true}); // a new seed swaps the art's svg in place (the game's HUD changes are ignored)
   soon()})();
 </script>
+<style>/* B-SIDE, the ⋯ menu and the shortcuts card. The bar reads KATAMAKI · B-SIDE · ⋯ (the seed pill only shows while its field is open).
+   Space Mono is used at its regular weight only: keycaps and titles stand out by size, spacing and their outline, never bold. */
+.export-bar .button[hidden]{display:none}
+.export-bar .button.on{background:var(--ink);color:var(--bg,#0b0b0c)}/* B-SIDE on, or the ⋯ menu open: stays in the pressed look */
+.export-bar .button.loading{animation:gpulse .9s ease-in-out infinite;cursor:progress}/* KATAMAKI while three.js is still arriving */
+.export-bar .more{padding:calc(var(--scale-unit)*5);border-radius:50%}/* icon only, same padding on every side: a circle as tall as the other buttons */
+.export-bar .button.seedb{display:none}
+.export-bar.seeding .button.seedb{display:flex}
+/* the menu: the piece's ink at 90% with the canvas colour as text, padded like the card, thin dividers in the text colour at 10% */
+.export-bar .mkmenu{position:absolute;top:calc(100% + var(--scale-unit)*8);right:0;display:none;flex-direction:column;min-width:calc(var(--scale-unit)*200);padding:calc(var(--scale-unit)*6) calc(var(--scale-unit)*20);border-radius:calc(var(--scale-unit)*14);background:rgba(var(--ink-rgb),.9);color:var(--bg,#0b0b0c);z-index:20}
+.export-bar .mkmenu.open{display:flex}
+.export-bar.seeding .mkmenu{display:none}
+.export-bar .mkmenu>*+*{border-top:max(1px,var(--scale-unit)*1) solid color-mix(in srgb,currentColor 10%,transparent)}
+.export-bar .mkmenu .button,.export-bar .mkmenu .mi{display:flex;align-items:center;justify-content:space-between;gap:var(--sz-20);padding:calc(var(--scale-unit)*10) 0;border:0;border-radius:0;background:none;color:inherit;text-decoration:none;font:inherit;font-size:var(--sz-15);text-transform:uppercase;letter-spacing:.08em;line-height:1;cursor:pointer;-webkit-user-select:none;user-select:none}
+.export-bar .mkmenu .button:active,.export-bar .mkmenu .mi:active{background:none;color:inherit;opacity:.55}
+.export-bar .mkmenu .icon{display:none}
+.export-bar .mkmenu .gif-busy .icon{display:block;width:calc(var(--scale-unit)*16);height:calc(var(--scale-unit)*16);fill:currentColor;flex-shrink:0}/* the GIF spinner still shows while it renders */
+.export-bar .mkmenu .keys{display:flex;align-items:center;gap:calc(var(--scale-unit)*4);font-style:normal}
+/* keycaps: square, except Enter, Space and Esc (.w), which are spelled out on a wider cap. The menu's scale with the piece; the card's and the game's are px */
+.export-bar .mkmenu kbd,.mkcard kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0;border:1px solid currentColor;font-family:'Space Mono',ui-monospace,monospace;font-weight:400;letter-spacing:0;text-transform:uppercase}
+.export-bar .mkmenu kbd{width:calc(var(--scale-unit)*20);height:calc(var(--scale-unit)*20);border-width:max(1px,var(--scale-unit)*1.2);border-radius:calc(var(--scale-unit)*6);font-size:calc(var(--scale-unit)*11.5);opacity:.85}
+.export-bar .mkmenu kbd svg{width:calc(var(--scale-unit)*11);height:calc(var(--scale-unit)*11);display:block}
+.mkcard kbd{width:18px;height:18px;border-radius:5px;font-size:10px}
+.mkcard kbd svg{width:10px;height:10px;display:block}
+.export-bar .mkmenu kbd.w,.mkcard kbd.w{width:auto;padding:0 5px}
+.mkcard .sl,.export-bar .mkmenu .sl{opacity:.6;margin:0 2px}
+/* shortcuts card (?): the menu's colours (set from the piece while it's open), centred on screen */
+.mkcard{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483640;display:none;padding:14px 20px;border-radius:14px;font:13px/1.7 'Space Mono',ui-monospace,monospace;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.mkcard.open{display:block}
+.mkcard .ttl{padding:2px 0 10px;letter-spacing:.14em;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent)}
+.mkcard .row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent)}
+.mkcard .row:last-child{border-bottom:0}
+.mkcard .k{display:inline-flex;align-items:center;gap:4px;min-width:230px}
+.mkcard .hd{opacity:.6;padding:12px 0 4px}
+@media (max-height:720px){.mkcard{padding:10px 18px}.mkcard .row{padding:4px 0}.mkcard .hd{padding:8px 0 2px}} /* short windows: tighter rows before any shrinking */
+</style>
+<script>/* B-SIDE: the alternate-art generator, the gentle rules from CHANGES.md (art part only), sealed in its own scope. MKMN_ALT draws for the page (and leaves MAKI_PAL / MAKI_TXT for the game); MKMN_GEN2 is for comparing and restores them */
+(function(){
+const P={pink:"#ff2d95",green:"#00c853",lime:"#b0ee00",red:"#ff3b30",orange:"#ff9500",yellow:"#fdd60a"};
+const K=Object.keys(P),FR=12;
+const RAMP=[["random",30],["trio",25],["mirror",20],["duo",15],["accent",7],["spectrum",3]];
+const PAT=[["scroll_h",15],["diagonal",11],["ripple",10],["chase",8],["checker",9],["sparkle",7],["wave_1",9],["wave_2",5],["chromie",3],["filling_cycle",6],["text_ants",2],["text_tezos",3],["text_paul_hbd",1],["text_yolo",2.5]];
+const MSGOF={text_ants:"ANTS",text_tezos:"TEZOS",text_paul_hbd:"PAUL HBD",text_yolo:"YOLO"};/* message content per Type-pattern id; the message is folded into the Pattern trait, not a separate trait */
+const DIR=[["reverse",1,50],["forward",-1,50]];/* right-to-left = Reverse (sign +1, no frame reversal); left-to-right = Forward (sign -1). Slots/weights unchanged, only the labels, so token->motion associations are preserved. */
+/* One clock: the hop is the beat (HOPMS, constant). Every fill step is a whole fraction of it: Fast 12 steps/hop, Normal 6, Slow 4. All fill loops are a whole number of hops, so hop and fill never drift. Change HOPMS and everything rescales (keep it divisible by 12 for whole-ms steps: 840 -> 70/140/210). */
+const HOPMS=840,SLOT=HOPMS/12;
+const SPD=[["normal",HOPMS/6,62],["slow",HOPMS/4,30],["fast",HOPMS/12,8]];
+const TONE=[["pastel",.6,.9,40],["soft",.55,.8,30],["vivid",.9,.6,20],["tint",.5,.95,10]];
+const NORI=[["black","#000000",74],["charcoal","#1a1a1a",10],["shiso green","#0e3b2c",8],["deep navy","#0c1633",4],["deep plum","#2a0f26",4]];
+const RICE=[["white","#ffffff",75],["cream","#f6eed9",25]];
+const SHAPE=[["original",1,75],["tall",2,25]];
+const HOP={t:4*SLOT,down:2*SLOT,s:4*SLOT,up:2*SLOT};/* hop phases on the 12-slot grid: top 4, rise-to-squash 2, squash 4, recover 2 */
+const MAKI=[["cucumber",4,5,4],["tuna",0,1,1],["negi toro",1,0,5],["salmon",0,2,2],["tamago",2,3,3],["spicy tuna",0,1,2],["avocado",5,4,3],["ebi",2,0,1]];
+const ORIGL={"3,2":0,"4,2":1,"5,2":2,"6,2":1,"7,2":3,"2,3":0,"3,3":4,"4,3":5,"5,3":5,"6,3":5,"7,3":0,"8,3":3,"3,4":3,"4,4":0,"5,4":3,"6,4":0,"7,4":4};
+const FILL=[];for(let y=2;y<=4;y++)for(let x=3;x<=7;x++)FILL.push([x,y]);FILL.push([2,3],[8,3]);
+const SNAKE=[[3,2],[4,2],[5,2],[6,2],[7,2],[8,3],[7,4],[6,4],[5,4],[4,4],[3,4],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3]];
+const FONT={A:"010111101",B:"110111111",C:"011100011",D:"110101110",E:"111110111",F:"111110100",G:"011100111",H:"101111101",I:"111010111",J:"001001110",K:"101110101",L:"100100111",M:"111111101",N:"111101101",O:"111101111",P:"111111100",Q:"111111001",R:"111110101",S:"011010110",T:"111010010",U:"101101111",V:"101101010",W:"101111111",X:"101010101",Y:"101010010",Z:"110010011","0":"111101111","1":"110010010","2":"111011110","3":"111011111","4":"101111001","5":"111110011","6":"100111111","7":"111001001","8":"011111111","9":"011011110","!":"010010010",".":"000000010",",":"000010100","'":"010000000","?":"111001010","-":"000111000","+":"010111010","/":"001010100","=":"111000111",":":"010000010"};
+const wt=m=>m[m.length-1],sum=l=>l.reduce((a,m)=>a+wt(m),0);
+function wp(R,l){const t=sum(l);let x=R()*t;for(const m of l){if((x-=wt(m))<0)return[m,wt(m)/t]}return[l[0],wt(l[0])/t]}
+function hash(s){let h=[1779033703,3144134277,1013904242,2773480762];for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h[0]=h[1]^Math.imul(h[0]^c,597399067);h[1]=h[2]^Math.imul(h[1]^c,2869860233);h[2]=h[3]^Math.imul(h[2]^c,951274213);h[3]=h[0]^Math.imul(h[3]^c,2716044179)}
+return h.map(x=>(x^(x>>>16))>>>0)}
+function rng(s){let[a,b,c,d]=hash(s);return()=>{a>>>=0;b>>>=0;c>>>=0;d>>>=0;let t=(a+b)|0;a=b^(b>>>9);b=(c+(c<<3))|0;c=(c<<21|c>>>11);d=(d+1)|0;t=(t+d)|0;c=(c+t)|0;return(t>>>0)/4294967296}}
+const rgb=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)/255);
+function lum(h){const[r,g,b]=rgb(h).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*r+.7152*g+.0722*b}
+const contrast=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+function hue(h){const[r,g,b]=rgb(h),mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(!d)return 0;let H=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;return(H*60+360)%360}
+function hsl(h,s,l){const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12,c=l-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(c*255).toString(16).padStart(2,"0")};return"#"+f(0)+f(8)+f(4)}
+let BGMODE="b";/* analogous, richer-Classic background system (verified in review) */
+function compBg(C,tone,nori,R){let sx=0,sy=0;C.forEach(c=>{const h=hue(c)*Math.PI/180;sx+=Math.cos(h);sy+=Math.sin(h)});
+const mag=Math.hypot(sx,sy)/C.length;let h,s=tone[1],acc=false,rich=false;
+if(mag<.35){h=Math.floor(R()*360);s=.14}
+else{const base=(Math.atan2(sy,sx)*180/Math.PI+360)%360;
+if(BGMODE==="old")h=(base+180)%360;
+else{const a=R();if(a<.72){h=base;s=Math.min(.85,s+.18);rich=true}else{acc=true;h=(base+(a<.86?180:a<.93?120:240))%360;s=Math.min(s,.2)}}}
+let l=acc?.9:(rich?Math.max(.55,tone[2]-.2):tone[2]),c=hsl(h,s,l);while(contrast(c,nori)<3&&l<.97){l+=.05;c=hsl(h,s,l)}return{c,h:Math.round(h),neutral:mag<.35}}
+const RC_RAW="rose:fff7f9,ffdce5,ff3b8d,db0072,800040,4c0023;raspberry:fff8f8,ffdddf,ff426c,de0051,82002c,510018;red:fff8f6,ffddd8,ff4647,e0002b,830014,530003;orange:fff8f5,ffded1,fd4d00,cd3c00,752100,401600;cinnamon:fff8f3,ffdfc6,d57300,ac5c00,633300,371d00;amber:fff8ef,ffe0b2,b98300,926700,523800,302100;yellow:fff9e5,ffe53e,9c8b00,7d6f00,463d00,292300;lime:f7ffac,d5f200,819300,677600,394100,222600;chartreuse:e5ffc3,98fb00,5c9b00,497c00,264500,182600;green:e0ffd9,72ff6c,00a21f,008217,004908,062800;emerald:dcffe6,5dffa2,00a05a,008147,004825,002812;aquamarine:daffef,42ffc6,009f78,007f5f,004734,00281b;teal:d7fff7,00ffe4,009e8c,007c6e,00443c,002722;cyan:c4fffe,00fafb,00999a,007a7b,004344,002525;powder:dafaff,8df0ff,0098a9,007987,004048,002227;sky:e3f7ff,aee9ff,0094b4,007590,00404f,001f28;cerulean:e8f6ff,b9e3ff,0092c5,00749d,003c54,001d2a;azure:e8f2ff,c6e0ff,008fdb,0071af,003b5e,001c30;blue:f0f4ff,d4e0ff,0089fc,006dca,00386d,001a39;indigo:f3f3ff,deddff,657eff,0061fc,00328a,001649;violet:f7f1ff,e8daff,9b70ff,794aff,2d0fbf,0b0074;purple:fdf4ff,f7d9ff,d150ff,b01fe3,660087,3a004f;magenta:fff3fc,ffd7f6,f911e0,ca00b6,740068,44003c;pink:fff7fb,ffdcec,ff2fb2,d2008f,790051,4b0030";
+const RCH=RC_RAW.split(";").map(e=>{const[n,c]=e.split(":");return{n,c:c.split(",").map(x=>"#"+x)}}),GRAY=["#f6f6f6","#e2e2e2","#8b8b8b","#6f6f6f","#3e3e3e","#222222"];
+const VIV=[3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3];
+const rcc=(h,s)=>RCH[(h+24)%24].c[s-1];
+function neonOf(h){const a=hue(rcc(h,VIV[h])),l=a<20||a>=340?.6:a<45?.52:a<65?.5:a<85?.47:a<160?.43:a<200?.46:a<245?.6:a<285?.66:.6;return hsl(a,1,l)}
+const MONOFAM=["Pink","Pink","Red","Orange","Orange","Yellow","Yellow","Lime","Lime","Green","Green","Teal","Teal","Cyan","Cyan","Blue","Blue","Blue","Blue","Purple","Purple","Purple","Pink","Pink"];/* mono hue (RCH index 0-23) -> broad color family, used to name Sumi/Shari e.g. "Green Sumi" */
+const RCT=[["tint",1,45],["pastel",2,45],["vivid",3,10]],RCN=[["black",0,72],["charcoal",1,12],["shiso",2,8],["navy",3,4],["plum",4,4]],RCR=[["white",0,60],["gray-1",1,15],["cream",2,15],["hue-1",3,10]],MONOSCALE=[["tints",.9,.62,35],["full",.86,.38,40],["shades",.7,.32,25]],MONOSC=[["filling only",0,55],["whole art",1,45]];
+const MIX=[["classic",40],["neon",40],["mono",20]],ROLL=[["maki",0,92],["uramaki",1,8]];
+/* Display-name mapping: internal ids/weights are kept unchanged; these map ids to the exposed trait values. */
+const DNAME={
+pattern:{"scroll_h":"Scroll","diagonal":"Diagonal","ripple":"Ripple","chase":"Chase","checker":"Checker","sparkle":"Sparkle","wave_1":"Wave","wave_2":"Short Wave","chromie":"Squiggle","filling_cycle":"Maki","text_ants":"Text ANTS","text_tezos":"Text TEZOS","text_paul_hbd":"Text PAUL HBD","text_yolo":"Text YOLO","text_custom":"Text"},
+palette:{"classic":"Classic","neon":"Neon","mono":"Mono"},
+direction:{"forward":"Forward","reverse":"Reverse"},
+ramp:{"random":"Random","trio":"Trio","mirror":"Mirror","duo":"Duo","accent":"Accent","spectrum":"Spectrum"},
+speed:{"normal":"Normal","slow":"Slow","fast":"Fast"},
+roll:{"maki":"Maki","uramaki":"Uramaki"},
+nori:{"black":"Black","charcoal":"Charcoal","shiso green":"Shiso Green","shiso":"Shiso Green","deep navy":"Bluefin","navy":"Bluefin","deep plum":"Deep Plum","plum":"Deep Plum"},
+rice:{"white":"White","cream":"Cream"},
+shape:{"original":"Calm","tall":"Hype"}
+};
+const dn=(c,k)=>(DNAME[c]&&DNAME[c][k])||k;
+const RENDER={scroll_h:"field",diagonal:"field",ripple:"field",chase:"field",checker:"field",sparkle:"field",wave_1:"marquee",wave_2:"marquee",chromie:"flow",filling_cycle:"maki",text_ants:"marquee",text_tezos:"marquee",text_paul_hbd:"marquee",text_yolo:"marquee",text_custom:"marquee"};/* render mechanic group per pattern id; branch on this, never on display names */
+const isText=p=>!!MSGOF[p]||p==="text_custom";/* glyph (message) marquee vs sine-wave marquee */
+/* Speed is drawn from the declared SPD weights (62/30/8). SPEED_RULES come from the grid review and restrict which speeds a combo may take:
+   [patterns, ramps (null = any), palettes (null = any), allowed speeds]. Where several rules match, the allowed sets intersect.
+   The draw is conditioned per allowed-set so the overall odds stay exactly SPD: Fast only comes from combos that allow it (scaled up to hit 8%),
+   slow-only combos take Slow first, and the rest share one Slow:Normal ratio. SPEED_LIMITS=false turns every rule off (plain 62/30/8 everywhere). */
+const SPEED_LIMITS=true;
+const SPEED_RULES=[
+[["checker"],null,null,["slow"]],
+[["scroll_h","diagonal","ripple","chase"],["duo","accent"],null,["normal","slow"]],
+[["ripple"],["spectrum","mirror"],null,["normal","slow"]],
+[["ripple"],["random"],null,["normal","slow"]]];
+const TEXTS=["text_ants","text_tezos","text_paul_hbd","text_yolo"];
+/* ALT (alternate art for minted seeds): same patterns as v1, so every seed keeps its minted pattern and message. v2's lookalike guards are off here:
+   they only matter when choosing new seeds. Duo and Accent still skip Squiggle and Maki, as in v1. */
+const patList=ramp=>ramp==="duo"||ramp==="accent"?PAT.filter(x=>x[0]!=="chromie"&&x[0]!=="filling_cycle"):PAT;
+const speedSet=(cp,ramp,pat)=>{let a=[0,1,2];if(SPEED_LIMITS)SPEED_RULES.forEach(r=>{if(r[0].includes(pat)&&(!r[1]||r[1].includes(ramp))&&(!r[2]||r[2].includes(cp)))a=a.filter(i=>r[3].includes(SPD[i][0]))});return a.join()};
+/* ALT: v1's speed rules (Fast limits for Classic and Neon only, as minted). The SPEED_RULES above are v2's, kept only for reference */
+const SPEED_RULES1=SPEED_RULES.map((r,i)=>i===1||i===2?[r[0],r[1],["classic","neon"],r[3]]:r);
+const speedSet1=(cp,ramp,pat)=>{let a=[0,1,2];if(SPEED_LIMITS)SPEED_RULES1.forEach(r=>{if(r[0].includes(pat)&&(!r[1]||r[1].includes(ramp))&&(!r[2]||r[2].includes(cp)))a=a.filter(i=>r[3].includes(SPD[i][0]))});return a.join()};
+const SPW=(()=>{const sh={};MIX.forEach(m=>RAMP.forEach(r=>{const l=patList(r[0],m[0]);l.forEach(p=>{const k=speedSet1(m[0],r[0],p[0]);sh[k]=(sh[k]||0)+wt(m)/sum(MIX)*wt(r)/sum(RAMP)*wt(p)/sum(l)})}));
+const sl=SPD[1][2]/sum(SPD),fa=SPD[2][2]/sum(SPD),ix=k=>k.split(",").map(Number);let rA=0,fix=0,mix=0;
+for(const k in sh)if(ix(k).includes(2))rA+=sh[k];
+const pf=Math.min(1,fa/rA);
+for(const k in sh){const m=sh[k]*(ix(k).includes(2)?1-pf:1);if(k==="1")fix+=m;else if(ix(k).includes(0)&&ix(k).includes(1))mix+=m}
+const q=Math.max(0,Math.min(1,(sl-fix)/mix)),W={};
+for(const k in sh){const a=ix(k),f=a.includes(2)?pf:0,m=1-f;W[k]=k==="1"?[0,1,0]:a.includes(0)&&a.includes(1)?[m*(1-q),m*q,f]:[a.includes(0)?m:0,a.includes(1)?m:0,f]}
+return W})();
+/* ALT: speed is exactly as minted (v1's speed rules and shares), so the same draw gives the same speed */
+function pickSpeed(u,cp,ramp,pat){const w=SPW[speedSet1(cp,ramp,pat)];let x=u*(w[0]+w[1]+w[2]),i=0;for(;i<2;i++){if((x-=w[i])<0)break}return[SPD[i],SPD[i][2]/sum(SPD)]}
+function noriLabel(raw){return DNAME.nori[raw]||raw}
+function riceLabel(raw){return DNAME.rice[raw]||raw}
+function rcRoles(mode,R){const pk=()=>Math.floor(R()*24),w=x=>(x%24+24)%24,shf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const m=pk(),sd=R()<.5?1:-1;let H;
+if(mode==="duo"){let b=w(m+sd*3);for(let t=0;t<14;t++){b=w(m+sd*(3+Math.floor(R()*6)));if(contrast(neonOf(m),neonOf(b))>=1.4)break}H=[m,b,m,b,m,b]}
+else if(mode==="accent"){let b=w(m+sd*3);for(let t=0;t<14;t++){b=w(m+sd*(3+Math.floor(R()*6)));if(contrast(neonOf(m),neonOf(b))>=1.4)break}H=[m,m,m,m,m,b]}
+else if(mode==="trio"||mode==="mirror"){const t=R()<.7?[m,w(m+3*sd),w(m+6*sd)]:[m,w(m+4*sd),w(m+8*sd)];H=mode==="trio"?[t[0],t[0],t[1],t[1],t[2],t[2]]:[t[0],t[1],t[2],t[2],t[1],t[0]]}
+else if(mode==="spectrum")H=[0,4,8,12,16,20].map(i=>w(m+i));
+else{const t=shf([0,1,2,3,4,5,6,7,8]).slice(0,4).map(o=>w(m+sd*o));H=[t[0],t[1],t[2],t[3],t[0],t[1]]}
+const C=H.map(neonOf),CN=H.map(h=>RCH[h].n);let sx=0,sy=0;H.forEach(h=>{sx+=Math.cos(h*Math.PI/12);sy+=Math.sin(h*Math.PI/12)});
+let bh=Math.round(((Math.atan2(sy,sx)*12/Math.PI)+24)%24+(BGMODE==="old"?12:0))%24,acc=false;
+const neutral=Math.hypot(sx,sy)/6<.35;
+if(BGMODE!=="old"&&!neutral){const a=R();if(a>=.72){acc=true;bh=((bh+(a<.86?12:a<.93?8:16))%24+24)%24}}/* variation: a pale accent hue (complement/triadic), lightest tint only */
+const[t,pt]=wp(R,RCT),[n,pn]=wp(R,RCN),[r,pr]=wp(R,RCR);
+const bs=acc?1:(t[1]===3?((bh<2||bh>21)?2:VIV[bh]):t[1]===2&&VIV[bh]===2?1:t[1]),bg=neutral?GRAY[t[1]===1?0:1]:rcc(bh,bs);
+const cream=r[1]===2||r[1]===3;const rice=cream?"#f6eed9":"#ffffff";/* Option A: unify Neon nori/rice to the canonical sets (same colors + names as Classic). white+gray-1 -> White, cream+hue-1 -> Cream (75/25). */
+return{C,CN,bg,nori:NORI[n[1]][1],rice,pr:pt*pn*pr,tone:neutral?"neutral gray bg":"complement "+t[0]+" bg",noriN:NORI[n[1]][0],riceN:cream?"cream":"white"}}
+function lab(h){const[r,g,b]=rgb(h).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)),f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116,X=f((r*.4124+g*.3576+b*.1805)/.95047),Y=f(r*.2126+g*.7152+b*.0722),Z=f((r*.0193+g*.1192+b*.9505)/1.08883);return[116*Y-16,500*(X-Y),200*(Y-Z)]}
+const dE=(a,b)=>{const x=lab(a),y=lab(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])};
+function monoRoles(R,mode,R2){const h=Math.floor(R()*24),a=hue(rcc(h,VIV[h])),[sc0,ps]=wp(R,MONOSCALE),[n,pn]=wp(R,RCN),[r,pr]=wp(R,RCR),[sc,pc]=wp(R,MONOSC),W=sc[1]===1;
+const rice=W?hsl(a,.5,.94):r[1]===0?"#ffffff":r[1]===1?GRAY[0]:r[1]===2?rcc(5,1):rcc(h,1),nori=hsl(a,.6,.1);/* truly mono: nori is always a dark shade of the mono hue, not a canonical seaweed color */
+let hi=W?Math.min(sc0[1],.72):sc0[1],lo=sc0[2];while(contrast(hsl(a,1,hi),rice)<1.3&&hi>.45)hi-=.02;if(hi-lo<.27)lo=Math.max(.16,hi-.27);
+const lv=()=>[0,1,2,3].map(i=>hi-(hi-lo)*i/3);
+for(let t=0;t<10;t++){const cs=lv().map(l=>hsl(a,1,l));let md=99;for(let i=0;i<3;i++)md=Math.min(md,dE(cs[i],cs[i+1]));if(md>=14||lo<=.16)break;lo=Math.max(.16,lo-.03)}
+/* the 6 roles follow the Profile, picking from the 4 shades (indexes into L). Duo and Accent shades sit 2+ steps apart; Random uses 3+ shades.
+   ALT: the shade picks use their own stream (R2, from the seed), so the main stream advances exactly as in v1 and every other trait and detail stays as minted */
+const pk=()=>Math.floor(R2()*4),far=x=>{let y;do{y=pk()}while(Math.abs(y-x)<2);return y},dist=k=>{const u=[];while(u.length<k){const c=pk();if(!u.includes(c))u.push(c)}return u};
+let I;if(mode==="random"){do{I=[0,1,2,3,4,5].map(pk)}while(new Set(I).size<3)}else if(mode==="trio"){const u=dist(3);I=[u[0],u[0],u[1],u[1],u[2],u[2]]}
+else if(mode==="mirror"){const u=dist(3);I=[u[0],u[1],u[2],u[2],u[1],u[0]]}else if(mode==="duo"){const x=pk(),y=far(x);I=[x,y,x,y,x,y]}
+else if(mode==="accent"){const x=pk(),y=far(x);I=[x,x,x,x,x,y]}else I=[0,1,2,3,2,1];
+const L=lv(),C=I.map(i=>hsl(a,1,L[i]));
+return{C,CN:Array(6).fill(RCH[h].n+" mono"),bg:W?hsl(a,.7,.82):hsl(a,.7,.92),nori,rice,pr:ps*pc*(W?1:pn*pr),tone:"mono "+RCH[h].n+" ("+sc0[0]+", "+sc[0]+")",noriN:MONOFAM[h]+" Sumi",riceN:MONOFAM[h]+" Shari"}}
+const PAL={cur:"mix"};
+function types(){const g=Array.from({length:11},()=>Array(11).fill("n"));
+const f=(r,c0,c1,t)=>{for(let c=c0;c<=c1;c++)g[r][c]=t};
+f(0,0,2,"b");f(0,8,10,"b");g[1][0]="b";g[1][10]="b";g[10][0]="b";g[10][10]="b";
+f(1,3,7,"r");for(let r=2;r<=4;r++)f(r,1,9,"r");f(5,3,7,"r");return g}
+function ramp(mode,R){const pick=a=>a[Math.floor(R()*a.length)],o=()=>pick(K);let C;
+if(mode==="random"){do{C=Array.from({length:6},o)}while(new Set(C).size<4)}
+else if(mode==="trio"){const u=[];while(u.length<3){const c=o();if(!u.includes(c))u.push(c)}C=[u[0],u[0],u[1],u[1],u[2],u[2]]}
+else if(mode==="mirror"){const a=[];while(a.length<3){const c=o();if(!a.includes(c))a.push(c)}C=[a[0],a[1],a[2],a[2],a[1],a[0]]}
+else if(mode==="duo"){const a=o();let b=o();while(b===a||contrast(P[a],P[b])<1.4)b=o();C=[a,b,a,b,a,b]}
+else if(mode==="accent"){const a=o();let b=o();while(b===a||contrast(P[a],P[b])<1.4)b=o();C=[a,a,a,a,a,b]}
+else{const s=Math.floor(R()*6);C=Array.from({length:6},(_,i)=>K[(i+s)%6])}
+return C.map(k=>P[k])}
+function idx(p,x,y,f,d){const sn=()=>SNAKE.findIndex(c=>c[0]===x&&c[1]===y);
+switch(p){case"scroll_h":return x-2+d*f;case"diagonal":return x+y+d*f;
+case"ripple":return Math.floor(Math.sqrt((x-5)*(x-5)+4*(y-3)*(y-3)))*1+d*f;case"chase":return sn()+d*f;
+case"checker":return((x+y+f)&1)*3+(f>>2)*d;default:return x-2+y}}
+function paths(M){const by={};for(const k in M){const[x,y]=k.split(",").map(Number);(by[M[k]]=by[M[k]]||[]).push([x,y])}
+let o="";for(const col in by){const cs=by[col].sort((a,b)=>a[1]-b[1]||a[0]-b[0]);let d="";for(let i=0;i<cs.length;){let j=i;while(j+1<cs.length&&cs[j+1][1]===cs[i][1]&&cs[j+1][0]===cs[j][0]+1)j++;const w=j-i+1;d+="M"+cs[i][0]+" "+cs[i][1]+"h"+w+"v1h-"+w+"z";i=j+1}o+='<path fill="'+col+'" d="'+d+'"/>'}return o}
+const clean=t=>t.toUpperCase().split("").filter(c=>c===" "||FONT[c]).join("");
+const adv=t=>t.split("").reduce((a,c)=>a+(c===" "?2:4),0);
+function gen(seed,opt){opt=opt||{};window.MAKI_TXT=null;const R=rng(seed);let F0=null;
+let cp=PAL.cur,pmix=1;if(cp==="mix"){const[m,q]=wp(R,MIX);cp=m[0];pmix=q}
+const Q=cp!=="classic",[rm,p0]=wp(R,RAMP);let C=ramp(rm[0],R);
+let[pt,pp]=wp(R,patList(rm[0],cp));const[di,pd]=wp(R,DIR);const su=R();let sp,ps;/* speed is drawn here (same RNG position) but resolved after the pattern is final, see pickSpeed */
+let[tn,p1]=wp(R,TONE),[no,p2]=wp(R,Q?[["-","#000000",1]]:NORI),[ri,p3]=wp(R,Q?[["-","#ffffff",1]]:RICE);
+const[sh,p5]=wp(R,SHAPE),[ro,p9]=wp(R,ROLL);
+let QB=null;if(Q){QB=cp==="mono"?monoRoles(R,rm[0],rng(seed+"|alt")):rcRoles(rm[0],R);no=[QB.noriN,QB.nori];ri=[QB.riceN,QB.rice];p1=1;p2=QB.pr;p3=1;C=QB.C;tn=[QB.tone,null]}
+
+if((pt[0]==="chromie"||(pt[0]==="filling_cycle"&&cp!=="classic"))&&new Set(C).size<3)pt=PAT.find(x=>x[0]==="scroll_h");
+let msg=MSGOF[pt[0]]||"";if(opt.text){pt=["text_custom"];msg=clean(opt.text)||"HI";pp=1}
+const spr=pickSpeed(su,cp,rm[0],pt[0]);sp=spr[0];ps=spr[1];
+if(ro[1]===0&&cp!=="mono"&&C.some(k=>contrast(k,ri[1])<1.3)&&C.every(k=>contrast(k,"#ffffff")>=1.3))ri=["white","#ffffff"];
+const U=ro[1]===1,bgc=Q?{c:QB.bg,h:Math.round(hue(QB.bg)),neutral:false,name:tn[0]}:compBg(C,tn,no[1],R);
+if(ri[0]==="cream"&&!bgc.neutral&&bgc.h>65&&bgc.h<310)ri=["white","#ffffff"];/* warm Cream rice clashes on cool-hued pieces; White always reads, so fall back to it there */
+const bodyC=U?ri[1]:no[1],ringC=U?no[1]:ri[1];let bgCol=bgc.c;if(contrast(bgCol,bodyC)<2)bgCol=no[1];
+const lite=Q?[bgc.c,ri[1]].sort((a,b)=>lum(b)-lum(a))[0]:"#ffffff";
+let eyeC=ringC;/* eyes match the inner/contrasting roll color: maki -> rice (White/Cream eyes), uramaki -> nori (dark eyes). Separate Eyes trait removed. */
+const inF=(x,y)=>FILL.some(c=>c[0]===x&&c[1]===y);
+window.MAKI_PAL=[...new Set(C)];/* the piece's letter colours, in the order a custom message would use them; the game's welcome title is coloured with these */
+const S={},T=types();
+for(let y=0;y<11;y++)for(let x=0;x<11;x++){const t=T[y][x];if(t==="r"&&!inF(x,y))S[x+","+y]=ringC}
+const H=sh[1],top=10-H;
+let body="";
+if(RENDER[pt[0]]==="marquee"){let M={},steps,v=[];
+if(isText(pt[0])){const L=adv(msg),uc=[...new Set(C)];window.MAKI_TXT={msg:msg,cols:uc};steps=Math.ceil((L+8)/12)*12;let cx=0;/* pad with blank steps so the loop is a whole number of hops at every speed. MAKI_TXT: the exact message + letter colours, read by the game's sky letters */
+msg.split("").forEach((ch,i)=>{if(ch!==" "){const g=FONT[ch];for(let r=0;r<3;r++)for(let c=0;c<3;c++)if(g[r*3+c]==="1")M[(9+cx+c)+","+(2+r)]=uc[i%uc.length]}cx+=ch===" "?2:4});
+for(let k=0;k<steps;k++)v.push("-"+k+" 0")}
+else{const fq=pt[0]==="wave_2"?2:1;steps=12;let py=null;
+for(let c=0;c<19;c++){const w=Math.sin(2*Math.PI*fq*c/12),y=3+(w>.4?1:w<-.4?-1:0),x=2+c;M[x+","+y]=C[c%6];if(py!==null&&Math.abs(y-py)>1)M[x+",3"]=C[c%6];py=y}
+for(let k=0;k<steps;k++)v.push("-"+k+" 0")}
+if(di[1]<0&&!isText(pt[0]))v=[v[0]].concat(v.slice(1).reverse());F0=M;
+/* No nested <svg>: its separate viewport rounds independently at fractional display scale and seams at the band edge. Instead the glyph layer scrolls unclipped and is masked back to the band window by opaque pixels that snap to the grid like the body. Draw order: nori band (under text) -> scrolling text -> ring garnish (cols 1/9 + corners) -> body edges (cols 0/10) -> background margins (roll cols -1/11, the 1px viewBox gutter). */
+body='<path fill="'+no[1]+'" d="M3 2h5v3h-5zM2 3h1v1h-1zM8 3h1v1h-1z"/><g clip-path="url(#mkq)"><clipPath id="mkq"><rect x="-0.5" y="-10" width="12" height="40"/></clipPath><g><animateTransform attributeName="transform" type="translate" calcMode="discrete" values="'+v.join(";")+'" dur="'+steps*sp[1]+'ms" repeatCount="indefinite"/>'+paths(M)+'</g></g><path fill="'+ringC+'" d="M1 2h1v3h-1zM9 2h1v3h-1zM2 2h1v1h-1zM2 4h1v1h-1zM8 2h1v1h-1zM8 4h1v1h-1z"/><path fill="'+bodyC+'" d="M0 2h1v3h-1zM10 2h1v3h-1z"/><path fill="'+bgCol+'" d="M-1 2h1v3h-1zM11 2h1v3h-1z"/>';
+}
+else if(RENDER[pt[0]]==="maki"){const q=rng(seed+"mk"),u=[...new Set(C)],cyc=Array.from({length:6},(_,i)=>u[i%u.length]),SEM=cp==="classic"?[P.pink,P.red,P.orange,P.yellow,P.lime,P.green]:cyc,OC=cp==="classic"?[P.pink,P.green,P.lime,P.red,P.orange,P.yellow]:cyc;
+const rk=(x,y)=>x===2||x===8?3:x===3||x===7?2:(x===5&&y===3)?0:1,orig={};for(const k in ORIGL)orig[k]=OC[ORIGL[k]];
+const ix=[0,1,2,3,4,5,6,7];for(let i=7;i>0;i--){const j=Math.floor(q()*(i+1));[ix[i],ix[j]]=[ix[j],ix[i]]}const ord=ix.slice(0,3);
+const tm=n=>{const e=SEM[MAKI[n][1]],d=SEM[MAKI[n][3]];let kk=MAKI[n][2],k=SEM[kk],g=0;while(k===e&&g<6){kk++;g++;k=SEM[kk%6]}const m={};FILL.forEach(([x,y])=>{const r=rk(x,y);m[x+","+y]=r===0?d:r===1?k:e});return m};
+const mix=(a,b,t)=>{const m={};FILL.forEach(([x,y])=>{const k=x+","+y;m[k]=rk(x,y)<=t?b[k]:a[k]});return m};
+const seq=[];let cur=orig;for(let i=0;i<3;i++)seq.push(cur);
+ord.forEach(n=>{const nx=tm(n);for(let t=0;t<3;t++)seq.push(mix(cur,nx,t));seq.push(nx,nx,nx);cur=nx});/* 3 swap + 3 hold per roll: 3+18+3 = 24 steps = 2/4/6 hops (Fast/Normal/Slow) */for(let t=0;t<3;t++)seq.push(mix(cur,orig,t));F0=seq[0];
+const N=seq.length,st=sp[1],Tt=N*st;
+seq.forEach((m,f)=>{body+='<g visibility="'+(f?"hidden":"visible")+'"><animate attributeName="visibility" calcMode="discrete" values="visible;hidden;hidden" keyTimes="0;'+(1/N).toFixed(9)+';1" begin="'+f*st+'ms" dur="'+Tt+'ms" repeatCount="indefinite"/>'+paths(m)+'</g>'});
+}
+else{const kt=Array.from({length:FR+1},(_,i)=>(i/FR).toFixed(9)).join(";"),fl=RENDER[pt[0]]==="flow";let SHP=[];
+if(fl){const q=rng(seed+"flow"),tf=[0,1,2,3,4,5,6].map(c=>c>0&&c<6&&q()<.5);if(tf.filter(Boolean).length<2){tf[2]=true;tf[4]=true}let py=null;
+for(let c=0;c<7;c++){const w=Math.sin(2*Math.PI*c/6),y=3+(w>.4?1:w<-.4?-1:0),cells=[y];if(py!==null&&Math.abs(y-py)>1)cells.push(3);
+if(tf[c]){const e=y===4?3:y===2?3:(q()<.5?2:4);if(!cells.includes(e))cells.push(e)}SHP.push(cells);py=y}}
+for(let f=0;f<FR;f++){const M={};
+if(fl){FILL.forEach(([x,y])=>M[x+","+y]=no[1]);SHP.forEach((cells,c)=>{const k=C[((c+di[1]*f)%6+6)%6];cells.forEach(y=>M[(2+c)+","+y]=k)})}
+else if(pt[0]==="checker"){const i=(f>>1)%6;let j=(i+3)%6,k=0;while(C[j]===C[i]&&k<6){j=(j+1)%6;k++}FILL.forEach(([x,y])=>{M[x+","+y]=((x+y+f)&1)?C[j]:C[i]})}
+else FILL.forEach(([x,y])=>{M[x+","+y]=C[((idx(pt[0],x,y,f,di[1])%6)+6)%6]});
+if(!fl){const vs=FILL.map(c=>M[c[0]+","+c[1]]);if(new Set(vs).size<2){const o=C.find(k=>k!==vs[0]);if(o)FILL.forEach(([x,y])=>{if((x+y)&1)M[x+","+y]=o})}}
+if(pt[0]==="sparkle"){const r2=rng(seed+"s"+f);for(let k=0;k<3;k++){const c=FILL[Math.floor(r2()*FILL.length)];M[c[0]+","+c[1]]=lite}}
+if(f===0)F0=M;
+const vals=Array.from({length:FR+1},(_,i)=>i%FR===f?"visible":"hidden").join(";");
+body+='<g visibility="'+(f?"hidden":"visible")+'"><animate attributeName="visibility" calcMode="discrete" values="'+vals+'" keyTimes="'+kt+'" dur="'+FR*sp[1]+'ms" repeatCount="indefinite"/>'+paths(M)+'</g>'}}
+const HT=HOP.s+HOP.up+HOP.t+HOP.down,hs=["T","M","S","M","T"],hk=[0,HOP.t,HOP.t+HOP.down,HOP.t+HOP.down+HOP.s,HT].map(v=>(v/HT).toFixed(9)).join(";"),hv=f=>hs.map(f).join(";"),an=(a,f)=>'<animate class="hop" attributeName="'+a+'" calcMode="discrete" values="'+hv(f)+'" keyTimes="'+hk+'" dur="'+HT+'ms" repeatCount="indefinite"/>';
+let eyes='';[2,6].forEach(x=>{eyes+='<rect x="'+x+'" y="'+top+'" width="1" height="'+H+'" fill="'+eyeC+'">'+an("y",c=>c==="S"?top+1:top)+'</rect>'});
+const Sup={},Slo={};for(const k in S){(+k.split(",")[1]<=5?Sup:Slo)[k]=S[k]}
+const topG='<g><animateTransform class="hop" attributeName="transform" type="translate" calcMode="discrete" values="'+hv(c=>"0 "+({S:2,M:1,T:0})[c])+'" keyTimes="'+hk+'" dur="'+HT+'ms" repeatCount="indefinite"/><path fill="'+bodyC+'" d="M3 0h5v1h-5zM1 1h9v1h-9zM0 2h11v4h-11z"/>'+paths(Sup)+body+'</g>';
+const ovl=[0,9].map(x=>'<rect x="'+x+'" y="9" width="2" height="2" fill="'+bodyC+'" visibility="hidden">'+an("visibility",c=>c==="S"?"visible":"hidden")+'</rect>').join('');
+const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="520" height="520" shape-rendering="crispEdges"><rect width="13" height="13" fill="'+bgCol+'"/><g transform="translate(1,2)"><path fill="'+bodyC+'" d="M0 5h11v5h-11zM1 10h9v1h-9z"/>'+paths(Slo)+ovl+topG+eyes+'</g></svg>';
+const hideRamp=cp==="classic"&&pt[0]==="filling_cycle";/* Classic Maki ignores the ramp entirely (fixed SEM/OC colors, order from seed+"mk"), so Profile is not a real trait there: drop it from tr, the swatch bars and the odds (odds use the ramp-marginal chance of landing on Maki) */
+const rkp=hideRamp?(()=>{const mk=PAT.find(x=>x[0]==="filling_cycle")[1];return RAMP.reduce((a,r)=>{const l=patList(r[0],"classic");return a+(l.some(x=>x[0]==="filling_cycle")?wt(r)/sum(RAMP)*mk/sum(l):0)},0)})():p0*pp;
+const odds=opt.text?0:1/(pmix*rkp*(isText(pt[0])?1:pd)*ps*p1*p2*p3*p5*p9);
+const tr={"Pattern":dn('pattern',pt[0]),"Direction":isText(pt[0])?"Reverse":dn('direction',di[0]),"Profile":dn('ramp',rm[0]),"Speed":dn('speed',sp[0]),"Palette":dn('palette',cp),"Nori":noriLabel(no[0]),"Rice":riceLabel(ri[0]),"Eye Shape":dn('shape',sh[0]),"Form":dn('roll',ro[0])};
+if(hideRamp)delete tr["Profile"];
+const _skip=new Set([no[1],ri[1],bgCol,ringC,bodyC,lite,eyeC]),_t={};if(F0)for(const _k in F0){const _c=F0[_k];if(!_skip.has(_c))_t[_c]=(_t[_c]||0)+1}
+const pal=hideRamp?Object.keys(_t):[...new Set([...C,...Object.keys(_t)])],usage=pal.map(c=>_t[c]||0);
+return{svg,mode:pt[0],odds,tr,pal,usage,bg:bgCol,ink:bodyC}}
+window.MKMN_ALT=gen;window.MKMN_DE=dE;
+window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return gen(s)}finally{window.MAKI_TXT=t;window.MAKI_PAL=p}};
+})();</script>
+<script>/* three.js loads after the art is on screen, so the piece never waits for the game's library (about 155 KB over the network).
+   Until it arrives, G or the KATAMAKI button marks the button as loading and the game opens as soon as it's ready.
+   If it can't load, the game starts anyway and shows its "three.js not loaded" message. */
+(function(){var want=false,kb=document.querySelector(".export-bar .button");
+  function ask(){want=true;if(kb)kb.classList.add("loading")}
+  window.KATAMAKI_LAUNCH=ask;
+  function keys(e){var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.key==="g"||e.key==="G"){e.preventDefault();ask()}}
+  window.addEventListener("keydown",keys);
+  function go(){window.removeEventListener("keydown",keys);if(kb)kb.classList.remove("loading");mkmnGame();if(want&&window.KATAMAKI_LAUNCH)window.KATAMAKI_LAUNCH()}
+  var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js";s.onload=s.onerror=go;document.head.appendChild(s)})();
+</script>
+<script>/* B-SIDE: the alternate art, the ⋯ menu, keyboard shortcuts and the game's keycap hints.
+   - B-SIDE shows only when this seed's alternate looks visibly different: the biggest colour change of any pixel, over the whole loop, is 30 ΔE or more.
+     On, it draws the alternate (MKMN_ALT) and adds &art=b to the address; a new seed starts on its minted art.
+   - ⋯ opens the menu: Download SVG, Download GIF, View Seed (opens the seed field), Random Seed.
+   - Keys, one meaning each. Art: I traits, M hop, B B-side, V view seed, N new seed, E SVG, Shift+E GIF. Both: G art / game, Esc back, ? the shortcuts card.
+     The game keeps W A S D / arrows, Space, P pause, R restart, Enter start / keep rolling. */
+(function(){var bar=document.querySelector(".export-bar");if(!bar||!window.MKMN_RESEED||!window.MKMN_GEN2||!window.MKFLAT)return;
+  /* icons on the 16 grid, same height (about 11.7) and solid fill as the globe and arrows */
+  var DIA='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 2.15L13.85 8L8 13.85L2.15 8ZM8 3.71L3.71 8L8 12.29Z"/></svg>'; /* half-filled diamond: outline on the left, solid on the right */
+  var MORE='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.35 6.8A1.2 1.2 0 1 1 3.35 9.2A1.2 1.2 0 1 1 3.35 6.8ZM8 6.8A1.2 1.2 0 1 1 8 9.2A1.2 1.2 0 1 1 8 6.8ZM12.65 6.8A1.2 1.2 0 1 1 12.65 9.2A1.2 1.2 0 1 1 12.65 6.8Z"/></svg>';
+  var kb=bar.children[0],dl=bar.children[1],gl=bar.children[2],pill=bar.querySelector(".seedb"),ARR=dl.querySelector("svg").outerHTML;
+  function btn(cls,html,label){var a=document.createElement("a");a.className="button "+cls;a.href="#";a.setAttribute("role","button");a.setAttribute("aria-label",label);a.innerHTML=html;return a}
+  var bs=btn("bside","<span>B-SIDE</span>"+DIA,"B-side: alternate art");bs.setAttribute("aria-pressed","false");bs.title="B-side [B]";bs.hidden=true;
+  var more=btn("more",MORE,"More");more.setAttribute("aria-haspopup","menu");
+  var menu=document.createElement("div");menu.className="mkmenu";menu.setAttribute("role","menu");
+  function mi(fn){var a=document.createElement("a");a.className="mi";a.href="#";a.setAttribute("role","menuitem");a.innerHTML="<span></span>";a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();shut();fn()});return a}
+  var seedIt=mi(function(){pill.querySelector(".st").click()}),newIt=mi(function(){pill.querySelector(".rr").click()});
+  /* keycaps: square, except Enter, Space and Esc, which are spelled out on a wider cap. Shift is the shift arrow; the arrow keys use the download arrow, turned; a "/" between keys stays plain text */
+  var SHIFT='<svg viewBox="1.5 0.5 12 12" aria-label="Shift"><path fill="currentColor" fill-rule="evenodd" d="M7.5 1C7.66148 1 7.81301 1.07798 7.90687 1.20938L12.9069 8.20938C13.0157 8.36179 13.0303 8.56226 12.9446 8.72879C12.8589 8.89533 12.6873 9 12.5 9H10V11.5C10 11.7761 9.77614 12 9.5 12H5.5C5.22386 12 5 11.7761 5 11.5V9H2.5C2.31271 9 2.14112 8.89533 2.05542 8.72879C1.96972 8.56226 1.98427 8.36179 2.09314 8.20938L7.09314 1.20938C7.18699 1.07798 7.33853 1 7.5 1ZM3.4716 8H5.5C5.77614 8 6 8.22386 6 8.5V11H9V8.5C9 8.22386 9.22386 8 9.5 8H11.5284L7.5 2.36023L3.4716 8Z"/></svg>';
+  var ARK=ARR.replace(' class="icon"',"").replace('aria-hidden="true"','aria-hidden="true" style="transform:rotate(RDEG)"'),ROT={"↓":0,"↑":180,"←":90,"→":-90};
+  var WIDE=["Enter","Space","Esc"];
+  function cap1(x){if(x==="Shift")return SHIFT;if(WIDE.indexOf(x)>=0)return x;if(x in ROT)return ARK.replace("RDEG",ROT[x]+"deg");return x}
+  function caps(str,sep){return str.split(sep||" ").map(function(x){return x==="/"?'<span class="sl">/</span>':"<kbd"+(WIDE.indexOf(x)>=0?' class="w"':"")+">"+cap1(x)+"</kbd>"}).join("")}
+  function lab(a,txt,key){a.querySelector("span").textContent=txt;var k=document.createElement("i");k.className="keys";k.innerHTML=caps(key,"+");a.appendChild(k)}
+  window.MKMN_GIFLABEL="Download GIF"; // the art's GIF button resets its label to this after a save
+  lab(dl,"Download SVG","E");lab(gl,"Download GIF","Shift+E");lab(seedIt,"View Seed","V");lab(newIt,"Random Seed","N");
+  [kb,dl,gl].forEach(function(n){if(n.parentNode)n.parentNode.removeChild(n)});
+  bar.insertBefore(kb,pill);bar.insertBefore(bs,pill);bar.insertBefore(more,pill);
+  menu.appendChild(dl);menu.appendChild(gl);menu.appendChild(seedIt);menu.appendChild(newIt);bar.appendChild(menu);
+  /* the menu closes on a pick, a tap outside or Esc. While a GIF renders it stays open (the spinner shows) and closes once it's done */
+  function shut(){if(menu._hold)return;menu.classList.remove("open");more.classList.remove("on")}
+  more.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();var o=!menu.classList.contains("open");shut();if(o){menu.classList.add("open");more.classList.add("on")}});
+  [dl,gl].forEach(function(a){a.addEventListener("click",function(){setTimeout(shut,0)})}); // saving still runs, then the menu closes
+  gl.addEventListener("click",function(){setTimeout(function(){if(!gl.classList.contains("gif-busy"))return;menu._hold=true;var mo=new MutationObserver(function(){if(!gl.classList.contains("gif-busy")){mo.disconnect();menu._hold=false;shut()}});mo.observe(gl,{attributes:true,attributeFilter:["class"]})},0)},true);
+  menu.addEventListener("click",function(e){e.stopPropagation()});
+  document.addEventListener("pointerdown",function(e){if(menu.classList.contains("open")&&!menu.contains(e.target)&&!more.contains(e.target))shut()},true);
+  /* shortcuts card (?): a click on it or anywhere else closes it. The click that closes it from outside does nothing else (it doesn't also toggle the traits or press a button) */
+  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["B","B-side"],["V","View seed"],["N","New seed"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W S A D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
+  var card=document.createElement("div");card.className="mkcard";card.innerHTML='<div class="ttl">Keyboard shortcuts</div>'+rows.map(function(r){return r[1]?'<div class="row"><span class="k">'+caps(r[0])+'</span>'+r[1]+'</div>':'<div class="hd">'+r[0]+'</div>'}).join("");document.body.appendChild(card);
+  function cardOn(){return card.classList.contains("open")}
+  /* the card takes the piece's colours, and keeps following them while it's open (a new seed or B-SIDE recolours it) */
+  function cardPaint(){if(!cardOn())return;if(!fit()){card.classList.remove("open");return}requestAnimationFrame(cardPaint);var st=document.querySelector(".stage");if(!st)return;var cs=getComputedStyle(st),bg="rgba("+cs.getPropertyValue("--ink-rgb").trim()+",.9)",fg=cs.getPropertyValue("--bg").trim()||"#0b0b0c";if(card._bg!==bg){card._bg=bg;card.style.background=bg}if(card._fg!==fg){card._fg=fg;card.style.color=fg}}
+  function fit(){var s=Math.min(1,(innerWidth-24)/card.offsetWidth,(innerHeight-24)/card.offsetHeight);if(s<.7)return false;var t="translate(-50%,-50%) scale("+s.toFixed(3)+")";if(card._t!==t){card._t=t;card.style.transform=t}return true} /* shrinks the card to fit the window, down to 70%; smaller than that, the card doesn't open (or closes) */
+  function cardShow(on){var was=cardOn();card.classList.toggle("open",on);if(on&&!fit()){card.classList.remove("open");return}if(on&&!was)cardPaint()}
+  card.addEventListener("click",function(e){e.stopPropagation();cardShow(false)});
+  var eat=false;
+  document.addEventListener("pointerdown",function(e){if(cardOn()&&!card.contains(e.target)){cardShow(false);eat=true}},true);
+  window.addEventListener("click",function(e){if(eat){eat=false;e.stopImmediatePropagation();e.preventDefault()}},true);
+  window.addEventListener("pointerup",function(){setTimeout(function(){eat=false},0)},true); // a drag that never clicks doesn't swallow the next click
+  function act(k,sh){if(k==="e"){if(sh)gl.click();else{dl.dispatchEvent(new FocusEvent("focus"));dl.click()}return true} /* the SVG link is refreshed on a press or focus, so send it a focus first */ if(k==="v"){shut();var st=document.querySelector(".stage");if(st)st.classList.add("show");pill.querySelector(".st").click();return true}if(k==="n"){shut();pill.querySelector(".rr").click();return true}if(k==="b"){if(!bs.hidden)bs.click();return true}return false}
+  window.addEventListener("keydown",function(e){var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;if(e.metaKey||e.ctrlKey||e.altKey)return;
+    var k=e.key.length===1?e.key.toLowerCase():e.key;
+    if(k==="?"){e.preventDefault();e.stopImmediatePropagation();cardShow(!cardOn());return}
+    if(cardOn()&&k==="Escape"){e.preventDefault();e.stopImmediatePropagation();cardShow(false);return}
+    var g=document.getElementById("game");if(g&&g.classList.contains("on"))return; // the game handles its own keys
+    if(k==="Escape"&&menu.classList.contains("open")){e.preventDefault();e.stopImmediatePropagation();shut();return}
+    if(act(k,e.shiftKey)){e.preventDefault();e.stopImmediatePropagation()}},true);
+  /* game hints (keyboard): the keys as keycaps in groups. Both hints fade out after 8 s of play and come back on any overlay (pause, end, welcome). Touch keeps its own text hint (fading the same way), and no top hint */
+  (function(){var G=document.getElementById("game"),h=G&&G.querySelector(".hint"),x=G&&G.querySelector(".exit");if(!h)return;
+    var groups=[["W S","Roll"],["A D","Steer"],["Space","Hop"],["P","Pause"],["R","Restart"]];
+    function draw(){if(G.classList.contains("touch")){h.classList.remove("caps");return}h.classList.add("caps");h.innerHTML=groups.map(function(g){return '<span class="g">'+caps(g[0])+'<span class="t">'+g[1]+'</span></span>'}).join("")}
+    draw();new MutationObserver(function(){if(G.classList.contains("touch")&&h.classList.contains("caps"))draw()}).observe(G,{attributes:true,attributeFilter:["class"]});
+    var t0=0;(function tick(t){requestAnimationFrame(tick);var play=G.classList.contains("on")&&![].some.call(G.querySelectorAll(".overlay"),function(o){return !o.classList.contains("hidden")});
+      if(!play)t0=0;else if(!t0)t0=t;var gone=play&&t-t0>8000;h.classList.toggle("gone",gone);if(x)x.classList.toggle("gone",gone)})(0)})();
+  /* a field outside the game (the seed field, or the Message cell) can keep keyboard focus behind the game, and the game ignores keys typed into a field. Opening the game drops that focus */
+  (function(){var G=document.getElementById("game");if(!G)return;new MutationObserver(function(){if(!G.classList.contains("on"))return;var a=document.activeElement;if(a&&a!==document.body&&!G.contains(a)&&(a.isContentEditable||/^(INPUT|TEXTAREA)$/.test(a.tagName)))a.blur()}).observe(G,{attributes:true,attributeFilter:["class"]})})();
+  /* B-SIDE toggle */
+  var cache={},on=false;
+  function md(s){if(cache[s]!=null)return cache[s];var t=window.MAKI_TXT,p=window.MAKI_PAL,v=0; // biggest pixel colour change, minted vs alternate, over every frame
+    try{var a=MKFLAT.grids(MKMN_GEN1(s).svg,false).grids,b=MKFLAT.grids(MKMN_GEN2(s).svg,false).grids;if(a.length!==b.length)v=99;else for(var f=0;f<a.length;f++)for(var i=0;i<169;i++)if(a[f][i]!==b[f][i])v=Math.max(v,MKMN_DE(a[f][i],b[f][i]))}catch(e){v=0}
+    window.MAKI_TXT=t;window.MAKI_PAL=p;return cache[s]=v}
+  function has(){return md($alea.seed)>=30}
+  function url(){try{var q=new URLSearchParams(location.search);if(on)q.set("art","b");else q.delete("art");if(!q.get("seed"))q.set("seed",$alea.seed);history.replaceState(history.state,"","?"+q)}catch(_){}}
+  function paint(){bs.hidden=!has();bs.classList.toggle("on",on);bs.setAttribute("aria-pressed",on?"true":"false")}
+  var orig=window.MKMN_RESEED;
+  window.MKMN_RESEED=function(s){if(s!==$alea.seed){on=false;window.MKMN_BSIDE=false}orig(s);paint()}; // a new seed starts on its minted art
+  function setOn(v){on=!!v&&has();window.MKMN_BSIDE=on;orig($alea.seed);paint();url()}
+  bs.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();setOn(!on)});
+  paint();if(new URLSearchParams(location.search).get("art")==="b"&&has())setOn(true);
+})();</script>
 </body>
 </html>

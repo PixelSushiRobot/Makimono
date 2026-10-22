@@ -57,7 +57,7 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 
 ## The preview page: B-SIDE
 
-`v2/index.html` is no longer a preview of the edition above. It's the player (minted art, exactly as on the token) plus **B-SIDE**: an optional alternate take on each minted token, drawn with gentler rules than the v2 edition. The minted token itself never changes, and nothing on Aleatory changes. It also has v2's Katamaki and the changes below. It isn't linked from the site yet; the root player stays as it is for now.
+`v2/index.html` is no longer a preview of the edition above. It's the player (minted art, exactly as on the token) plus **B-SIDE**: an optional alternate take on each minted token, drawn with gentler rules than the v2 edition. The minted token itself never changes, and nothing on Aleatory changes. It also has v2's Katamaki and the changes below. Since the B-SIDE release it's also the root player (`index.html`, makimono.psr.fyi); this copy is for trying changes first.
 
 ### B-SIDE rules
 
