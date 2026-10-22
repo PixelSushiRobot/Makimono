@@ -604,7 +604,8 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 #game .sizelab .gl b{margin-right:6px}
 #game .hint{position:absolute;left:50%;top:calc(100% - 50px);transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);font-size:11px;line-height:1.5;opacity:.6;text-align:center;text-wrap:balance} /* anchored just under the bar and grows downward, so a wrap never climbs into the bar */
 #game .hint.caps{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 16px;opacity:.85;transition:opacity .6s} /* keyboard: the keys as keycaps, in groups; fades after 8 s of play */
-#game .hint.caps.gone{opacity:0}
+#game .hint.gone{opacity:0} /* keyboard and touch hints both fade after 8 s of play */
+#game.touch .hint{transition:opacity .6s}
 #game .hint.caps,#game .exit{font:400 10px 'Space Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em}
 #game .hint .g,#game .exit .g{display:inline-flex;align-items:center;gap:4px}
 #game .hint .t,#game .exit .t{margin-left:3px}
@@ -637,11 +638,11 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 #game .hopb{position:absolute;right:calc(26px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom));width:84px;height:84px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.12)}
 #game .hopb svg{width:38px;height:38px}
 #game .hopb.on{background:#fff;color:#05060a}
-/* pause + back-to-art: small round icon buttons tucked under the timer, top-right */
-#game .tbtns{position:absolute;top:calc(48px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));display:flex;gap:8px}
-#game .tbtns button{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);background:rgba(5,6,10,.3)}
-#game .tbtns button svg{width:16px;height:16px}
-#game .tbtns button:active{background:rgba(255,255,255,.25)}
+/* pause: one round icon button under the timer, top-right, styled like the hop button. Back to art is on the pause screen, so it's never one stray tap away */
+#game .tbtns{position:absolute;top:calc(50px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));display:flex;gap:8px}
+#game .tbtns button{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.12)}
+#game .tbtns button svg{width:18px;height:18px}
+#game .tbtns button:active{background:#fff;color:#05060a}
 #game.touch .exit,#game.touch .overlay button kbd{display:none}
 #game.touch .traits{top:calc(14px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left))}
 #game.touch .timer{top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right))}
@@ -663,10 +664,10 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
     <div class="sizebar"><i></i></div>
     <div class="hint">W / S roll &middot; A / D steer &middot; Space hop &middot; P pause &middot; R restart</div>
   </div>
-  <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button><button class="tart" aria-label="Back to the art"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 1.8L8 6.6l4.8-4.8 1.4 1.4L9.4 8l4.8 4.8-1.4 1.4L8 9.4l-4.8 4.8-1.4-1.4L6.6 8 1.8 3.2z"/></svg></button></div></div>
+  <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button></div></div>
   <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd class="w">Enter</kbd></button></div>
   <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd class="w">Enter</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
-  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Resume<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button></div>
+  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Resume<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button><button class="toart">Back to art<kbd>G</kbd></button></div>
   <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd class="w">Esc</kbd></button></div>
 </div>
 <script>
@@ -1284,7 +1285,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   hopB.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();hopB.classList.add("on");if(running&&hopT<=0)hopT=hopDur});
   ["pointerup","pointercancel","pointerleave"].forEach(function(n){hopB.addEventListener(n,function(){hopB.classList.remove("on")})});
   tpad.querySelector(".tpause").addEventListener("click",function(){pauseGame()});
-  tpad.querySelector(".tart").addEventListener("click",function(){exit()});
+  GAME.querySelector(".toart").addEventListener("click",function(e){e.stopPropagation();exit()}); // pause screen: back to the art (the round stays paused)
   ["touchstart","touchmove"].forEach(function(n){GAME.addEventListener(n,function(e){if(GAME.classList.contains("touch")&&!e.target.closest(".overlay, .tbtns, .perf"))e.preventDefault()},{passive:false})}); // no page scroll, pinch or double-tap zoom while playing
   document.addEventListener("visibilitychange",function(){if(document.hidden)pauseGame()}); // app switch, lock screen, incoming call: pause the round
   // ---- adaptive quality: watch the frame rate while playing and step down only if the device struggles.
@@ -1716,7 +1717,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
     var g=document.getElementById("game");if(g&&g.classList.contains("on"))return; // the game handles its own keys
     if(k==="Escape"&&menu.classList.contains("open")){e.preventDefault();e.stopImmediatePropagation();shut();return}
     if(act(k,e.shiftKey)){e.preventDefault();e.stopImmediatePropagation()}},true);
-  /* game hints (keyboard): the keys as keycaps in groups. Both hints fade out after 8 s of play and come back on any overlay (pause, end, welcome). Touch keeps its own text hint, and no top hint */
+  /* game hints (keyboard): the keys as keycaps in groups. Both hints fade out after 8 s of play and come back on any overlay (pause, end, welcome). Touch keeps its own text hint (fading the same way), and no top hint */
   (function(){var G=document.getElementById("game"),h=G&&G.querySelector(".hint"),x=G&&G.querySelector(".exit");if(!h)return;
     var groups=[["W S","Roll"],["A D","Steer"],["Space","Hop"],["P","Pause"],["R","Restart"]];
     function draw(){if(G.classList.contains("touch")){h.classList.remove("caps");return}h.classList.add("caps");h.innerHTML=groups.map(function(g){return '<span class="g">'+caps(g[0])+'<span class="t">'+g[1]+'</span></span>'}).join("")}

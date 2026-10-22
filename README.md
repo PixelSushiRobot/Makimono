@@ -56,7 +56,7 @@ Each file is self-contained: there are no image or script files next to them. Th
 | `P` | Pause button (top right) | Pause / resume |
 | `R` | Restart on the pause screen | Restart (asks to confirm during a round) |
 | `Enter` | Start Rolling button | Start rolling · confirm restart |
-| `G` / `Esc` | ✕ button (top right) | Back to the art (pauses the round) |
+| `G` / `Esc` | ✕ button (top right); in v2, **Back to art** on the pause screen | Back to the art (pauses the round) |
 
 **In v2** (the edition and `v2/index.html`) the keys are tidied so each means one thing. Art: `E` SVG, `Shift`+`E` GIF, and `?` shows every shortcut (in the game too); `v2/index.html` adds `B` B-side, `V` view seed and `N` new seed. Katamaki: `P` only pauses and resumes, `Enter` also keeps rolling on the end screen, and `Esc` cancels the restart question. See [`v2/CHANGES.md`](v2/CHANGES.md).
 
