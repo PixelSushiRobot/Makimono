@@ -1116,8 +1116,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     for(var sc=0,sS=ballR/R0;sc<clump.children.length;sc++){var sk=clump.children[sc];if(sk.userData.stick)placeStuck(sk,sS)} // push stuck objects out with the growing (or shrinking) roll
     // animate ONLY the sparse filling features (grow up/down); the planet surface is static
     for(var ti=0;ti<terrain.length;ti++){var c=terrain[ti];var sy=Math.max(0.12,c.h0*(0.55+0.45*wave(c,params,t)));c.g.scale.set(c.foot,sy,c.foot);var fr=surfaceR(c.dir);c.g.position.copy(c.dir.clone().multiplyScalar(fr));c.g.quaternion.copy(QT.setFromUnitVectors(YUP,c.dir))}
-    // clouds drift slowly
-    for(var ci=0;ci<clouds.length;ci++){var cl=clouds[ci];cl.dir.applyAxisAngle(YUP,cl.spd*dt).normalize();cl.g.position.copy(cl.dir.clone().multiplyScalar(cl.rad));cl.g.quaternion.copy(QT.setFromUnitVectors(YUP,cl.dir))}
+    // clouds drift slowly. Once the top of the roll (with a hop) reaches one, it's rolled up like anything else: around the goal size over the sea, sooner from high ground
+    for(var ci=0;ci<clouds.length;ci++){var cl=clouds[ci];if(cl.dead)continue;cl.dir.applyAxisAngle(YUP,cl.spd*dt).normalize();cl.g.position.copy(cl.dir.clone().multiplyScalar(cl.rad));cl.g.quaternion.copy(QT.setFromUnitVectors(YUP,cl.dir));
+      var csz=cl.g.scale.x*0.9;if(pdir.angleTo(cl.dir)*SR<ballR*0.9+csz&&surfaceR(pdir)+ballR*2+hop>cl.rad-csz*0.6){cl.dead=true;cl.g.visible=true;cl.g.scale.multiplyScalar(0.6);stickToRoll(cl.g);ballR+=0.15;pips++}}
     // collect ingredients (they sit on the land; chase makes them drift toward you)
     for(var i=0;i<props.length;i++){var o=props[i];if(o.dead)continue;
       if(params.chase){var dA=pdir.angleTo(o.dir)*SR;if(ballR>=o.req&&dA<magR()){var tp=pdir.clone().sub(o.dir);tp.addScaledVector(o.dir,-tp.dot(o.dir));
@@ -1306,7 +1307,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function perfPR(){return Math.min(devicePixelRatio||1,[2,1.5,1,.75][PQ.tier])}
   function perfApply(){if(!renderer)return;renderer.setPixelRatio(perfPR());renderer.setSize(innerWidth,innerHeight);
     terrain.forEach(function(c,i){c.g.visible=PQ.tier<2||i%2===0});
-    clouds.forEach(function(c,i){c.g.visible=PQ.tier<2||i%2===0});
+    clouds.forEach(function(c,i){if(!c.dead)c.g.visible=PQ.tier<2||i%2===0});
     obstacles.forEach(function(o,i){if(i<obsSingle0)return;
       if(PQ.tier>=3){if(!o.dead){o.dead=true;o.hid=true;o.g.visible=false}} // hidden scenery also stops blocking
       else if(o.hid){o.dead=false;o.hid=false;o.g.visible=true}});
