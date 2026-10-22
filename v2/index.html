@@ -684,6 +684,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   var freeRoll=false; // after a medal, keep rolling with no clock
   var bumpV=new THREE.Vector3(),wobT=0,banner=null,ants=[]; // monster knockback velocity, hit wobble timer, sky message banner, roaming ants // monster knockback velocity, hit wobble timer, sky message banner
   var ballR,timeLeft,pips=0,up,fwd,pPos,hopT=0,vel=0,camF=null,hopDur=0.42,lastT=0,params={};
+  var hopD=0.42,hopH=2.0,hopMine=false; // this hop's length and height; hopMine = a hop you made (Space or the button), not the bounce from a hit
+  // a hop grows with the roll, so it still feels like a jump at gold size: about 4x higher and 0.75s long by then (0.42s and 2 at the start)
+  function startHop(){if(!running||hopT>0)return;var s=ballR/R0;hopH=2.0*Math.pow(s,0.75);hopD=0.42*Math.pow(s,0.3);hopMine=true;hopT=hopD}
 
   function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   function hash(s){var h=2166136261;s=String(s||"makimono");for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -1040,7 +1043,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     banner=null;if(p.isText||tr.Message||window.MAKI_TXT){var msg=((window.MAKI_TXT&&window.MAKI_TXT.msg)||tr.Message||(tr.Pattern||"").replace(/^text\s*/i,"")||"MAKIMONO").trim()||"MAKIMONO";banner=buildBanner(msg,p);scene.add(banner.g)}
     pPos=new THREE.Vector3(0,1,0.001).normalize();pPos.multiplyScalar(surfaceR(pPos)+ballR);
     up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);
-    pips=0;hopT=0;vel=0;camF=null;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
+    pips=0;hopT=0;hopMine=false;vel=0;camF=null;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
     HUD.traits.innerHTML="<b>OBJECTS</b>0"; // traits hidden in-game; top-left shows the objects count
     HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"× your size before the "+Math.round(params.time)+"s clock runs out.";
     built=true;onResize();
@@ -1087,22 +1090,23 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     var prevDir=pPos.clone().normalize();
     if(mv){var axis=new THREE.Vector3().crossVectors(up,fwd).normalize();pPos.applyAxisAngle(axis,(SPEED/SR)*dt*mv)} // W: travel +fwd (forward), matches the forward roll below
     if(bumpV.lengthSq()>0.01){var bu=bumpV.clone();bu.addScaledVector(up,-bu.dot(up));var bl=bu.length();if(bl>1e-3)pPos.applyAxisAngle(new THREE.Vector3().crossVectors(up,bu).normalize(),bl/SR*dt);bumpV.multiplyScalar(Math.pow(0.02,dt))}else bumpV.set(0,0,0); // monster knockback, decays fast; walls still stop it
-    var hop=0;if(hopT>0){hopT-=dt;hop=Math.sin((1-hopT/hopDur)*Math.PI)*2.0}
+    var hop=0;if(hopT>0){hopT-=dt;hop=Math.sin(Math.min(1,1-hopT/hopD)*Math.PI)*(hopMine?hopH:2.0)}if(hopT<=0)hopMine=false;
+    var air=hopMine&&hop>hopH*0.3; // in the air: your own hop, past the first 30% of its height. Low things don't block you (chopsticks and ants still can)
     var pdir=pPos.clone().normalize();
     // anything too big to collect is a wall: you can't move closer into it, but you can always back away (never stuck)
     var blocked=false;
-    function wall(dir,reach){var dn=pdir.angleTo(dir)*SR;if(dn<reach&&dn<prevDir.angleTo(dir)*SR)blocked=true}
+    function wall(dir,reach,h){if(air&&hop>h)return;var dn=pdir.angleTo(dir)*SR;if(dn<reach&&dn<prevDir.angleTo(dir)*SR)blocked=true}
     for(var oi=0;oi<obstacles.length;oi++){var ob=obstacles[oi];if(ob.dead)continue;
       if(pdir.angleTo(ob.dir)*SR<ballR+ob.size){
         if(ballR>ob.size*0.9){ob.dead=true;ob.g.scale.multiplyScalar(0.75);stickToRoll(ob.g);ballR+=Math.min(0.18,ob.size*0.12)}
-        else wall(ob.dir,ballR+ob.size);
+        else wall(ob.dir,ballR+ob.size,ob.size*1.4); // h: about how tall it is, to hop over
       }
     }
-    for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req)wall(bo.dir,ballR*0.85+bo.foot*0.7)} // oversized ingredients block too
+    for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req)wall(bo.dir,ballR*0.85+bo.foot*0.7,bo.foot*1.1)} // oversized ingredients block too
     if(blocked){pdir.copy(prevDir);vel*=Math.pow(0.001,dt)} // a wall soaks up the momentum
     up.copy(pdir);
     pPos.copy(pdir).multiplyScalar(surfaceR(pdir)+ballR+hop);ball.position.copy(pPos);
-    if(playerShadow){playerShadow.position.copy(pdir).multiplyScalar(surfaceR(pdir)+0.05);playerShadow.quaternion.copy(QT.setFromUnitVectors(YUP,pdir));playerShadow.scale.setScalar(ballR*2.3)} // single clean shadow under the roll
+    if(playerShadow){playerShadow.position.copy(pdir).multiplyScalar(surfaceR(pdir)+0.05);playerShadow.quaternion.copy(QT.setFromUnitVectors(YUP,pdir));playerShadow.scale.setScalar(ballR*2.3*(1-0.45*Math.min(1,hop/Math.max(2,hopH))))} // single clean shadow under the roll
     var side=new THREE.Vector3().crossVectors(up,fwd).normalize();
     if(keyLight){keyLight.target.position.copy(ball.position);keyLight.position.copy(ball.position).addScaledVector(up,36).addScaledVector(side,12).addScaledVector(fwd,6);keyLight.target.updateMatrixWorld()}
     ball.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(side,up,fwd));
@@ -1123,7 +1127,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     // chopstick monsters roam and snatch stuck sushi off the clump
     for(var e=0;e<enemies.length;e++){var en=enemies[e];en.cd=Math.max(0,en.cd-dt);var eu=en.pos.clone().normalize();var toB=ball.position.clone().sub(en.pos);toB.addScaledVector(eu,-toB.dot(eu));if(toB.lengthSq()>1e-5)toB.normalize();var dist=en.pos.angleTo(ball.position)*SR;var tang=new THREE.Vector3().crossVectors(eu,toB).multiplyScalar(en.sign);var orbit=dist<(ballR+5)?0.85:0.25;var edir=toB.multiplyScalar(1-orbit).addScaledVector(tang,orbit);if(edir.lengthSq()>1e-5)edir.normalize();en.pos.applyAxisAngle(new THREE.Vector3().crossVectors(eu,edir).normalize(),2.4*(params.espeed||1)/SR*dt);var endir=en.pos.clone().normalize();en.pos.copy(endir).multiplyScalar(surfaceR(endir));en.g.position.copy(en.pos);var ef=ball.position.clone().sub(en.pos);ef.addScaledVector(endir,-ef.dot(endir));if(ef.lengthSq()<1e-6)ef.set(endir.z,endir.x,endir.y);ef.normalize();var es=new THREE.Vector3().crossVectors(endir,ef).normalize();en.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(es,endir,ef));en.g.rotateZ(Math.sin(t/150+e)*0.16); // always faces the roll (eyes on you), waddling side to side
       if(en.cd<=0&&ball.position.distanceTo(en.pos)<ballR+0.8*(en.sz||1)){en.cd=1.8;var kids=clump.children.filter(function(c){return c!==core});for(var k=0;k<2&&kids.length;k++)clump.remove(kids.pop());ballR=Math.max(R0,ballR-0.34);pips=Math.max(0,pips-1);
-        var away=ball.position.clone().sub(en.pos);bumpV.copy(away.normalize().multiplyScalar(16+4*(en.sz||1)));if(hopT<=0)hopT=hopDur*0.75;wobT=0.5} // knocked away: shove + little hop + wobble
+        var away=ball.position.clone().sub(en.pos);bumpV.copy(away.normalize().multiplyScalar(16+4*(en.sz||1)));if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.75}wobT=0.5} // knocked away: shove + little hop + wobble
     }
     // ants wander; within sight they come at you while you're small, and run once you can roll them up
     for(var ai=0;ai<ants.length;ai++){var an=ants[ai];if(an.dead)continue;an.cd=Math.max(0,an.cd-dt);var au=an.pos.clone().normalize();
@@ -1139,7 +1143,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       if(ball.position.distanceTo(an.pos)<ballR+0.55*an.sz){
         if(big){an.dead=true;stickToRoll(an.g);ballR+=an.gain;pips++}
         else if(an.cd<=0){an.cd=1.4;var akids=clump.children.filter(function(c){return c!==core});if(akids.length)clump.remove(akids.pop());ballR=Math.max(R0,ballR-0.2);pips=Math.max(0,pips-1);
-          bumpV.copy(ball.position.clone().sub(an.pos).normalize().multiplyScalar(12+3*an.sz));if(hopT<=0)hopT=hopDur*0.6;wobT=0.4}} // same knock-back as the chopsticks, a bit softer
+          bumpV.copy(ball.position.clone().sub(an.pos).normalize().multiplyScalar(12+3*an.sz));if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.6}wobT=0.4}} // same knock-back as the chopsticks, a bit softer
     }
     // follow cam (fixed angle): rides along with the roll over the planet, high and 40° down, but never swings round, so up the screen stays the same way; distance grows with the roll
     var cD=ballR*4+13,cA=40*Math.PI/180,want=pPos.clone().addScaledVector(up,cD*Math.sin(cA)).addScaledVector(camF,-cD*Math.cos(cA));
@@ -1261,7 +1265,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(k==="Enter"&&phase==="end"){e.preventDefault();keepRolling();return} // Enter keeps rolling on the end screen
     if(k==="Enter"&&phase==="welcome"&&built&&!HUD.start.classList.contains("hidden")){e.preventDefault();begin();return} // Start Rolling
     if(phase!=="play")return;
-    keys[e.key]=true;if(k===" "&&running&&hopT<=0)hopT=hopDur;if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
+    keys[e.key]=true;if(k===" ")startHop();if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
   });
   // ---- touch controls: floating stick (drag the way you want to roll, analog), hop button (arrow), pause and back-to-art icon buttons.
   // the touch layout turns on for touch-only devices, after any touch on the game, or with ?touch=1 (a mouse can drive the stick, for checking on desktop).
@@ -1282,7 +1286,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     sid=e.pointerId;try{tpad.setPointerCapture(sid)}catch(_){}ox=e.clientX;oy=e.clientY;stEl.classList.add("on");stEl.style.left=ox+"px";stEl.style.top=oy+"px";setStick(0,0)});
   tpad.addEventListener("pointermove",function(e){if(e.pointerId!==sid)return;e.preventDefault();setStick(e.clientX-ox,e.clientY-oy)});
   ["pointerup","pointercancel","lostpointercapture"].forEach(function(n){tpad.addEventListener(n,function(e){if(e.pointerId===sid)releaseStick()})});
-  hopB.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();hopB.classList.add("on");if(running&&hopT<=0)hopT=hopDur});
+  hopB.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();hopB.classList.add("on");startHop()});
   ["pointerup","pointercancel","pointerleave"].forEach(function(n){hopB.addEventListener(n,function(){hopB.classList.remove("on")})});
   tpad.querySelector(".tpause").addEventListener("click",function(){pauseGame()});
   GAME.querySelector(".toart").addEventListener("click",function(e){e.stopPropagation();exit()}); // pause screen: back to the art (the round stays paused)

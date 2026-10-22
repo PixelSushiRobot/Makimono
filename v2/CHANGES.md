@@ -51,6 +51,7 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 - **Game hints** show the keys as keycaps in groups, at the bottom (roll, steer, hop, pause, restart) and at the top (`G` / `Esc` art). Both fade out after 8 seconds of play and come back on any pause or end screen. Touch keeps its text hint.
 - **Size and goal** show as a scoreboard row over the bar, in the same style as OBJECTS and the timer. The timer no longer adds a ★ once the goal is reached.
 - **New end-screen lines.** Gold, silver and bronze each have 4 or 5 titles, time's up has 6, and ants show up in at most one line per screen. Sizes read `1.2×` everywhere, like the scoreboard.
+- **A useful hop.** While you're in the air, low things (small rocks, bushes, ingredients too big to roll up) don't block you. Chopsticks and ants can still hit you. The hop grows with the roll, so at gold size it's about 4× higher and lasts about 0.75 s (0.42 s at the start). The shadow shrinks while you're up, so you can judge the height. There's no cooldown. Before, the hop was only a fixed bounce, and a wall still stopped you mid-air.
 - Opening the game drops keyboard focus from the Message cell, so the game's keys always work.
 
 ## The preview page: B-SIDE
