@@ -469,16 +469,29 @@ alea.ready();
 #game .traits{position:absolute;top:14px;left:16px;font-size:22px;font-weight:700;letter-spacing:.04em;line-height:1}
 #game .traits b{font-size:11px;font-weight:600;opacity:.6;letter-spacing:.1em;margin-right:8px;vertical-align:middle}
 #game .timer{position:absolute;top:14px;right:16px;font-size:22px;font-weight:700;letter-spacing:.04em}
-#game .exit{position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:11px;opacity:.5}
-#game .sizebar{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);width:min(62vw,380px);height:12px;border:1.5px solid rgba(255,255,255,.65);border-radius:999px;overflow:hidden}
+#game .exit{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;opacity:.85;transition:opacity .6s}
+#game .exit.gone{opacity:0}
+#game .sizebar{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);width:min(62vw,380px);height:10px;border:1.5px solid rgba(255,255,255,.65);border-radius:999px;overflow:hidden}
 #game .sizebar>i{display:block;height:100%;width:0;background:#fff;transition:width .12s linear}
-#game .sizelab{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);font-size:11px;opacity:.8}
+#game .sizelab{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);width:min(62vw,380px);display:flex;justify-content:space-between;align-items:baseline;font-size:22px;font-weight:700;letter-spacing:.04em;line-height:1}
+#game .sizelab b{font-size:11px;font-weight:600;opacity:.6;letter-spacing:.1em;margin-right:8px}
+#game .sizelab .gl{font-size:13px}
+#game .sizelab .gl b{margin-right:6px}
 #game .hint{position:absolute;left:50%;top:calc(100% - 50px);transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);font-size:11px;line-height:1.5;opacity:.6;text-align:center;text-wrap:balance}
+#game .hint.caps{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 16px;opacity:.85;transition:opacity .6s}
+#game .hint.caps.gone{opacity:0}
+#game .hint.caps,#game .exit{font:400 10px 'Space Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em}
+#game .hint .g,#game .exit .g{display:inline-flex;align-items:center;gap:4px}
+#game .hint .t,#game .exit .t{margin-left:3px}
+#game .exit .sl{opacity:.6;margin:0 1px}
 #game .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(5,6,10,.74);text-align:center;color:#fff;pointer-events:auto;padding:24px}
 #game .overlay h2{margin:0;font-size:26px;font-weight:700;letter-spacing:.03em}
 #game .overlay p{margin:0;opacity:.82;font-size:13px;line-height:1.5;max-width:380px;text-wrap:pretty}
 #game .overlay button{margin-top:10px;padding:11px 22px;border:1.5px solid #fff;background:transparent;color:#fff;border-radius:999px;font:600 13px ui-monospace,monospace;cursor:pointer;text-transform:uppercase;letter-spacing:.1em;display:inline-flex;align-items:center;gap:10px}
-#game .overlay button kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:18px;height:18px;padding:0 5px;margin-right:-8px;border:1px solid currentColor;border-radius:5px;font:700 10px ui-monospace,monospace;letter-spacing:0;opacity:.7}
+#game:not(.touch) .overlay button:has(kbd){padding-right:10px}
+#game .hint kbd,#game .exit kbd,#game .overlay button kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:18px;height:18px;padding:0;border:1px solid currentColor;border-radius:5px;font:400 10px 'Space Mono',ui-monospace,monospace;letter-spacing:0;text-transform:uppercase}
+#game .overlay button kbd{opacity:.85}
+#game .hint kbd.w,#game .exit kbd.w,#game .overlay button kbd.w{width:auto;padding:0 5px}
 #game .overlay button:active{background:#fff;color:#05060a}
 #game .overlay .grade{font:800 15px ui-monospace,monospace;letter-spacing:.24em;margin:0}
 #game .overlay .medal{line-height:0;margin:0}
@@ -507,25 +520,25 @@ alea.ready();
 #game.touch .traits{top:calc(14px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left))}
 #game.touch .timer{top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right))}
 #game.touch .sizebar{bottom:calc(60px + env(safe-area-inset-bottom))}
-#game.touch .sizelab{bottom:calc(76px + env(safe-area-inset-bottom))}
+#game.touch .sizelab{bottom:calc(80px + env(safe-area-inset-bottom))}
 #game.touch .hint{top:calc(100% - 50px - env(safe-area-inset-bottom))}
-@media (orientation:landscape){#game.touch .sizebar{width:min(calc(100vw - 380px),380px)}#game.touch .hint{max-width:calc(100vw - 360px)}}
+@media (orientation:landscape){#game.touch .sizebar{width:min(calc(100vw - 380px),380px)}#game.touch .sizelab{width:min(calc(100vw - 380px),380px)}#game.touch .hint{max-width:calc(100vw - 360px)}}
 @media (orientation:portrait){#game .stick{bottom:calc(112px + env(safe-area-inset-bottom))}#game .hopb{bottom:calc(130px + env(safe-area-inset-bottom))}}
 </style>
 <div id="game">
   <div class="hud">
     <div class="traits"></div>
     <div class="timer"></div>
-    <div class="exit">G / ESC for art</div>
+    <div class="exit"><span class="g"><kbd>G</kbd><span class="sl">/</span><kbd class="w">Esc</kbd><span class="t">Art</span></span></div>
     <div class="sizelab"></div>
     <div class="sizebar"><i></i></div>
     <div class="hint">W / S roll &middot; A / D steer &middot; Space hop &middot; P pause &middot; R restart</div>
   </div>
   <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button><button class="tart" aria-label="Back to the art"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 1.8L8 6.6l4.8-4.8 1.4 1.4L9.4 8l4.8 4.8-1.4 1.4L8 9.4l-4.8 4.8-1.4-1.4L6.6 8 1.8 3.2z"/></svg></button></div></div>
-  <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd>Enter</kbd></button></div>
-  <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd>P</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
-  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Continue Rolling<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button></div>
-  <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd>P</kbd></button></div>
+  <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd class="w">Enter</kbd></button></div>
+  <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd class="w">Enter</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
+  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Resume<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button></div>
+  <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd class="w">Esc</kbd></button></div>
 </div>
 <script>
 (function(){
@@ -867,7 +880,7 @@ alea.ready();
     up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);
     pips=0;hopT=0;vel=0;camF=null;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
     HUD.traits.innerHTML="<b>OBJECTS</b>0";
-    HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"x your size before the "+Math.round(params.time)+"s clock runs out.";
+    HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"× your size before the "+Math.round(params.time)+"s clock runs out.";
     built=true;onResize();
   }
 
@@ -963,9 +976,9 @@ alea.ready();
     var curMul=ballR/R0,hit=curMul>=params.targetMul;
     if(!freeRoll){timeLeft-=dt;if(timeLeft<0)timeLeft=0}
     HUD.bar.style.width=Math.min(100,(curMul/params.targetMul)*100)+"%";
-    HUD.sizelab.textContent="SIZE "+curMul.toFixed(1)+"x / GOAL "+params.targetMul.toFixed(1)+"x";
+    var szk=curMul.toFixed(1)+"|"+params.targetMul.toFixed(1);if(HUD.sizelab._k!==szk){HUD.sizelab._k=szk;HUD.sizelab.innerHTML="<span><b>SIZE</b>"+curMul.toFixed(1)+"×</span><span class=\"gl\"><b>GOAL</b>"+params.targetMul.toFixed(1)+"×</span>"}
     if(HUD.traits._n!==pips){HUD.traits._n=pips;HUD.traits.innerHTML="<b>OBJECTS</b>"+pips}
-    HUD.timer.textContent=freeRoll?"FREE ROLL":Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2)+(hit?"  ★":"");
+    HUD.timer.textContent=freeRoll?"FREE ROLL":Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2);
     stepBanner(dt,t);
     renderer.render(scene,cam);
     if(!freeRoll&&timeLeft<=0){end(hit);return}
@@ -975,13 +988,13 @@ alea.ready();
     return '<svg width="64" height="64" viewBox="0 0 48 48"><path d="M6 36 L8 14 L17 23 L24 10 L31 23 L40 14 L42 36 Z M6 39 H42 V42 H6 Z" fill="'+pal[0]+'"/></svg>';
   }
   var COPY={
-    win:{GOLD:["THIS IS A HEALTH CODE VIOLATION.","THE HEALTH INSPECTOR IS CRYING.","THAT'S HUGE!","YOU ARE QUITE A COLLECTOR!"],
-         SILVER:["ABSOLUTE ROLL.","NOW THAT'S A ROLL.","CHEF'S KISS."],
-         BRONZE:["THAT'S... SOMETHING.","IT'S ROUND. IT'S A ROLL.","WELL, IT HOLDS TOGETHER."]},
-    fail:["TIME'S UP","OUT OF TIME, CHEF.","THE CLOCK WINS THIS ONE."],
-    failBody:{low:["Only {current}x of {target}x. The ants are very pleased with themselves. Try again?","Only {current}x of {target}x. Even the chopsticks felt bad. Try again?","Only {current}x of {target}x. The ants have already started the victory party. Try again?"],
-              mid:["{current}x of {target}x. Over halfway to legend. The ants are nervous. Try again?","{current}x of {target}x. Respectable roll, dubious pace. Try again?","{current}x of {target}x. The chopsticks saw you coming. Try again?"],
-              high:["SO CLOSE! {current}x of {target}x. One more crumb. Try again?","{current}x of {target}x. You could taste it. So could the ants. Try again?","{current}x of {target}x. The ants have never been this worried. Try again?"]}},
+    win:{GOLD:["THIS IS A HEALTH CODE VIOLATION.","LEGALLY, THIS IS A PLANET.","THIS ROLL HAS ITS OWN ZIP CODE.","NOTHING LEFT TO ROLL.","THE CHOPSTICKS WANT A WORD."],
+         SILVER:["ABSOLUTE ROLL.","NOW THAT'S A ROLL.","CHEF'S KISS.","TIGHT, ROUND, DANGEROUS."],
+         BRONZE:["THAT'S... SOMETHING.","WELL, IT HOLDS TOGETHER.","IT ROLLS. TECHNICALLY.","GOOD ENOUGH FOR LUNCH."]},
+    fail:["TIME'S UP.","OUT OF TIME, CHEF.","THE CLOCK WINS THIS ONE.","THE RICE HAS GONE COLD.","ORDER UP. NOT QUITE.","ALMOST A MEAL."],
+    failBody:{low:["Only {current}× of {target}×. The ants are very pleased with themselves. Try again?","Only {current}× of {target}×. Even the chopsticks felt bad. Try again?","Only {current}× of {target}×. The planet barely noticed you. Try again?"],
+              mid:["{current}× of {target}×. Over halfway to legend. The ants are nervous. Try again?","{current}× of {target}×. Respectable roll, dubious pace. Try again?","{current}× of {target}×. The chopsticks saw you coming. Try again?"],
+              high:["SO CLOSE! {current}× of {target}×. One more crumb. Try again?","{current}× of {target}×. You could taste it. So could the ants. Try again?","{current}× of {target}×. One more lap would have done it. Try again?"]}},
     lastPick={};
   function pick(slot,pool){var i=(Math.random()*pool.length)|0;if(pool.length>1&&i===lastPick[slot])i=(i+1+((Math.random()*(pool.length-1))|0))%pool.length;lastPick[slot]=i;return pool[i]}
   function fill(s,v){return s.replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m})}
@@ -993,20 +1006,20 @@ alea.ready();
     HUD.grade.textContent=win?grade:"";HUD.grade.style.color=pal?pal[0]:"#fff";
     if(win){
       HUD.et.textContent=pick("win"+grade,COPY.win[grade]);
-      HUD.em.textContent=fill("You rolled up to {current}x (target {target}x) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
+      HUD.em.textContent=fill("You rolled up to {current}× (target {target}×) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
     } else {
       var band=ratio<0.5?"low":ratio<0.8?"mid":"high";
       HUD.et.textContent=pick("fail",COPY.fail);
       HUD.em.textContent=fill(pick("fail"+band,COPY.failBody[band]),v);
     }
-    HUD.keep.classList.toggle("hidden",!win);HUD.again.querySelector(".al").textContent=win?"Restart":"Try again";
+    HUD.again.querySelector(".al").textContent=win?"Restart":"Try again";
     HUD.end.classList.remove("hidden");phase="end"}
   function keepRolling(){freeRoll=true;begin()}
   var phase="welcome";
   function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
   function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};releaseStick();
     var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
-    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"x / Goal "+params.targetMul.toFixed(1)+"x · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
+    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / Goal "+params.targetMul.toFixed(1)+"× · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
     overlays(HUD.pause);phase="pause"}
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
@@ -1062,10 +1075,11 @@ alea.ready();
     var on=GAME.classList.contains("on"),k=e.key.length===1?e.key.toLowerCase():e.key;
     if(k==="g"){e.preventDefault();if(on)exit();else launch();return}
     if(!on)return;
-    if(k==="Escape"){e.preventDefault();exit();return}
-    if(k==="p"){e.preventDefault();if(phase==="play")pauseGame();else if(phase==="pause")begin();else if(phase==="confirm")cancelRestart();else if(phase==="end"&&!HUD.keep.classList.contains("hidden"))keepRolling();return}
+    if(k==="Escape"){e.preventDefault();if(phase==="confirm")cancelRestart();else exit();return}
+    if(k==="p"){e.preventDefault();if(phase==="play")pauseGame();else if(phase==="pause")begin();else if(phase==="confirm")cancelRestart();return}
     if(k==="r"){e.preventDefault();if(phase==="play"||phase==="pause")askRestart();else if(phase==="confirm"||phase==="end")restart();return}
     if(k==="Enter"&&phase==="confirm"){e.preventDefault();restart();return}
+    if(k==="Enter"&&phase==="end"){e.preventDefault();keepRolling();return}
     if(k==="Enter"&&phase==="welcome"&&built&&!HUD.start.classList.contains("hidden")){e.preventDefault();begin();return}
     if(phase!=="play")return;
     keys[e.key]=true;if(k===" "&&running&&hopT<=0)hopT=hopDur;if([" ","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(k)>=0)e.preventDefault()
@@ -1117,6 +1131,53 @@ alea.ready();
     if(PQ.last>=0){if(fps<PQ.prev*1.1){PQ.tier=PQ.last;PQ.lock=true;PQ.last=-1;perfApply();return}PQ.last=-1}
     if(fps<48&&PQ.tier<3){PQ.last=PQ.tier;PQ.prev=fps;PQ.tier++;perfApply();PQ.skip=t+1000}}
   window.addEventListener("keyup",function(e){keys[e.key]=false});
+})();
+</script>
+<style>
+.mkcard{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483640;display:none;padding:14px 20px;border-radius:14px;font:13px/1.7 'Space Mono',ui-monospace,monospace;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.mkcard.open{display:block}
+.mkcard .ttl{padding:2px 0 10px;letter-spacing:.14em;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent)}
+.mkcard .row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent)}
+.mkcard .row:last-child{border-bottom:0}
+.mkcard .k{display:inline-flex;align-items:center;gap:4px;min-width:230px}
+.mkcard .hd{opacity:.6;padding:12px 0 4px}
+.mkcard .sl{opacity:.6;margin:0 2px}
+.mkcard kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:18px;height:18px;padding:0;border:1px solid currentColor;border-radius:5px;font:400 10px 'Space Mono',ui-monospace,monospace;letter-spacing:0;text-transform:uppercase}
+.mkcard kbd.w{width:auto;padding:0 5px}
+.mkcard kbd svg{width:10px;height:10px;display:block}
+</style>
+<script>
+(function(){var bar=document.querySelector(".export-bar");if(!bar)return;
+  var dl=bar.children[1],gl=bar.children[2],ARR=dl.querySelector("svg").outerHTML;
+  var SHIFT='<svg viewBox="1.5 0.5 12 12" aria-label="Shift"><path fill="currentColor" fill-rule="evenodd" d="M7.5 1C7.66148 1 7.81301 1.07798 7.90687 1.20938L12.9069 8.20938C13.0157 8.36179 13.0303 8.56226 12.9446 8.72879C12.8589 8.89533 12.6873 9 12.5 9H10V11.5C10 11.7761 9.77614 12 9.5 12H5.5C5.22386 12 5 11.7761 5 11.5V9H2.5C2.31271 9 2.14112 8.89533 2.05542 8.72879C1.96972 8.56226 1.98427 8.36179 2.09314 8.20938L7.09314 1.20938C7.18699 1.07798 7.33853 1 7.5 1ZM3.4716 8H5.5C5.77614 8 6 8.22386 6 8.5V11H9V8.5C9 8.22386 9.22386 8 9.5 8H11.5284L7.5 2.36023L3.4716 8Z"/></svg>';
+  var ARK=ARR.replace(' class="icon"',"").replace('aria-hidden="true"','aria-hidden="true" style="transform:rotate(RDEG)"'),ROT={"↓":0,"↑":180,"←":90,"→":-90};
+  var WIDE=["Enter","Space","Esc"];
+  function cap1(x){if(x==="Shift")return SHIFT;if(WIDE.indexOf(x)>=0)return x;if(x in ROT)return ARK.replace("RDEG",ROT[x]+"deg");return x}
+  function caps(str){return str.split(" ").map(function(x){return x==="/"?'<span class="sl">/</span>':"<kbd"+(WIDE.indexOf(x)>=0?' class="w"':"")+">"+cap1(x)+"</kbd>"}).join("")}
+  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W A S D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
+  var card=document.createElement("div");card.className="mkcard";card.innerHTML='<div class="ttl">Keyboard shortcuts</div>'+rows.map(function(r){return r[1]?'<div class="row"><span class="k">'+caps(r[0])+'</span>'+r[1]+'</div>':'<div class="hd">'+r[0]+'</div>'}).join("");document.body.appendChild(card);
+  function cardOn(){return card.classList.contains("open")}
+  function cardPaint(){if(!cardOn())return;requestAnimationFrame(cardPaint);var st=document.querySelector(".stage");if(!st)return;var cs=getComputedStyle(st),bg="rgba("+cs.getPropertyValue("--ink-rgb").trim()+",.9)",fg=cs.getPropertyValue("--bg").trim()||"#0b0b0c";if(card._bg!==bg){card._bg=bg;card.style.background=bg}if(card._fg!==fg){card._fg=fg;card.style.color=fg}}
+  function cardShow(on){var was=cardOn();card.classList.toggle("open",on);if(on&&!was)cardPaint()}
+  card.addEventListener("click",function(e){e.stopPropagation();cardShow(false)});
+  var eat=false;
+  document.addEventListener("pointerdown",function(e){if(cardOn()&&!card.contains(e.target)){cardShow(false);eat=true}},true);
+  window.addEventListener("click",function(e){if(eat){eat=false;e.stopImmediatePropagation();e.preventDefault()}},true);
+  window.addEventListener("pointerup",function(){setTimeout(function(){eat=false},0)},true);
+  window.addEventListener("keydown",function(e){var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;if(e.metaKey||e.ctrlKey||e.altKey)return;
+    var k=e.key.length===1?e.key.toLowerCase():e.key;
+    if(k==="?"){e.preventDefault();e.stopImmediatePropagation();cardShow(!cardOn());return}
+    if(cardOn()&&k==="Escape"){e.preventDefault();e.stopImmediatePropagation();cardShow(false);return}
+    var g=document.getElementById("game");if(g&&g.classList.contains("on"))return;
+    if(k==="e"){e.preventDefault();e.stopImmediatePropagation();if(e.shiftKey)gl.click();else{refreshExport(dl);dl.click()}}},true);
+  var G=document.getElementById("game");if(!G)return;
+  var h=G.querySelector(".hint"),x=G.querySelector(".exit");
+  if(h){var groups=[["W S","Roll"],["A D","Steer"],["Space","Hop"],["P","Pause"],["R","Restart"]];
+    var draw=function(){if(G.classList.contains("touch")){h.classList.remove("caps");return}h.classList.add("caps");h.innerHTML=groups.map(function(g){return '<span class="g">'+caps(g[0])+'<span class="t">'+g[1]+'</span></span>'}).join("")};
+    draw();new MutationObserver(function(){if(G.classList.contains("touch")&&h.classList.contains("caps"))draw()}).observe(G,{attributes:true,attributeFilter:["class"]});
+    var t0=0;(function tick(t){requestAnimationFrame(tick);var play=G.classList.contains("on")&&![].some.call(G.querySelectorAll(".overlay"),function(o){return !o.classList.contains("hidden")});
+      if(!play)t0=0;else if(!t0)t0=t;var gone=play&&t-t0>8000;h.classList.toggle("gone",gone);if(x)x.classList.toggle("gone",gone)})(0)}
+  new MutationObserver(function(){if(!G.classList.contains("on"))return;var a=document.activeElement;if(a&&a!==document.body&&!G.contains(a)&&(a.isContentEditable||/^(INPUT|TEXTAREA)$/.test(a.tagName)))a.blur()}).observe(G,{attributes:true,attributeFilter:["class"]});
 })();
 </script>
 </body>

@@ -1041,7 +1041,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);
     pips=0;hopT=0;vel=0;camF=null;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
     HUD.traits.innerHTML="<b>OBJECTS</b>0"; // traits hidden in-game; top-left shows the objects count
-    HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"x your size before the "+Math.round(params.time)+"s clock runs out.";
+    HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"× your size before the "+Math.round(params.time)+"s clock runs out.";
     built=true;onResize();
   }
 
@@ -1163,13 +1163,13 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   }
   // ---- end-screen copy: one random line per slot, never the same line twice in a row (memory only) ----
   var COPY={
-    win:{GOLD:["THIS IS A HEALTH CODE VIOLATION.","THE HEALTH INSPECTOR IS CRYING.","THAT'S HUGE!","YOU ARE QUITE A COLLECTOR!"],
-         SILVER:["ABSOLUTE ROLL.","NOW THAT'S A ROLL.","CHEF'S KISS."],
-         BRONZE:["THAT'S... SOMETHING.","IT'S ROUND. IT'S A ROLL.","WELL, IT HOLDS TOGETHER."]},
-    fail:["TIME'S UP","OUT OF TIME, CHEF.","THE CLOCK WINS THIS ONE."],
-    failBody:{low:["Only {current}x of {target}x. The ants are very pleased with themselves. Try again?","Only {current}x of {target}x. Even the chopsticks felt bad. Try again?","Only {current}x of {target}x. The ants have already started the victory party. Try again?"],
-              mid:["{current}x of {target}x. Over halfway to legend. The ants are nervous. Try again?","{current}x of {target}x. Respectable roll, dubious pace. Try again?","{current}x of {target}x. The chopsticks saw you coming. Try again?"],
-              high:["SO CLOSE! {current}x of {target}x. One more crumb. Try again?","{current}x of {target}x. You could taste it. So could the ants. Try again?","{current}x of {target}x. The ants have never been this worried. Try again?"]}},
+    win:{GOLD:["THIS IS A HEALTH CODE VIOLATION.","LEGALLY, THIS IS A PLANET.","THIS ROLL HAS ITS OWN ZIP CODE.","NOTHING LEFT TO ROLL.","THE CHOPSTICKS WANT A WORD."],
+         SILVER:["ABSOLUTE ROLL.","NOW THAT'S A ROLL.","CHEF'S KISS.","TIGHT, ROUND, DANGEROUS."],
+         BRONZE:["THAT'S... SOMETHING.","WELL, IT HOLDS TOGETHER.","IT ROLLS. TECHNICALLY.","GOOD ENOUGH FOR LUNCH."]},
+    fail:["TIME'S UP.","OUT OF TIME, CHEF.","THE CLOCK WINS THIS ONE.","THE RICE HAS GONE COLD.","ORDER UP. NOT QUITE.","ALMOST A MEAL."], // no ants in the titles: the messages below have one ant line per band
+    failBody:{low:["Only {current}× of {target}×. The ants are very pleased with themselves. Try again?","Only {current}× of {target}×. Even the chopsticks felt bad. Try again?","Only {current}× of {target}×. The planet barely noticed you. Try again?"],
+              mid:["{current}× of {target}×. Over halfway to legend. The ants are nervous. Try again?","{current}× of {target}×. Respectable roll, dubious pace. Try again?","{current}× of {target}×. The chopsticks saw you coming. Try again?"],
+              high:["SO CLOSE! {current}× of {target}×. One more crumb. Try again?","{current}× of {target}×. You could taste it. So could the ants. Try again?","{current}× of {target}×. One more lap would have done it. Try again?"]}},
     lastPick={};
   function pick(slot,pool){var i=(Math.random()*pool.length)|0;if(pool.length>1&&i===lastPick[slot])i=(i+1+((Math.random()*(pool.length-1))|0))%pool.length;lastPick[slot]=i;return pool[i]}
   function fill(s,v){return s.replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m})}
@@ -1181,7 +1181,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     HUD.grade.textContent=win?grade:"";HUD.grade.style.color=pal?pal[0]:"#fff";
     if(win){
       HUD.et.textContent=pick("win"+grade,COPY.win[grade]);
-      HUD.em.textContent=fill("You rolled up to {current}x (target {target}x) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
+      HUD.em.textContent=fill("You rolled up to {current}× (target {target}×) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
     } else {
       var band=ratio<0.5?"low":ratio<0.8?"mid":"high";                 // progress bands: under 50%, 50-79%, 80%+
       HUD.et.textContent=pick("fail",COPY.fail);
@@ -1195,7 +1195,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
   function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};releaseStick();
     var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
-    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"x / Goal "+params.targetMul.toFixed(1)+"x · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
+    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / Goal "+params.targetMul.toFixed(1)+"× · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
     overlays(HUD.pause);phase="pause"}
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
@@ -1706,7 +1706,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   document.addEventListener("pointerdown",function(e){if(cardOn()&&!card.contains(e.target)){cardShow(false);eat=true}},true);
   window.addEventListener("click",function(e){if(eat){eat=false;e.stopImmediatePropagation();e.preventDefault()}},true);
   window.addEventListener("pointerup",function(){setTimeout(function(){eat=false},0)},true); // a drag that never clicks doesn't swallow the next click
-  function act(k,sh){if(k==="e"){(sh?gl:dl).click();return true}if(k==="v"){shut();var st=document.querySelector(".stage");if(st)st.classList.add("show");pill.querySelector(".st").click();return true}if(k==="n"){shut();pill.querySelector(".rr").click();return true}if(k==="b"){if(!bs.hidden)bs.click();return true}return false}
+  function act(k,sh){if(k==="e"){if(sh)gl.click();else{refreshExport(dl);dl.click()}return true} /* the SVG link is normally refreshed on a press, so refresh it first */ if(k==="v"){shut();var st=document.querySelector(".stage");if(st)st.classList.add("show");pill.querySelector(".st").click();return true}if(k==="n"){shut();pill.querySelector(".rr").click();return true}if(k==="b"){if(!bs.hidden)bs.click();return true}return false}
   window.addEventListener("keydown",function(e){var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;if(e.metaKey||e.ctrlKey||e.altKey)return;
     var k=e.key.length===1?e.key.toLowerCase():e.key;
     if(k==="?"){e.preventDefault();e.stopImmediatePropagation();cardShow(!cardOn());return}

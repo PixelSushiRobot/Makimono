@@ -44,9 +44,18 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 - Katamaki rebuilds its world when the seed changes, like the player. On chain the seed never changes, so nothing differs there.
 - The page around the art takes the piece's background colour, edge to edge, with or without the traits shown, and so does the browser bar on iPhone Safari and Android Chrome (`theme-color`). Before, the art sat on a dark grey page. The player has this too. With the traits hidden, the art sits at the bottom of the screen in portrait; with them shown it's centred.
 
+### Keys and the end screen
+
+- **One meaning per key.** `P` only pauses and resumes. `Enter` is the go key: start, keep rolling, confirm restart. `R` restarts. `Esc` cancels the restart question, otherwise goes back to the art. The buttons show these keys as keycaps (hidden on touch). In v1, `P` also meant Continue rolling and Cancel, and on the end screen it did nothing: Keep rolling is now on every end screen.
+- **New art keys:** `E` saves the SVG, `Shift`+`E` the GIF. `?` shows a card with every shortcut, in the piece's colours; a click on it or anywhere else closes it.
+- **Game hints** show the keys as keycaps in groups, at the bottom (roll, steer, hop, pause, restart) and at the top (`G` / `Esc` art). Both fade out after 8 seconds of play and come back on any pause or end screen. Touch keeps its text hint.
+- **Size and goal** show as a scoreboard row over the bar, in the same style as OBJECTS and the timer. The timer no longer adds a ★ once the goal is reached.
+- **New end-screen lines.** Gold, silver and bronze each have 4 or 5 titles, time's up has 6, and ants show up in at most one line per screen. Sizes read `1.2×` everywhere, like the scoreboard.
+- Opening the game drops keyboard focus from the Message cell, so the game's keys always work.
+
 ## The preview page: B-SIDE
 
-`v2/index.html` is no longer a preview of the edition above. It's the player (minted art, exactly as on the token) plus **B-SIDE**: an optional alternate take on each minted token, drawn with gentler rules than the v2 edition. The minted token itself never changes, and nothing on Aleatory changes. It also has v2's Katamaki (driving, Chase magnet, ant planets) and the changes below. It isn't linked from the site yet; the root player stays as it is for now.
+`v2/index.html` is no longer a preview of the edition above. It's the player (minted art, exactly as on the token) plus **B-SIDE**: an optional alternate take on each minted token, drawn with gentler rules than the v2 edition. The minted token itself never changes, and nothing on Aleatory changes. It also has v2's Katamaki and the changes below. It isn't linked from the site yet; the root player stays as it is for now.
 
 ### B-SIDE rules
 
@@ -61,9 +70,7 @@ The traits use the new wave names (Wave, Short Wave) on both sides.
 ### The page
 
 - **Buttons:** KATAMAKI · B-SIDE · ⋯. B-SIDE is a toggle (it stays pressed while on) and adds `&art=b` to the address, so a shared link opens on the B-side. A new seed starts on its minted art. ⋯ opens a menu: Download SVG, Download GIF, View Seed (opens the seed field) and Random Seed, each with its key.
-- **Keyboard shortcuts**, one meaning per key. Art: `I` traits, `M` hop, `B` B-side, `V` view seed, `N` new seed, `E` SVG, `Shift`+`E` GIF. Both: `G` art / game, `Esc` back, `?` a shortcuts card. The card takes the piece's colours, and a click on it or anywhere else closes it.
-- **Katamaki keys:** `P` only pauses and resumes. `Enter` is the go key: start, keep rolling, confirm restart. `R` restarts. `Esc` cancels the restart question, otherwise goes back to the art. The buttons show these keys as keycaps. Before, `P` also meant Keep rolling and Cancel, and on the end screen it did nothing (Keep rolling is now on every end screen).
-- **Game hints:** the keys show as keycaps in groups, at the bottom (roll, steer, hop, pause, restart) and at the top (`G` / `Esc` art). Both fade out after 8 seconds of play and come back on any pause or end screen. Touch keeps its text hint.
-- **Size and goal** show as a scoreboard row over the bar, in the same style as OBJECTS and the timer. The timer no longer adds a ★ once the goal is reached.
+- **Keyboard shortcuts:** the v2 edition's keys (above), plus `B` B-side, `V` view seed and `N` new seed. The shortcuts card lists them all.
+- **Katamaki** is the v2 edition's game, with the keys, hints, scoreboard and end-screen lines above.
 - **Lighter page:** three.js loads after the art is drawn, so the piece never waits for the game's library. Pressing `G` or KATAMAKI before it has arrived marks the button as loading, and the game opens as soon as it's ready. Space Mono comes from Google Fonts instead of being embedded (the mint build still embeds it), and only its regular weight is used.
 - The SEED pill, the home-screen icon, the background fill and the art at the bottom are as in the player.

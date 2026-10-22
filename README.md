@@ -58,7 +58,7 @@ Each file is self-contained: there are no image or script files next to them. Th
 | `Enter` | Start Rolling button | Start rolling · confirm restart |
 | `G` / `Esc` | ✕ button (top right) | Back to the art (pauses the round) |
 
-**In `v2/index.html`** the keys are tidied so each means one thing. Art: `B` B-side, `V` view seed, `N` new seed, `E` SVG, `Shift`+`E` GIF, and `?` shows every shortcut (in the game too). Katamaki: `P` only pauses and resumes, `Enter` also keeps rolling on the end screen, and `Esc` cancels the restart question. See [`v2/CHANGES.md`](v2/CHANGES.md).
+**In v2** (the edition and `v2/index.html`) the keys are tidied so each means one thing. Art: `E` SVG, `Shift`+`E` GIF, and `?` shows every shortcut (in the game too); `v2/index.html` adds `B` B-side, `V` view seed and `N` new seed. Katamaki: `P` only pauses and resumes, `Enter` also keeps rolling on the end screen, and `Esc` cancels the restart question. See [`v2/CHANGES.md`](v2/CHANGES.md).
 
 Touch controls are in the player and v2. The minted v1 game is keyboard only. On touch, the stick appears wherever your thumb lands and is analog: a small push gives a gentle turn. Portrait and landscape both work. In v2, touch steering works like driving a car instead: drag the way you want to go on screen, and the camera follows from a fixed angle (see [`v2/CHANGES.md`](v2/CHANGES.md)).
 
@@ -84,4 +84,4 @@ Use three.js **0.160.1**: the game reads the global `THREE`, and 0.160.1 is the 
 2. Tick the **three.js** library box. The mint UI adds `<meta name="alea:library" content="three@0.160.1">`, and the renderer supplies three.js. Don't add a three.js script tag or a second library tag yourself: the network is blocked on chain.
 3. In the preview, check that the art renders, then press `G` and play a round. On a phone, check the touch controls too.
 
-The v2 mint build is about 115 KB, over the 32 KB that fits in one Tezos operation, so Aleatory publishes it in chunks (several signatures).
+The v2 mint build is about 135 KB, over the 32 KB that fits in one Tezos operation, so Aleatory publishes it in chunks (several signatures).
