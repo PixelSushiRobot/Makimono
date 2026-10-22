@@ -613,7 +613,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 #game .overlay h2{margin:0;font-size:26px;font-weight:700;letter-spacing:.03em}
 #game .overlay p{margin:0;opacity:.82;font-size:13px;line-height:1.5;max-width:380px;text-wrap:pretty}
 #game .overlay button{margin-top:10px;padding:11px 22px;border:1.5px solid #fff;background:transparent;color:#fff;border-radius:999px;font:600 13px ui-monospace,monospace;cursor:pointer;text-transform:uppercase;letter-spacing:.1em;display:inline-flex;align-items:center;gap:10px}
-#game .overlay button:has(kbd){padding-right:10px} /* the key sits as far from the right edge as from the top and bottom */
+#game:not(.touch) .overlay button:has(kbd){padding-right:10px} /* keyboard only (touch hides the keys): the key sits as far from the right edge as from the top and bottom */
 #game .hint kbd,#game .exit kbd,#game .overlay button kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:18px;height:18px;padding:0;border:1px solid currentColor;border-radius:5px;font:400 10px 'Space Mono',ui-monospace,monospace;letter-spacing:0;text-transform:uppercase} /* keycaps, square; Enter, Space and Esc spelled out on a wider cap (.w) */
 #game .overlay button kbd{opacity:.85}
 #game .hint kbd.w,#game .exit kbd.w,#game .overlay button kbd.w{width:auto;padding:0 5px}
