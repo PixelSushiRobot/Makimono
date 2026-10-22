@@ -1336,6 +1336,7 @@ alea.ready();
 .mkcard .row:last-child{border-bottom:0}
 .mkcard .k{display:inline-flex;align-items:center;gap:4px;min-width:230px}
 .mkcard .hd{opacity:.6;padding:12px 0 4px}
+@media (max-height:720px){.mkcard{padding:10px 18px}.mkcard .row{padding:4px 0}.mkcard .hd{padding:8px 0 2px}} /* short windows: tighter rows before any shrinking */
 .mkcard .sl{opacity:.6;margin:0 2px}
 .mkcard kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:18px;height:18px;padding:0;border:1px solid currentColor;border-radius:5px;font:400 10px 'Space Mono',ui-monospace,monospace;letter-spacing:0;text-transform:uppercase}
 .mkcard kbd.w{width:auto;padding:0 5px}
@@ -1353,11 +1354,12 @@ alea.ready();
   function cap1(x){if(x==="Shift")return SHIFT;if(WIDE.indexOf(x)>=0)return x;if(x in ROT)return ARK.replace("RDEG",ROT[x]+"deg");return x}
   function caps(str){return str.split(" ").map(function(x){return x==="/"?'<span class="sl">/</span>':"<kbd"+(WIDE.indexOf(x)>=0?' class="w"':"")+">"+cap1(x)+"</kbd>"}).join("")}
   /* the card: a click on it or anywhere else closes it, and the click that closes it from outside does nothing else */
-  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W A S D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
+  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W S A D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
   var card=document.createElement("div");card.className="mkcard";card.innerHTML='<div class="ttl">Keyboard shortcuts</div>'+rows.map(function(r){return r[1]?'<div class="row"><span class="k">'+caps(r[0])+'</span>'+r[1]+'</div>':'<div class="hd">'+r[0]+'</div>'}).join("");document.body.appendChild(card);
   function cardOn(){return card.classList.contains("open")}
-  function cardPaint(){if(!cardOn())return;requestAnimationFrame(cardPaint);var st=document.querySelector(".stage");if(!st)return;var cs=getComputedStyle(st),bg="rgba("+cs.getPropertyValue("--ink-rgb").trim()+",.9)",fg=cs.getPropertyValue("--bg").trim()||"#0b0b0c";if(card._bg!==bg){card._bg=bg;card.style.background=bg}if(card._fg!==fg){card._fg=fg;card.style.color=fg}}
-  function cardShow(on){var was=cardOn();card.classList.toggle("open",on);if(on&&!was)cardPaint()}
+  function cardPaint(){if(!cardOn())return;if(!fit()){card.classList.remove("open");return}requestAnimationFrame(cardPaint);var st=document.querySelector(".stage");if(!st)return;var cs=getComputedStyle(st),bg="rgba("+cs.getPropertyValue("--ink-rgb").trim()+",.9)",fg=cs.getPropertyValue("--bg").trim()||"#0b0b0c";if(card._bg!==bg){card._bg=bg;card.style.background=bg}if(card._fg!==fg){card._fg=fg;card.style.color=fg}}
+  function fit(){var s=Math.min(1,(innerWidth-24)/card.offsetWidth,(innerHeight-24)/card.offsetHeight);if(s<.7)return false;var t="translate(-50%,-50%) scale("+s.toFixed(3)+")";if(card._t!==t){card._t=t;card.style.transform=t}return true} /* shrinks the card to fit the window, down to 70%; smaller than that, the card doesn't open (or closes) */
+  function cardShow(on){var was=cardOn();card.classList.toggle("open",on);if(on&&!fit()){card.classList.remove("open");return}if(on&&!was)cardPaint()}
   card.addEventListener("click",function(e){e.stopPropagation();cardShow(false)});
   var eat=false;
   document.addEventListener("pointerdown",function(e){if(cardOn()&&!card.contains(e.target)){cardShow(false);eat=true}},true);
@@ -1368,7 +1370,7 @@ alea.ready();
     if(k==="?"){e.preventDefault();e.stopImmediatePropagation();cardShow(!cardOn());return}
     if(cardOn()&&k==="Escape"){e.preventDefault();e.stopImmediatePropagation();cardShow(false);return}
     var g=document.getElementById("game");if(g&&g.classList.contains("on"))return;
-    if(k==="e"){e.preventDefault();e.stopImmediatePropagation();if(e.shiftKey)gl.click();else{refreshExport(dl);dl.click()}}},true); /* the SVG link is normally refreshed on a press, so refresh it first */
+    if(k==="e"){e.preventDefault();e.stopImmediatePropagation();if(e.shiftKey)gl.click();else{dl.dispatchEvent(new FocusEvent("focus"));dl.click()}}},true); /* the SVG link is refreshed on a press or focus, so send it a focus first */
   /* game hints (keyboard): the keys as keycaps in groups. Both hints fade out after 8 s of play and come back on any overlay. Touch keeps its own text hint, and no top hint */
   var G=document.getElementById("game");if(!G)return;
   var h=G.querySelector(".hint"),x=G.querySelector(".exit");

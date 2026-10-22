@@ -1429,6 +1429,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
 .mkcard .row:last-child{border-bottom:0}
 .mkcard .k{display:inline-flex;align-items:center;gap:4px;min-width:230px}
 .mkcard .hd{opacity:.6;padding:12px 0 4px}
+@media (max-height:720px){.mkcard{padding:10px 18px}.mkcard .row{padding:4px 0}.mkcard .hd{padding:8px 0 2px}} /* short windows: tighter rows before any shrinking */
 </style>
 <script>/* B-SIDE: the alternate-art generator, the gentle rules from CHANGES.md (art part only), sealed in its own scope. MKMN_ALT draws for the page (and leaves MAKI_PAL / MAKI_TXT for the game); MKMN_GEN2 is for comparing and restores them */
 (function(){
@@ -1695,18 +1696,19 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   menu.addEventListener("click",function(e){e.stopPropagation()});
   document.addEventListener("pointerdown",function(e){if(menu.classList.contains("open")&&!menu.contains(e.target)&&!more.contains(e.target))shut()},true);
   /* shortcuts card (?): a click on it or anywhere else closes it. The click that closes it from outside does nothing else (it doesn't also toggle the traits or press a button) */
-  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["B","B-side"],["V","View seed"],["N","New seed"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W A S D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
+  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["B","B-side"],["V","View seed"],["N","New seed"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W S A D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
   var card=document.createElement("div");card.className="mkcard";card.innerHTML='<div class="ttl">Keyboard shortcuts</div>'+rows.map(function(r){return r[1]?'<div class="row"><span class="k">'+caps(r[0])+'</span>'+r[1]+'</div>':'<div class="hd">'+r[0]+'</div>'}).join("");document.body.appendChild(card);
   function cardOn(){return card.classList.contains("open")}
   /* the card takes the piece's colours, and keeps following them while it's open (a new seed or B-SIDE recolours it) */
-  function cardPaint(){if(!cardOn())return;requestAnimationFrame(cardPaint);var st=document.querySelector(".stage");if(!st)return;var cs=getComputedStyle(st),bg="rgba("+cs.getPropertyValue("--ink-rgb").trim()+",.9)",fg=cs.getPropertyValue("--bg").trim()||"#0b0b0c";if(card._bg!==bg){card._bg=bg;card.style.background=bg}if(card._fg!==fg){card._fg=fg;card.style.color=fg}}
-  function cardShow(on){var was=cardOn();card.classList.toggle("open",on);if(on&&!was)cardPaint()}
+  function cardPaint(){if(!cardOn())return;if(!fit()){card.classList.remove("open");return}requestAnimationFrame(cardPaint);var st=document.querySelector(".stage");if(!st)return;var cs=getComputedStyle(st),bg="rgba("+cs.getPropertyValue("--ink-rgb").trim()+",.9)",fg=cs.getPropertyValue("--bg").trim()||"#0b0b0c";if(card._bg!==bg){card._bg=bg;card.style.background=bg}if(card._fg!==fg){card._fg=fg;card.style.color=fg}}
+  function fit(){var s=Math.min(1,(innerWidth-24)/card.offsetWidth,(innerHeight-24)/card.offsetHeight);if(s<.7)return false;var t="translate(-50%,-50%) scale("+s.toFixed(3)+")";if(card._t!==t){card._t=t;card.style.transform=t}return true} /* shrinks the card to fit the window, down to 70%; smaller than that, the card doesn't open (or closes) */
+  function cardShow(on){var was=cardOn();card.classList.toggle("open",on);if(on&&!fit()){card.classList.remove("open");return}if(on&&!was)cardPaint()}
   card.addEventListener("click",function(e){e.stopPropagation();cardShow(false)});
   var eat=false;
   document.addEventListener("pointerdown",function(e){if(cardOn()&&!card.contains(e.target)){cardShow(false);eat=true}},true);
   window.addEventListener("click",function(e){if(eat){eat=false;e.stopImmediatePropagation();e.preventDefault()}},true);
   window.addEventListener("pointerup",function(){setTimeout(function(){eat=false},0)},true); // a drag that never clicks doesn't swallow the next click
-  function act(k,sh){if(k==="e"){if(sh)gl.click();else{refreshExport(dl);dl.click()}return true} /* the SVG link is normally refreshed on a press, so refresh it first */ if(k==="v"){shut();var st=document.querySelector(".stage");if(st)st.classList.add("show");pill.querySelector(".st").click();return true}if(k==="n"){shut();pill.querySelector(".rr").click();return true}if(k==="b"){if(!bs.hidden)bs.click();return true}return false}
+  function act(k,sh){if(k==="e"){if(sh)gl.click();else{dl.dispatchEvent(new FocusEvent("focus"));dl.click()}return true} /* the SVG link is refreshed on a press or focus, so send it a focus first */ if(k==="v"){shut();var st=document.querySelector(".stage");if(st)st.classList.add("show");pill.querySelector(".st").click();return true}if(k==="n"){shut();pill.querySelector(".rr").click();return true}if(k==="b"){if(!bs.hidden)bs.click();return true}return false}
   window.addEventListener("keydown",function(e){var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;if(e.metaKey||e.ctrlKey||e.altKey)return;
     var k=e.key.length===1?e.key.toLowerCase():e.key;
     if(k==="?"){e.preventDefault();e.stopImmediatePropagation();cardShow(!cardOn());return}
