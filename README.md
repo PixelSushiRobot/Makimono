@@ -30,7 +30,7 @@ On iPhone or iPad, load your seed first, then use Share → **Add to Home Screen
 | [`v1/`](v1/) | **Minted.** The exact files of the collection on Aleatory. Frozen: never edit. Known issues in [`v1/NOTES.md`](v1/NOTES.md). Also tagged in git as `v1-minted`. |
 | [`v2/`](v2/) | **Not released.** A possible future edition (`makimono.html` and its mint build): all fixes plus new Mono and lookalike rules, which change some seeds' art. Its `index.html` is the player's staging copy: try changes there first, then copy it to the root. See [`v2/CHANGES.md`](v2/CHANGES.md). |
 
-Each file is self-contained: there are no image or script files next to them (the player's default icons aside). The minted files embed the font. The only outside resources are the three.js CDN script, and in the player also Space Mono from Google Fonts.
+Each file is self-contained: there are no image or script files next to them (the player's default icons aside). The minted files embed the font. The only outside resources are the three.js CDN script, and in the player also Space Mono from Google Fonts (plus just the `#` from Space Grotesk, which sits at cap height, for the wallet list).
 
 ### v1 files
 

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <!-- PLAYER (GitHub Pages, makimono.psr.fyi) -- the minted v1 piece (v1/makimono.html) with the viewer fixes (flat full frames, MKFLAT below), plus B-SIDE: an alternate take on each minted token, drawn with gentler rules (see v2/CHANGES.md), offered only when it looks visibly different. With B-SIDE off the art is exactly the minted art. Katamaki is the v2 game (touch controls, adaptive quality, driving steering). Also a seed field, a ⋯ menu, keyboard shortcuts (? shows them) and the home-screen icon. Not for minting: it loads three.js (after the art is drawn) and Space Mono from the web. v2/index.html is the same page, for trying changes first. -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400&text=%23&display=swap"><!-- just the # from Space Grotesk: it sits at cap height, unlike Space Mono's. Used where a name has a # (the wallet list) -->
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><!-- maximum-scale=1: iOS Safari otherwise zooms in when the seed field (under 16px) is focused; pinch zoom still works on iOS -->
 <meta name="theme-color" content="#0b0b0c">
 <title>Makimono</title>
@@ -1435,6 +1436,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
 <style>/* PLAYER: the wallet list, with a thumbnail before each name */
 .export-bar .mkmenu .mi.tk{justify-content:flex-start;gap:calc(var(--scale-unit)*12)}
 .export-bar .mkmenu .mi.tk canvas{width:calc(var(--scale-unit)*28);height:calc(var(--scale-unit)*28);flex-shrink:0;image-rendering:pixelated;border-radius:calc(var(--scale-unit)*4)}
+.export-bar .mkmenu .mi.tk span{font-family:'Space Grotesk','Space Mono',ui-monospace,monospace} /* the Grotesk file only holds #, so every other character falls through to Space Mono */
 </style>
 <script>/* PLAYER: home-screen icon. "Add to Home Screen" uses the apple-touch-icon (iOS) or the largest icon link (Android), so both are drawn from the piece on screen: the art's first frame,
    read at its 13 x 13 pixels (as the game does) and scaled up with hard edges to 180 x 180. It's redrawn whenever the art changes (a new seed),
