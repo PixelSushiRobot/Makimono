@@ -1359,7 +1359,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     '<span class="sx" role="button" tabindex="0" aria-label="Close">'+X+'</span>';
   b.appendChild(p);
   try{history.replaceState({seed:$alea.seed},"")}catch(_){} // remember the first seed too, so Back can return to it
-  window.addEventListener("popstate",function(e){var s=(e.state&&e.state.seed)||new URLSearchParams(location.search).get("seed");if(s&&s!==$alea.seed&&window.MKMN_RESEED){window.MKMN_RESEED(s);close()}}); // Back / Forward step through the seeds you've viewed
+  window.addEventListener("popstate",function(e){var s=(e.state&&e.state.seed)||new URLSearchParams(location.search).get("seed");if(s&&s!==$alea.seed&&window.MKMN_RESEED){window.MKMN_RESEED(s);close();if(window.MKMN_ARTFROMURL)MKMN_ARTFROMURL()}}); // Back / Forward step through the seeds you've viewed
   var inp=p.querySelector("input");
   function load(v,raw){v=(v||"").trim();if(!v)return;if(!raw&&window.MKMN_FIND&&MKMN_FIND(v,load,inp,close))return; /* token numbers, links and wallets: see MKMN_FIND below */if(v===$alea.seed){close();return}
     if(window.MKMN_RESEED&&history.pushState){history.pushState({seed:v},"","?seed="+encodeURIComponent(v));window.MKMN_RESEED(v);close();return} // swap in place: no reload, the band stays open
@@ -1411,7 +1411,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       var g=TH[s],x=c.getContext("2d");for(var k=0;k<169;k++)if(g[k]){x.fillStyle=g[k];x.fillRect(k%13,(k/13)|0,1,1)}}catch(_){}
     requestAnimationFrame(next)})()}
   document.addEventListener("pointerdown",function(e){if(pick&&!pick.contains(e.target))unpick()},true);
-  function share(t){try{var q=new URLSearchParams(location.search);q.set("token",t.id+1);q.set("seed",t.seed);history.replaceState(history.state,"","?"+q)}catch(_){}}
+  function share(t,keepArt){try{var q=new URLSearchParams(location.search);q.set("token",t.id+1);q.set("seed",t.seed);if(!keepArt)q.delete("art");history.replaceState(history.state,"","?"+q)}catch(_){}}
   /* after a wallet / .tez lookup, a wallet button (its name) sits before KATAMAKI; it opens a menu listing the wallet's pieces.
      Kept for this tab (also across reloads). Random Seed, or anything other than a wallet typed in the seed field, removes it. Picking a piece keeps it */
   var WL=null,wbtn=null,wmenu=null;try{WL=JSON.parse(sessionStorage.getItem("mkmnWL")||"null")}catch(_){}
@@ -1425,12 +1425,12 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function wlOpen(){if(!WL||!wbtn)return;wlShut();var mm=bar.querySelector(".mkmenu[role=menu].open");if(mm){mm.classList.remove("open");var mo=bar.querySelector(".more");if(mo)mo.classList.remove("on")}
     wmenu=document.createElement("div");wmenu.className="mkmenu open wlm";wmenu.setAttribute("role","menu");wmenu.style.left=wbtn.offsetLeft+"px";
     var q=[];WL.ts.forEach(function(t){var a=document.createElement("a");a.className="mi tk"+(window.$alea&&t.seed===$alea.seed?" cur":"");a.href="#";a.setAttribute("role","menuitem");a.innerHTML="<canvas width=13 height=13></canvas><span></span>";a.lastChild.textContent=t.name;q.push([a.firstChild,t.seed]);
-      a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();wlShut();if(window.MKMN_RESEED)MKMN_RESEED(t.seed);share(t)});wmenu.appendChild(a)});
+      a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();wlShut();var same=window.$alea&&t.seed===$alea.seed;if(window.MKMN_RESEED)MKMN_RESEED(t.seed);share(t,same)}); // the piece already on screen keeps its B-SIDE statewmenu.appendChild(a)});
     wmenu.addEventListener("click",function(e){e.stopPropagation()});bar.appendChild(wmenu);wbtn.classList.add("on");var w=wmenu;thumbs(q,function(){return w.isConnected})}
   document.addEventListener("pointerdown",function(e){if(wmenu&&!wmenu.contains(e.target)&&!(wbtn&&wbtn.contains(e.target)))wlShut()},true);
   window.addEventListener("keydown",function(e){if(wmenu&&e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();wlShut()}},true);
   document.addEventListener("click",function(e){var t=e.target;if(t&&t.closest){if(t.closest(".export-bar .more"))wlShut();if(t.closest(".export-bar .seedb .rr"))wlSet(null)}},true); // ⋯ closes it; Random Seed removes it
-  setTimeout(wlDraw,0); // after the bar is arranged (the B-SIDE script reads the bar's first button as KATAMAKI)
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",wlDraw);else wlDraw(); // after the bar is arranged (the B-SIDE script reads the bar's first button as KATAMAKI)
   /* called by the seed field before it loads what was typed; true = handled here (load(seed,true) is called once found) */
   window.MKMN_FIND=function(v,load,inp,close){var p=parse(v);if(!p||!(p.addr||p.tez))wlSet(null);if(!p)return false; /* anything but a wallet removes the wallet button */
     var ph=inp.getAttribute("data-ph")||inp.placeholder;inp.setAttribute("data-ph",ph);
@@ -1451,7 +1451,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     return true};
   /* ?token=51 on its own: the page drew a random piece first, so swap in the token as soon as it's found */
   try{var q=new URLSearchParams(location.search),tk=q.get("token");if(tk&&/^\d+$/.test(tk)&&!q.get("seed")&&window.MKMN_RESEED){var st=document.querySelector(".stage");if(st)st.style.opacity="0";
-    list().then(function(a){var t=a[+tk-1];if(t){MKMN_RESEED(t.seed);share(t)}}).catch(function(){}).then(function(){if(st)st.style.opacity=""})}}catch(_){}
+    list().then(function(a){var t=a[+tk-1];if(t){MKMN_RESEED(t.seed);share(t,true);if(window.MKMN_ARTFROMURL)MKMN_ARTFROMURL()}}).catch(function(){}).then(function(){if(st)st.style.opacity=""})}}catch(_){}
 })();</script>
 <style>/* PLAYER: the wallet list, with a thumbnail before each name */
 .export-bar .mkmenu .mi.tk{justify-content:flex-start;gap:calc(var(--scale-unit)*12)}
@@ -1749,7 +1749,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   /* icons on the 16 grid, same height (about 11.7) and solid fill as the globe and arrows */
   var DIA='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M8 2.15L13.85 8L8 13.85L2.15 8ZM8 3.71L3.71 8L8 12.29Z"/></svg>'; /* half-filled diamond: outline on the left, solid on the right */
   var MORE='<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.35 6.8A1.2 1.2 0 1 1 3.35 9.2A1.2 1.2 0 1 1 3.35 6.8ZM8 6.8A1.2 1.2 0 1 1 8 9.2A1.2 1.2 0 1 1 8 6.8ZM12.65 6.8A1.2 1.2 0 1 1 12.65 9.2A1.2 1.2 0 1 1 12.65 6.8Z"/></svg>';
-  var kb=bar.children[0],dl=bar.children[1],gl=bar.children[2],pill=bar.querySelector(".seedb"),ARR=dl.querySelector("svg").outerHTML;
+  var kids=[].filter.call(bar.children,function(n){return !n.classList.contains("wlb")}),kb=kids[0],dl=kids[1],gl=kids[2],pill=bar.querySelector(".seedb"),ARR=dl.querySelector("svg").outerHTML;
   function btn(cls,html,label){var a=document.createElement("a");a.className="button "+cls;a.href="#";a.setAttribute("role","button");a.setAttribute("aria-label",label);a.innerHTML=html;return a}
   var bs=btn("bside","<span>B-SIDE</span>"+DIA,"B-side: alternate art");bs.setAttribute("aria-pressed","false");bs.title="B-side [B]";bs.hidden=true;
   var more=btn("more",MORE,"More");more.setAttribute("aria-haspopup","menu");
@@ -1826,7 +1826,9 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   window.MKMN_RESEED=function(s){if(s!==$alea.seed){on=false;window.MKMN_BSIDE=false}orig(s);paint()}; // a new seed starts on its minted art
   function setOn(v){on=!!v&&has();window.MKMN_BSIDE=on;orig($alea.seed);paint();url()}
   bs.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();setOn(!on)});
-  paint();if(new URLSearchParams(location.search).get("art")==="b"&&has())setOn(true);
+  /* &art=b in the address: B-SIDE on, if this piece has one; if it hasn't, drop it from the address so it never says b while showing the minted art */
+  window.MKMN_ARTFROMURL=function(){var q=new URLSearchParams(location.search);if(q.get("art")!=="b"){if(on)setOn(false);return}if(has()){if(!on)setOn(true)}else{q.delete("art");try{history.replaceState(history.state,"","?"+q)}catch(_){}}};
+  paint();(function(){var q=new URLSearchParams(location.search);if(q.get("token")&&!q.get("seed"))return;MKMN_ARTFROMURL()})(); // ?token= alone: done once the token is found
 })();</script>
 <style>/* PLAYER: the wallet button (its name) and its menu, opening under it; the piece on screen has a dot */
 .export-bar .wlb{padding-right:calc(var(--scale-unit)*10)} /* text only: the same padding on both sides */
