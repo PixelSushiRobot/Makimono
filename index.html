@@ -1425,7 +1425,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function wlOpen(){if(!WL||!wbtn)return;wlShut();var mm=bar.querySelector(".mkmenu[role=menu].open");if(mm){mm.classList.remove("open");var mo=bar.querySelector(".more");if(mo)mo.classList.remove("on")}
     wmenu=document.createElement("div");wmenu.className="mkmenu open wlm";wmenu.setAttribute("role","menu");wmenu.style.left=wbtn.offsetLeft+"px";
     var q=[];WL.ts.forEach(function(t){var a=document.createElement("a");a.className="mi tk"+(window.$alea&&t.seed===$alea.seed?" cur":"");a.href="#";a.setAttribute("role","menuitem");a.innerHTML="<canvas width=13 height=13></canvas><span></span>";a.lastChild.textContent=t.name;q.push([a.firstChild,t.seed]);
-      a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();wlShut();var same=window.$alea&&t.seed===$alea.seed;if(window.MKMN_RESEED)MKMN_RESEED(t.seed);share(t,same)}); // the piece already on screen keeps its B-SIDE statewmenu.appendChild(a)});
+      a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();wlShut();var same=window.$alea&&t.seed===$alea.seed;if(window.MKMN_RESEED)MKMN_RESEED(t.seed);share(t,same)});wmenu.appendChild(a)}); /* re-picking the piece on screen keeps its B-SIDE state */
     wmenu.addEventListener("click",function(e){e.stopPropagation()});bar.appendChild(wmenu);wbtn.classList.add("on");var w=wmenu;thumbs(q,function(){return w.isConnected})}
   document.addEventListener("pointerdown",function(e){if(wmenu&&!wmenu.contains(e.target)&&!(wbtn&&wbtn.contains(e.target)))wlShut()},true);
   window.addEventListener("keydown",function(e){if(wmenu&&e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();wlShut()}},true);
