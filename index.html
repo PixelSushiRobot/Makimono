@@ -1785,10 +1785,19 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   (function(){var G=document.getElementById("game");if(!G)return;new MutationObserver(function(){if(!G.classList.contains("on"))return;var a=document.activeElement;if(a&&a!==document.body&&!G.contains(a)&&(a.isContentEditable||/^(INPUT|TEXTAREA)$/.test(a.tagName)))a.blur()}).observe(G,{attributes:true,attributeFilter:["class"]})})();
   /* B-SIDE toggle */
   var cache={},on=false;
-  function md(s){if(cache[s]!=null)return cache[s];var t=window.MAKI_TXT,p=window.MAKI_PAL,v=0; // biggest pixel colour change, minted vs alternate, over every frame
-    try{var a=MKFLAT.grids(MKMN_GEN1(s).svg,false).grids,b=MKFLAT.grids(MKMN_GEN2(s).svg,false).grids;if(a.length!==b.length)v=99;else for(var f=0;f<a.length;f++)for(var i=0;i<169;i++)if(a[f][i]!==b[f][i])v=Math.max(v,MKMN_DE(a[f][i],b[f][i]))}catch(e){v=0}
-    window.MAKI_TXT=t;window.MAKI_PAL=p;return cache[s]=v}
-  function has(){return md($alea.seed)>=30}
+  /* is the alternate visibly different? (tuned on the minted tokens in work/trait-finder.html)
+     the biggest pixel colour change over the whole loop is ΔE 30+, and then either
+     - new shades: some colour in one version is ΔE 10+ from every colour in the other (palette change), or
+     - a big reshuffle of the same shades: 2%+ of all pixels, over the loop, change by ΔE 30+
+     Moving the same shades onto a few pixels (e.g. 1.4%) is barely visible, so that alone doesn't count */
+  function md(s){if(cache[s]!=null)return cache[s];var t=window.MAKI_TXT,p=window.MAKI_PAL,ok=false;
+    try{var a=MKFLAT.grids(MKMN_GEN1(s).svg,false).grids,b=MKFLAT.grids(MKMN_GEN2(s).svg,false).grids;
+      if(a.length!==b.length)ok=true;
+      else{var mx=0,n30=0,ca={},cb={};for(var f=0;f<a.length;f++)for(var i=0;i<169;i++){ca[a[f][i]]=1;cb[b[f][i]]=1;if(a[f][i]!==b[f][i]){var d=MKMN_DE(a[f][i],b[f][i]);if(d>mx)mx=d;if(d>=30)n30++}}
+        var pd=0,near=function(c,S){var m=999;for(var k in S){var e=MKMN_DE(c,k);if(e<m)m=e}return m};for(var k1 in cb)pd=Math.max(pd,near(k1,ca));for(var k2 in ca)pd=Math.max(pd,near(k2,cb));
+        ok=mx>=30&&(pd>=10||100*n30/(a.length*169)>=2)}}catch(e){ok=false}
+    window.MAKI_TXT=t;window.MAKI_PAL=p;return cache[s]=ok}
+  function has(){return md($alea.seed)}
   function url(){try{var q=new URLSearchParams(location.search);if(on)q.set("art","b");else q.delete("art");if(!q.get("seed"))q.set("seed",$alea.seed);history.replaceState(history.state,"","?"+q)}catch(_){}}
   function paint(){bs.hidden=!has();bs.classList.toggle("on",on);bs.setAttribute("aria-pressed",on?"true":"false")}
   var orig=window.MKMN_RESEED;

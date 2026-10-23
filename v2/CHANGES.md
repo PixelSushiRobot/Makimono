@@ -65,7 +65,7 @@ A branch of the v2 edition's rules that keeps each token recognisable:
 
 - **Kept exactly as minted:** pattern, message and speed (v1's speed rules and shares), and every other random choice: profile, direction, tone, nori, rice, shape, roll and the details. The main random stream advances exactly as in v1. The lookalike rules (6) are off; they only matter when picking new seeds.
 - **Changed:** Mono colours follow the Profile, as in rule 5 (Trio `a a b b c c`, Mirror `a b c c b a`, Duo and Accent two shades 2+ steps apart, Random 3+ shades, Spectrum unchanged). The shade picks come from their own stream (`seed + "|alt"`), so nothing else moves. Rice can turn white if a new shade is too close to it (v1's contrast rule).
-- **Offered only when it's visible:** the biggest colour change of any pixel, over the whole loop, is at least 30 ΔE. Below that the B-SIDE button doesn't show and the piece shows its minted art.
+- **Offered only when it's visible:** the biggest colour change of any pixel, over the whole loop, is at least 30 ΔE, **and** either it brings new shades (some colour is 10+ ΔE from every colour in the other version) or it moves the same shades around a lot (2%+ of all pixels, over the loop, change by 30+ ΔE). A few swapped pixels alone don't count. Otherwise the B-SIDE button doesn't show and the piece shows its minted art. Tuned on the minted tokens in the trait finder.
 
 The traits use the new wave names (Wave, Short Wave) on both sides.
 
