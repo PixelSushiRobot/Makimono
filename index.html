@@ -1406,14 +1406,33 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     return null}
   var pick=null;function unpick(){if(pick){pick.remove();pick=null}}
   /* thumbnails: each token's first frame (minted art), drawn on a 13 x 13 canvas, one per frame so the list shows at once. Kept per seed */
-  var TH={};function thumbs(q){var i=0;(function next(){if(i>=q.length||!pick)return;var c=q[i][0],s=q[i][1];i++;
+  var TH={};function thumbs(q,alive){var i=0;(function next(){if(i>=q.length||!(alive?alive():pick))return;var c=q[i][0],s=q[i][1];i++;
     try{if(!TH[s]){var t=window.MAKI_TXT,p=window.MAKI_PAL;TH[s]=MKFLAT.grids(MKMN_GEN1(s).svg,false).grids[0];window.MAKI_TXT=t;window.MAKI_PAL=p}
       var g=TH[s],x=c.getContext("2d");for(var k=0;k<169;k++)if(g[k]){x.fillStyle=g[k];x.fillRect(k%13,(k/13)|0,1,1)}}catch(_){}
     requestAnimationFrame(next)})()}
   document.addEventListener("pointerdown",function(e){if(pick&&!pick.contains(e.target))unpick()},true);
   function share(t){try{var q=new URLSearchParams(location.search);q.set("token",t.id+1);q.set("seed",t.seed);history.replaceState(history.state,"","?"+q)}catch(_){}}
+  /* after a wallet / .tez lookup, a wallet button (its name) sits before KATAMAKI; it opens a menu listing the wallet's pieces.
+     Kept for this tab (also across reloads). Random Seed, or anything other than a wallet typed in the seed field, removes it. Picking a piece keeps it */
+  var WL=null,wbtn=null,wmenu=null;try{WL=JSON.parse(sessionStorage.getItem("mkmnWL")||"null")}catch(_){}
+  function wlLabel(p){if(p.tez)return p.tez.toLowerCase();var a=p.addr;return a.slice(0,6)+"…"+a.slice(-5)}
+  function wlSet(v){WL=v;try{if(v)sessionStorage.setItem("mkmnWL",JSON.stringify(v));else sessionStorage.removeItem("mkmnWL")}catch(_){}wlShut();wlDraw()}
+  function wlDraw(){if(!bar)return;if(!WL){if(wbtn){wbtn.remove();wbtn=null}return}
+    if(!wbtn){wbtn=document.createElement("a");wbtn.className="button wlb";wbtn.href="#";wbtn.setAttribute("role","button");wbtn.setAttribute("aria-haspopup","menu");wbtn.innerHTML="<span></span>";
+      wbtn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(wmenu)wlShut();else wlOpen()});bar.insertBefore(wbtn,bar.firstChild)}
+    wbtn.firstChild.textContent=WL.label;wbtn.classList.toggle("tez",/\.tez$/.test(WL.label)); /* .tez names in full, in capitals; addresses keep their case, shortened in the middle */wbtn.setAttribute("aria-label","Pieces in "+WL.label);wbtn.title=WL.label+" · "+WL.ts.length+(WL.ts.length===1?" piece":" pieces")}
+  function wlShut(){if(wmenu){wmenu.remove();wmenu=null}if(wbtn)wbtn.classList.remove("on")}
+  function wlOpen(){if(!WL||!wbtn)return;wlShut();var mm=bar.querySelector(".mkmenu[role=menu].open");if(mm){mm.classList.remove("open");var mo=bar.querySelector(".more");if(mo)mo.classList.remove("on")}
+    wmenu=document.createElement("div");wmenu.className="mkmenu open wlm";wmenu.setAttribute("role","menu");wmenu.style.left=wbtn.offsetLeft+"px";
+    var q=[];WL.ts.forEach(function(t){var a=document.createElement("a");a.className="mi tk"+(window.$alea&&t.seed===$alea.seed?" cur":"");a.href="#";a.setAttribute("role","menuitem");a.innerHTML="<canvas width=13 height=13></canvas><span></span>";a.lastChild.textContent=t.name;q.push([a.firstChild,t.seed]);
+      a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();wlShut();if(window.MKMN_RESEED)MKMN_RESEED(t.seed);share(t)});wmenu.appendChild(a)});
+    wmenu.addEventListener("click",function(e){e.stopPropagation()});bar.appendChild(wmenu);wbtn.classList.add("on");var w=wmenu;thumbs(q,function(){return w.isConnected})}
+  document.addEventListener("pointerdown",function(e){if(wmenu&&!wmenu.contains(e.target)&&!(wbtn&&wbtn.contains(e.target)))wlShut()},true);
+  window.addEventListener("keydown",function(e){if(wmenu&&e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();wlShut()}},true);
+  document.addEventListener("click",function(e){var t=e.target;if(t&&t.closest){if(t.closest(".export-bar .more"))wlShut();if(t.closest(".export-bar .seedb .rr"))wlSet(null)}},true); // ⋯ closes it; Random Seed removes it
+  setTimeout(wlDraw,0); // after the bar is arranged (the B-SIDE script reads the bar's first button as KATAMAKI)
   /* called by the seed field before it loads what was typed; true = handled here (load(seed,true) is called once found) */
-  window.MKMN_FIND=function(v,load,inp,close){var p=parse(v);if(!p)return false;
+  window.MKMN_FIND=function(v,load,inp,close){var p=parse(v);if(!p||!(p.addr||p.tez))wlSet(null);if(!p)return false; /* anything but a wallet removes the wallet button */
     var ph=inp.getAttribute("data-ph")||inp.placeholder;inp.setAttribute("data-ph",ph);
     function say(t){inp.value="";inp.placeholder=t;inp.focus();inp.addEventListener("input",function f(){inp.placeholder=ph;inp.removeEventListener("input",f)})}
     function go(t){unpick();load(t.seed,true);share(t)}
@@ -1423,6 +1442,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     var ids=p.id!=null?Promise.resolve([p.id]):p.num!=null?Promise.resolve([p.num-1]):p.addr?owned(p.addr):domain(p.tez).then(owned);
     Promise.all([ids,list()]).then(function(r){var ts=r[0].map(function(i){return r[1][i]}).filter(Boolean);
       if(!ts.length){say(p.num!=null?"No Makimono #"+p.num+" yet":p.id!=null?"No such Makimono":"No Makimono in this wallet");return}
+      if(p.addr||p.tez){ts.sort(function(a,b){return a.id-b.id});wlSet({label:wlLabel(p),ts:ts.map(function(t){return{id:t.id,seed:t.seed,name:t.name}})});inp.placeholder=ph;close();if(ts.length===1)go(ts[0]);else wlOpen();return} // a wallet: show its button, and open its list
       if(ts.length===1){inp.placeholder=ph;go(ts[0]);return}
       inp.placeholder=ph;close();unpick();ts.sort(function(a,b){return a.id-b.id}); // several: a list to pick from, styled like the ⋯ menu
       pick=document.createElement("div");pick.className="mkmenu open";pick.style.maxHeight="60vh";pick.style.overflowY="auto";
@@ -1808,5 +1828,14 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   bs.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();setOn(!on)});
   paint();if(new URLSearchParams(location.search).get("art")==="b"&&has())setOn(true);
 })();</script>
+<style>/* PLAYER: the wallet button (its name) and its menu, opening under it; the piece on screen has a dot */
+.export-bar .wlb{padding-right:calc(var(--scale-unit)*10)} /* text only: the same padding on both sides */
+.export-bar .wlb span{white-space:nowrap;text-transform:none}
+.export-bar .wlb.tez span{text-transform:uppercase}
+.export-bar .wlb.on{background:var(--ink);color:var(--bg,#0b0b0c)}
+.export-bar .mkmenu.wlm{right:auto;max-height:60vh;overflow-y:auto}
+.export-bar.seeding .wlb{display:none}
+.export-bar .mkmenu .mi.tk.cur::after{content:"";width:calc(var(--scale-unit)*6);height:calc(var(--scale-unit)*6);border-radius:50%;background:currentColor;margin-left:auto;flex-shrink:0}
+</style>
 </body>
 </html>

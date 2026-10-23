@@ -8,7 +8,7 @@ Open **[makimono.psr.fyi](https://makimono.psr.fyi/)**, tap or click the art, th
 
 - your token number: `51` or `#51` (the number in its name, Makimono #51)
 - its link on [Aleatory](https://aleatory.art/generator/KT1EaQfAUBHpwXCniFJdrix8YicvfRVcCaAU) or objkt
-- your wallet address (`tz1…`) or `.tez` name: one piece opens straight away; several show a list with thumbnails to pick from
+- your wallet address (`tz1…`) or `.tez` name: one piece opens straight away; several show a list with thumbnails to pick from. A button with the wallet's name then sits before KATAMAKI to reopen that list (for this browser tab); Random Seed or entering anything else removes it
 - its seed, from the token's page
 
 Lookups use [TzKT](https://tzkt.io), the public Tezos indexer; pasting a seed works without it. Your piece appears right away, and the address updates so you can share or bookmark it:
