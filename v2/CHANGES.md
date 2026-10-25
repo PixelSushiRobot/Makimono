@@ -116,7 +116,7 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Buttons:** stacked in one column on every screen, all as wide as the widest. Labels are centred; with key hints shown (keyboard), the label sits left and the key on the right. On short screens (landscape phones, 520px tall or less) they sit side by side in one row so everything fits.
 - **Stats:** one row when there's room. On narrow touch screens (under 600px wide), a 2×2 grid; a fifth stat (chopsticks) gets its own centred row.
 - **Short screens (landscape phones):** only the spacing tightens and the message gets wider, so everything fits without shrinking. If a very small screen still can't fit it all, it scrolls.
-- **Turning the phone:** in a home-screen web app on iOS, turning the phone mid-game could leave taps landing away from the buttons (jump read as the stick, pause-screen taps missed). The page under the game no longer scrolls while it's open, and on every turn, resize or return to the app it's put back in place and the screen size re-read. A stick or hop held through a turn is let go.
+- **Turning the phone:** in a home-screen web app on iOS, turning the phone mid-game could leave taps landing away from the buttons (jump read as the stick, pause-screen taps missed). The page under the game no longer scrolls while it's open, and on every turn, resize or return to the app it's put back in place and the screen size re-read. A stick or hop held through a turn is let go. While the game is open, the page behind it takes the planet's sky colour, so turning the phone no longer flashes white.
 
 **Rule changes**
 - **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.

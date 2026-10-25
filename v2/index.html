@@ -588,7 +588,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 })();
 </script>
 <style>
-html.mkgame,html.mkgame body{overflow:hidden;overscroll-behavior:none}
+html.mkgame,html.mkgame body{overflow:hidden;overscroll-behavior:none;background:#05060a}
 #game{position:fixed;inset:0;z-index:50;display:none;background:#05060a;font-family:ui-monospace,Menlo,Consolas,monospace}
 #game.on{display:block}
 #game canvas{display:block;width:100%;height:100%}
@@ -1220,7 +1220,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      the total when it breaks, the anthill's ants when it is rolled up */
   var twTot=0,twGot=0,twLost=0,twAnts=0,twChops=0,twChopT=-1,twLast="",twLastT=0,twNow=0,twWob=[],twHP=null;
   function twW(o,w){if(o&&o.userData){o.userData.mkO=w;twTot+=w}}
-  function twCount(){(twConf||[]).forEach(function(c){scene.remove(c.m)});twBk=[];twBkN=0;twBkL=null;twOmk=false;twOmkB=false;twFin=null;twConf=[];twTot=0;twGot=0;twLost=0;twChops=0;twChopT=-1;twGL=[];twSrc={};twMT={};twR0=-1;twAnts=0;twLast="";twLastT=0;twWob=[];var el0=GAME.querySelector(".hud .last");if(el0){el0._s="";el0.innerHTML=""}
+  function twCount(){if(typeof twBg==="function")setTimeout(twBg,0);(twConf||[]).forEach(function(c){scene.remove(c.m)});twBk=[];twBkN=0;twBkL=null;twOmk=false;twOmkB=false;twFin=null;twConf=[];twTot=0;twGot=0;twLost=0;twChops=0;twChopT=-1;twGL=[];twSrc={};twMT={};twR0=-1;twAnts=0;twLast="";twLastT=0;twWob=[];var el0=GAME.querySelector(".hud .last");if(el0){el0._s="";el0.innerHTML=""}
     props.forEach(function(o){if(!o.dead&&!o.hid)twW(o.g,o.foot*o.foot)});obstacles.forEach(function(o){if(!o.dead&&!o.hid)twW(o.g,o.size*o.size)});
     clouds.forEach(function(o){o.g.userData.nm="CLOUD";if(!o.dead){var s=o.g.scale.x*1.5;twW(o.g,s*s)}});ants.forEach(function(o){if(!o.dead){twW(o.g,o.sz*o.sz)}});
     if(plaza){plaza.gn=0;plaza.n0=0;for(var k=0;k<169;k++)if(!plaza.out||plaza.out.some(function(O){return !O[k]})){plaza.n0++;twTot+=plaza.TS*plaza.TS}}if(twR)twTot+=twR.NSL*twR.SLW*3.2}
@@ -1663,10 +1663,11 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   document.addEventListener("visibilitychange",function(){if(document.hidden)pauseGame();else twReflow()});
   /* turning the phone (worst in a home-screen web app on iOS): the page under the game could end up scrolled or zoomed, so taps landed
      off from where the buttons are drawn and a tap on jump read as the stick. While the game is open the page can't scroll; on every turn,
-     resize or return to the app it is put back at the top, a stick or hop held through the turn is let go, and the size is re-read once iOS settles */
-  var twLand=innerWidth>innerHeight;function twReflow(){if(!GAME.classList.contains("on"))return;document.documentElement.classList.add("mkgame");if(scrollX||scrollY)scrollTo(0,0);var ls=innerWidth>innerHeight;if(ls!==twLand){twLand=ls;releaseStick();hopB.classList.remove("on")}onResize();[120,450].forEach(function(ms){setTimeout(function(){if(scrollX||scrollY)scrollTo(0,0);onResize()},ms)})}
+     resize or return to the app it is put back at the top, a stick or hop held through the turn is let go, and the size is re-read once iOS settles. Behind the game the page takes the sky's colour, so a turn doesn't flash white */
+  var twLand=innerWidth>innerHeight;function twReflow(){if(!GAME.classList.contains("on"))return;document.documentElement.classList.add("mkgame");if(scrollX||scrollY)scrollTo(0,0);var ls=innerWidth>innerHeight;if(ls!==twLand){twLand=ls;releaseStick();hopB.classList.remove("on")}onResize();twBg();[120,450].forEach(function(ms){setTimeout(function(){if(scrollX||scrollY)scrollTo(0,0);onResize()},ms)})}
   ["orientationchange","resize","pageshow"].forEach(function(n){window.addEventListener(n,twReflow)});if(window.visualViewport)visualViewport.addEventListener("resize",twReflow);
-  new MutationObserver(function(){document.documentElement.classList.toggle("mkgame",GAME.classList.contains("on"))}).observe(GAME,{attributes:true,attributeFilter:["class"]}); // app switch, lock screen, incoming call: pause the round
+  function twBg(){var on=GAME.classList.contains("on"),b=on&&scene&&scene.background&&scene.background.isColor?"#"+scene.background.getHexString():"";document.documentElement.style.backgroundColor=b;document.body.style.backgroundColor=b}
+  new MutationObserver(function(){document.documentElement.classList.toggle("mkgame",GAME.classList.contains("on"));twBg()}).observe(GAME,{attributes:true,attributeFilter:["class"]}); // app switch, lock screen, incoming call: pause the round
   // ---- adaptive quality: watch the frame rate while playing and step down only if the device struggles.
   // tiers: 0 full | 1 sharpness capped at 1.5x | 2 sharpness 1x, half the decor cones and clouds, no antialias from the next round | 3 sharpness .75x, no scattered scenery (clusters stay)
   // a step that doesn't raise the frame rate by 10% is undone and the tier locks (e.g. iOS Low Power Mode caps every page at 30fps, lowering quality can't help).
