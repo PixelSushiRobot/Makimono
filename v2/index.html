@@ -588,6 +588,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 })();
 </script>
 <style>
+html.mkgame,html.mkgame body{overflow:hidden;overscroll-behavior:none}
 #game{position:fixed;inset:0;z-index:50;display:none;background:#05060a;font-family:ui-monospace,Menlo,Consolas,monospace}
 #game.on{display:block}
 #game canvas{display:block;width:100%;height:100%}
@@ -623,9 +624,9 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 #game .overlay .grade{font:800 15px ui-monospace,monospace;letter-spacing:.24em;margin:0}
 #game .overlay .medal{line-height:0;margin:0}
 #game .overlay .medal:empty,#game .overlay .grade:empty{display:none}
-#game .overlay .btns{display:flex;flex-direction:column;align-items:center}
-#game.touch .rpt{max-width:300px;gap:12px 0}#game.touch .rpt div{flex:0 0 50%;min-width:0}
-@media (max-height:520px){#game .overlay{gap:6px;padding:10px max(24px,env(safe-area-inset-right)) 10px max(24px,env(safe-area-inset-left));justify-content:safe center;overflow-y:auto}#game .overlay h2{font-size:20px}#game .overlay p{font-size:12px;line-height:1.4;max-width:560px}#game .overlay .medal{transform:scale(.7);margin:-8px 0}#game .overlay .btns{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:0 8px}#game .overlay button{margin-top:4px;padding:8px 14px}#game .rpt{margin:0 0 2px}#game .rpt span{font-size:15px}#game.touch .rpt{gap:6px 0}}
+#game .overlay{justify-content:safe center;overflow-y:auto}#game .overlay .btns{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:8px}#game .overlay .btns button{margin-top:0;justify-content:center}#game:not(.touch) .overlay .btns button:has(kbd){justify-content:space-between}
+@media (max-width:599px){#game.touch .rpt{max-width:300px;gap:12px 0}#game.touch .rpt div{flex:0 0 50%;min-width:0}}
+@media (max-height:520px){#game .overlay{gap:8px;padding:12px max(24px,env(safe-area-inset-right)) 12px max(24px,env(safe-area-inset-left))}#game .overlay p{max-width:560px}#game .overlay .btns{flex-direction:row;flex-wrap:wrap;justify-content:center}}
 #game .overlay p.wel{margin:0 0 -2px;font:700 12px ui-monospace,monospace;letter-spacing:.32em;text-transform:uppercase;opacity:.8}
 #game .overlay .logo{width:min(400px,76vw,80vh);aspect-ratio:2/1;margin:0;line-height:0;pointer-events:none} /* one 3D view: the KATAMAKI cube letters with the player's roll under them */
 #game .overlay .logo canvas{display:block;width:100%!important;height:100%!important}
@@ -672,7 +673,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd class="w">Enter</kbd></button></div>
   <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><div class="rpt"></div><div class="btns"><button class="keep">Keep rolling<kbd class="w">Enter</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button><button class="omart">Back to art<kbd>G</kbd></button></div></div>
   <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><div class="rpt"></div><div class="btns"><button class="cont">Resume<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button><button class="toart">Back to art<kbd>G</kbd></button></div></div>
-  <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd class="w">Esc</kbd></button></div>
+  <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><div class="btns"><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd class="w">Esc</kbd></button></div></div>
 </div>
 <script>
 function mkmnGame(){ /* the game: started by the three.js loader further down, once the library has arrived (or failed to) */
@@ -1659,7 +1660,13 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   tpad.querySelector(".tpause").addEventListener("click",function(){pauseGame()});
   GAME.querySelector(".toart").addEventListener("click",function(e){e.stopPropagation();exit()});GAME.querySelector(".omart").addEventListener("click",function(e){e.stopPropagation();exit()}); // pause screen: back to the art (the round stays paused)
   ["touchstart","touchmove"].forEach(function(n){GAME.addEventListener(n,function(e){if(GAME.classList.contains("touch")&&!e.target.closest(".overlay, .tbtns, .perf"))e.preventDefault()},{passive:false})}); // no page scroll, pinch or double-tap zoom while playing
-  document.addEventListener("visibilitychange",function(){if(document.hidden)pauseGame()}); // app switch, lock screen, incoming call: pause the round
+  document.addEventListener("visibilitychange",function(){if(document.hidden)pauseGame();else twReflow()});
+  /* turning the phone (worst in a home-screen web app on iOS): the page under the game could end up scrolled or zoomed, so taps landed
+     off from where the buttons are drawn and a tap on jump read as the stick. While the game is open the page can't scroll; on every turn,
+     resize or return to the app it is put back at the top, a stick or hop held through the turn is let go, and the size is re-read once iOS settles */
+  var twLand=innerWidth>innerHeight;function twReflow(){if(!GAME.classList.contains("on"))return;document.documentElement.classList.add("mkgame");if(scrollX||scrollY)scrollTo(0,0);var ls=innerWidth>innerHeight;if(ls!==twLand){twLand=ls;releaseStick();hopB.classList.remove("on")}onResize();[120,450].forEach(function(ms){setTimeout(function(){if(scrollX||scrollY)scrollTo(0,0);onResize()},ms)})}
+  ["orientationchange","resize","pageshow"].forEach(function(n){window.addEventListener(n,twReflow)});if(window.visualViewport)visualViewport.addEventListener("resize",twReflow);
+  new MutationObserver(function(){document.documentElement.classList.toggle("mkgame",GAME.classList.contains("on"))}).observe(GAME,{attributes:true,attributeFilter:["class"]}); // app switch, lock screen, incoming call: pause the round
   // ---- adaptive quality: watch the frame rate while playing and step down only if the device struggles.
   // tiers: 0 full | 1 sharpness capped at 1.5x | 2 sharpness 1x, half the decor cones and clouds, no antialias from the next round | 3 sharpness .75x, no scattered scenery (clusters stay)
   // a step that doesn't raise the frame rate by 10% is undone and the tier locks (e.g. iOS Low Power Mode caps every page at 30fps, lowering quality can't help).
