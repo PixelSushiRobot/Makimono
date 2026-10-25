@@ -646,7 +646,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 #game .tbtns button:active{background:#fff;color:#05060a}
 #game.touch .exit,#game.touch .overlay button kbd{display:none}
 #game.touch .traits{top:calc(14px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left))}
-#game.touch .timer{top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right))}
+#game .last{position:absolute;top:44px;left:16px;font-size:13px;font-weight:700;letter-spacing:.06em;line-height:1;white-space:nowrap}#game .last b{font-size:10px;font-weight:600;opacity:.6;letter-spacing:.1em;margin-right:8px}#game.touch .last{top:calc(44px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left))}#game .rpt{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 26px;margin:2px 0 8px}#game .rpt div{display:flex;flex-direction:column;gap:5px;min-width:90px}#game .rpt b{font-size:10px;font-weight:600;opacity:.6;letter-spacing:.1em}#game .rpt span{font-size:18px;font-weight:700}#game .rpt .bal{flex-basis:100%;gap:4px;margin-top:6px;opacity:.8}#game .rpt .bal span{font-size:11px;font-weight:600;line-height:1.4}#game.touch .timer{top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right))}
 /* size bar, label and hint stay at the bottom like desktop, lifted clear of the home bar */
 #game.touch .sizebar{bottom:calc(60px + env(safe-area-inset-bottom))}
 #game.touch .sizelab{bottom:calc(80px + env(safe-area-inset-bottom))}
@@ -658,7 +658,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
 </style>
 <div id="game">
   <div class="hud">
-    <div class="traits"></div>
+    <div class="traits"></div><div class="last"></div>
     <div class="timer"></div>
     <div class="exit"><span class="g"><kbd>G</kbd><span class="sl">/</span><kbd class="w">Esc</kbd><span class="t">Art</span></span></div>
     <div class="sizelab"></div>
@@ -667,8 +667,8 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   </div>
   <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button></div></div>
   <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd class="w">Enter</kbd></button></div>
-  <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><button class="keep">Keep rolling<kbd class="w">Enter</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button></div>
-  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><button class="cont">Resume<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button><button class="toart">Back to art<kbd>G</kbd></button></div>
+  <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><div class="rpt"></div><button class="keep">Keep rolling<kbd class="w">Enter</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button><button class="omart">Back to art<kbd>G</kbd></button></div>
+  <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><div class="rpt"></div><button class="cont">Resume<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button><button class="toart">Back to art<kbd>G</kbd></button></div>
   <div class="overlay confirm hidden"><h2>Restart this round?</h2><p>Your roll and everything on it will be lost.</p><button class="yes">Restart<kbd>R</kbd></button><button class="no">Cancel<kbd class="w">Esc</kbd></button></div>
 </div>
 <script>
@@ -687,7 +687,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   var ballR,timeLeft,pips=0,up,fwd,pPos,hopT=0,vel=0,camF=null,hopDur=0.42,lastT=0,params={};
   var hopD=0.42,hopH=2.0,hopMine=false; // this hop's length and height; hopMine = a hop you made (Space or the button), not the bounce from a hit
   // a hop grows with the roll, so it still feels like a jump at gold size: about 4x higher and 0.75s long by then (0.42s and 2 at the start)
-  function startHop(){if(!running||hopT>0)return;var s=ballR/R0;hopH=2.0*Math.pow(s,0.75);hopD=0.42*Math.pow(s,0.3);hopMine=true;hopT=hopD}
+  function startHop(){if(!running||hopT>0)return;var s=ballR/R0;hopH=2.0*Math.pow(s,0.75);hopD=0.42*Math.pow(s,0.3);hopMine=true;hopT=hopD;hpB=onBlk?rideB:-1}
 
   function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   function hash(s){var h=2166136261;s=String(s||"makimono");for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -707,9 +707,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     p.speed=(tr.Speed||"").toLowerCase();
     var fast=/fast/.test(p.speed),slow=/slow/.test(p.speed);
     p.time=fast?30:slow?50:40;
-    p.targetMul=fast?4.0:slow?2.6:3.2;
-    p.chase=/chase/.test(p.pattern);
-    p.enemyN=p.chase?9:/sparkle|checker|ripple/.test(p.pattern)?2:1;
+    p.targetMul=fast?2.7:slow?3.7:3.2; /* the same growth per second for every speed (normal 3.2x in 40 s), so speed sets the pace, not the difficulty */
+    p.chase=false; /* Chase's magnet and its 9 chopsticks are off for now, to revisit later */
+    p.enemyN=2; /* 2 chopsticks for every pattern */
     p.stepMs=fast?70:slow?210:140;
     p.dir=/left|ccw|west|anti/.test((tr.Direction||"").toLowerCase())?-1:1;
     p.isText=/text|marquee/.test(p.pattern);
@@ -766,7 +766,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   // ---- raw ingredients + sushi-bar objects (collectibles), recognizable low-poly ----
   var INGK=["fish","fish2","shrimp","avocado","cucumber","eggplant","carrot","edamame","onigiri","soy","teacup","oshibori"];
   function buildIngredient(kind){
-    var g=new THREE.Group(),C=THREE.Color;
+    var g=new THREE.Group(),C=THREE.Color;g.userData.nm=({fish:"SALMON",fish2:"MACKEREL",shrimp:"SHRIMP",avocado:"AVOCADO",cucumber:"CUCUMBER",eggplant:"EGGPLANT",carrot:"CARROT",edamame:"EDAMAME",onigiri:"ONIGIRI",soy:"SOY SAUCE",teacup:"TEACUP",oshibori:"OSHIBORI"})[kind]||"";
     function add(geo,c,o,px,py,pz,rot){var m=new THREE.Mesh(geo,fmat(c,o));if(px!=null)m.position.set(px,py,pz);if(rot)m.rotation.set(rot[0],rot[1],rot[2]);g.add(m);return m}
     function lathe(profile,c,seg,o){var pts=profile.map(function(a){return new THREE.Vector2(a[0],a[1])});return new THREE.Mesh(new THREE.LatheGeometry(pts,seg||12),fmat(c,o))} // revolve a 2D profile -> clean rounded silhouette, flat-faceted
     function slab(outline,depth,c,o){var s=new THREE.Shape();outline.forEach(function(pt,i){i?s.lineTo(pt[0],pt[1]):s.moveTo(pt[0],pt[1])});var bv=Math.min(0.1,depth*0.35),ge=new THREE.ExtrudeGeometry(s,{depth:depth,bevelEnabled:true,bevelThickness:bv,bevelSize:bv,bevelSegments:1,steps:1});ge.translate(0,0,-depth/2);return new THREE.Mesh(ge,fmat(c,o))} // extrude a 2D outline
@@ -796,7 +796,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       put(lathe([[0,0],[0.26,0.08],[0.38,0.26],[0.42,0.5],[0.38,0.78],[0.28,1.04],[0.16,1.26],[0.07,1.4],[0,1.46]],new C(0x3f6a2a),13,{roughness:.65}),0,0,0);
       add(new THREE.CylinderGeometry(.035,.05,.12,5),new C(0x5a4327),{roughness:.7},0,1.5,0);
     } else if(kind==="cucumber"){ // lathed cucumber pod, laid down
-      put(lathe([[0,0],[0.12,0.08],[0.2,0.25],[0.21,1.0],[0.16,1.25],[0,1.35]],new C(0x4f8f33),10,{roughness:.6}),0,0.21,0,0,0,Math.PI/2);
+      put(lathe([[0,0],[0.12,0.08],[0.2,0.25],[0.21,1.0],[0.16,1.25],[0,1.35]],new C(0x4f8f33),10,{roughness:.6}),0.675,0.21,0,0,0,Math.PI/2);
     } else if(kind==="eggplant"){ // lathed bulb + green calyx + stem
       put(lathe([[0,0],[0.3,0.08],[0.42,0.3],[0.44,0.52],[0.34,0.78],[0.2,1.0],[0.14,1.12],[0,1.15]],new C(0x5b2a6e),12,{roughness:.4}),0,0,0);
       add(new THREE.IcosahedronGeometry(.26,0),new C(0x3f7a2e),{roughness:.6},0,1.06,0).scale.set(1,.6,1);
@@ -808,15 +808,15 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       put(lathe([[0,0.02],[0.2,0.02],[0.22,0.06],[0.18,0.08],[0.26,0.16],[0.30,0.40],[0.31,0.45],[0.27,0.45],[0.26,0.40],[0.20,0.09],[0,0.07]],new C(0xeee5d4),16,{roughness:.75}),0,0,0);
       add(new THREE.CylinderGeometry(.26,.23,.05,16),new C(0x6f9a3e),{roughness:.5},0,0.33,0); // matcha green tea
     } else if(kind==="carrot"){ // orange root pointing down + leafy green top
-      put(new THREE.Mesh(new THREE.ConeGeometry(0.26,1.1,8),fmat(new C(0xe8742a),{roughness:.6})),0,0.55,0,Math.PI,0,0);
-      for(var ci=0;ci<3;ci++){var ca=(ci-1)*0.3;put(new THREE.Mesh(new THREE.ConeGeometry(0.06,0.5,4),fmat(new C(0x4e8a34),{roughness:.6})),0,1.12,0,ca,0,ca*0.6)}
+      put(new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.06,1.1,8),fmat(new C(0xe8742a),{roughness:.6})),0,0.55,0,0,0,0); /* same 8-sided cone with the point cut off flat */
+      put(new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.15,0.04,6),fmat(new C(0x4e8a34),{roughness:.6})),0,1.12,0,0,0,0);for(var ci=0;ci<3;ci++){var ca=ci*Math.PI*2/3,ct=0.38;put(new THREE.Mesh(new THREE.BoxGeometry(0.07,0.42,0.07),fmat(new C(0x4e8a34),{roughness:.6})),-Math.sin(ct)*Math.cos(ca)*0.21,1.13+Math.cos(ct)*0.21,Math.sin(ct)*Math.sin(ca)*0.21,0,ca,ct)} /* green disc + three flared square stalks */
     } else if(kind==="edamame"){ // edamame: one closed pod with three bean bulges, all contained (no floating peas)
       put(lathe([[0,0],[0.17,0.1],[0.21,0.32],[0.21,0.68],[0.17,0.9],[0,1.0]],new C(0x6fae36),12,{roughness:.6}),0.5,0.26,0,0,0,Math.PI/2);
       [-0.26,0,0.26].forEach(function(x){add(new THREE.SphereGeometry(.16,8,6),new C(0x8fc24a),{roughness:.6},x,0.4,0)});
     } else if(kind==="onigiri"){ // upright rice triangle, apex up, nori sheet across the bottom
-      var og=new THREE.CylinderGeometry(0.55,0.55,0.38,3);og.rotateX(-Math.PI/2);          // 3-sided prism turned so the triangle faces front, one point straight up
+      var hs=new THREE.Shape(),hT=[[0,0.55],[-0.476,-0.275],[0.476,-0.275]];for(var hi=0;hi<3;hi++){var hA=hT[hi],hB=hT[(hi+1)%3];if(hi)hs.lineTo(hA[0]+(hB[0]-hA[0])*0.12,hA[1]+(hB[1]-hA[1])*0.12);else hs.moveTo(hA[0]+(hB[0]-hA[0])*0.12,hA[1]+(hB[1]-hA[1])*0.12);hs.lineTo(hB[0]+(hA[0]-hB[0])*0.12,hB[1]+(hA[1]-hB[1])*0.12)}var og=new THREE.ExtrudeGeometry(hs,{depth:0.38,bevelEnabled:false});og.translate(0,0,-0.19); /* rice triangle with its three corners cut flat (12% of each side), sharp edges kept */          // 3-sided prism turned so the triangle faces front, one point straight up
       add(og,new C(0xf4ecd8),{roughness:.9},0,0.3,0);
-      add(new THREE.BoxGeometry(0.42,0.3,0.4),new C(0x14241a),{roughness:.9},0,0.175,0);   // nori wrapped over the bottom edge
+      add(new THREE.BoxGeometry(0.42,0.31,0.46),new C(0x14241a),{roughness:.9},0,0.17,0);   // nori wrapped over the bottom edge
     } else { // oshibori: rolled towel on a little tray
       add(new THREE.CylinderGeometry(.28,.28,1.3,10),new C(0xf3f1ea),{roughness:.95},0,.42,0,[0,0,Math.PI/2]);
       add(new THREE.BoxGeometry(1.5,.12,.7),new C(0x2c2a28),{roughness:.5},0,.12,0);
@@ -883,9 +883,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   // ---- blocking terrain: low-poly trees & rocks (roll-up-able once you're big enough) ----
   function buildTree(c){var g=new THREE.Group();var tr=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,1.0,6),fmat(new THREE.Color(0x6b4a2a),{roughness:.9}));tr.position.y=.5;g.add(tr);var fo=new THREE.Mesh(new THREE.ConeGeometry(.8,1.9,6),fmat(c,{roughness:.9}));fo.position.y=1.75;g.add(fo);g.userData.size=0.95;return g}
   function buildRock(c){var m=new THREE.Mesh(new THREE.IcosahedronGeometry(0.7,0),fmat(c,{roughness:1,flatShading:true}));m.scale.set(1,0.78,1);m.userData.size=0.7;return m}
-  function buildBush(c){var g=new THREE.Group();[[0,0.3,0,0.4],[0.3,0.26,0.1,0.3],[-0.25,0.28,-0.1,0.32],[0.05,0.52,0.05,0.28]].forEach(function(o){var m=new THREE.Mesh(new THREE.IcosahedronGeometry(o[3],0),fmat(c,{roughness:.9}));m.position.set(o[0],o[1],o[2]);g.add(m)});g.userData.size=0.5;return g}
+  function buildBush(c){var g=new THREE.Group(),a=new THREE.Mesh(new THREE.DodecahedronGeometry(0.95,0),fmat(c,{roughness:1,flatShading:true}));a.scale.set(1.1,0.72,0.9);a.position.y=0.42;a.rotation.y=0.6;g.add(a);var b=new THREE.Mesh(new THREE.IcosahedronGeometry(0.45,0),fmat(c.clone().multiplyScalar(0.85),{roughness:1,flatShading:true}));b.scale.set(1,0.8,1);b.position.set(0.9,0.2,0.45);g.add(b);g.userData.size=0.9;return g} /* the bush read as a rock, so it is a big rock now: a wide boulder with a smaller one beside it */
   function buildFlower(c){var g=new THREE.Group();var st=new THREE.Mesh(new THREE.CylinderGeometry(.03,.04,.6,5),fmat(new THREE.Color(0x4e7a34),{roughness:.8}));st.position.y=.3;g.add(st);var n=5;for(var i=0;i<n;i++){var a=i/n*6.283,pt=new THREE.Mesh(new THREE.IcosahedronGeometry(.12,0),fmat(c,{roughness:.7}));pt.position.set(Math.cos(a)*.14,.62,Math.sin(a)*.14);pt.scale.set(1,.5,1);g.add(pt)}var ctr=new THREE.Mesh(new THREE.IcosahedronGeometry(.08,0),fmat(new THREE.Color(0xf2c14e),{roughness:.6}));ctr.position.y=.64;g.add(ctr);g.userData.size=0.3;return g}
-  function buildMushroom(){var g=new THREE.Group();var st=new THREE.Mesh(new THREE.CylinderGeometry(.1,.13,.4,7),fmat(new THREE.Color(0xf0e6d2),{roughness:.8}));st.position.y=.2;g.add(st);var cap=new THREE.Mesh(new THREE.SphereGeometry(.28,10,6,0,6.283,0,Math.PI/2),fmat(new THREE.Color(0xc0392b),{roughness:.6}));cap.position.y=.4;g.add(cap);g.userData.size=0.35;return g}
+  function buildMushroom(){var g=new THREE.Group();var st=new THREE.Mesh(new THREE.CylinderGeometry(.1,.13,.4,7),fmat(new THREE.Color(0xf0e6d2),{roughness:.8}));st.position.y=.2;g.add(st);var cap=new THREE.Mesh(new THREE.SphereGeometry(.28,10,6,0,6.283,0,Math.PI/2),fmat(new THREE.Color(0xc0392b),{roughness:.6}));cap.position.y=.4;g.add(cap);var gil=new THREE.Mesh(new THREE.CircleGeometry(.28,10),fmat(new THREE.Color(0xe9dcc0),{roughness:.9}));gil.rotation.x=Math.PI/2;gil.position.y=.4;g.add(gil); /* the cap's underside, so it isn't hollow */g.userData.size=0.35;return g}
   // ---- chopstick monster (enemy): training-chopstick shape -- joined at the top, legs splayed open at the bottom ----
   // low-poly black ant (head +z): abdomen, thorax, head, 6 jointed legs, 2 antennae, fish-style eyes on the head sides
   function buildAnt(){var g=new THREE.Group(),blk=fmat(new THREE.Color(0x221e24),{roughness:.5}),lgm=fmat(new THREE.Color(0x171419),{roughness:.6}),ico=new THREE.IcosahedronGeometry(1,0),X=new THREE.Vector3(1,0,0);
@@ -933,14 +933,15 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     for(var i=0;i<banner.letters.length;i++){var L=banner.letters[i],x=banner.dir>0?(hw+2-banner.o+L.x0):(-hw-2-banner.W+banner.o+L.x0);
       L.g.position.set(x,Math.sin(t/420+L.i*0.7)*0.45,0);L.g.rotation.y=Math.sin(t/700+L.i*0.9)*0.45;L.g.rotation.x=Math.sin(t/900+L.i)*0.15}} // bob + turn so the depth shows
   // ---- scatter the world: static biome planet, a FEW animated filling-features, ingredients, clouds ----
+  var blocks=[],plaza=null,rideB=0,fallV=0,hpB=-1,onBlk=false;
   function spawnWorld(p){
-    terrain=[];props=[];clouds=[];obstacles=[];
+    terrain=[];props=[];clouds=[];obstacles=[];plaza=null;
     var palHi=p.pip.length?p.pip:p.uniq;
     var NF=34; // sparse animated features -- only these move
     for(var i=0;i<NF;i++){
       var d=fibDir((i*5+2)%NF,NF).applyAxisAngle(YUP,rnd()*0.7).normalize();
       if(relief01(d)<WATER+0.03)continue;
-      var c=palHi[(rnd()*palHi.length)|0],fh=0.8+rnd()*1.4,foot=0.5+rnd()*0.3;
+      var c=palHi[(rnd()*palHi.length)|0],fh=0.8+rnd()*1.4,foot=0.5+rnd()*0.3;continue; /* same draws, no spike */
       var geo=p.kind==="checker"?new THREE.BoxGeometry(1,1,1):p.kind==="sparkle"?new THREE.ConeGeometry(.5,1,4):new THREE.ConeGeometry(.55,1,5);
       var g=new THREE.Mesh(geo,fmat(col(c),{roughness:.85}));g.scale.set(foot,fh,foot);g.castShadow=true;g.receiveShadow=true;scene.add(g);
       terrain.push({g:g,dir:d,h0:fh,foot:foot,parity:(i&1),phase:(d.x+d.z)*4+i});
@@ -962,7 +963,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     // blocking scenery: dense forest/garden clusters + scattered singles (Katamari messiness)
     function placeObstacle(dir,sc){dir.normalize();if(relief01(dir)<WATER+0.04)return;var k=rnd(),oc=col(p.uniq[(rnd()*p.uniq.length)|0]),g;
       if(k<0.42)g=buildTree(oc);else if(k<0.64)g=buildBush(oc);else if(k<0.8)g=buildRock(oc);else if(k<0.92)g=buildFlower(col((p.pip&&p.pip.length?p.pip:p.uniq)[(rnd()*(p.pip&&p.pip.length?p.pip.length:p.uniq.length))|0]));else g=buildMushroom();
-      g.scale.multiplyScalar(sc);g.position.copy(dir.clone().multiplyScalar(surfaceR(dir)));g.quaternion.copy(QT.setFromUnitVectors(YUP,dir));scene.add(g);var gb=makeBlob(g.userData.size||0.7);g.add(gb);g.userData.blob=gb;
+      g.userData.nm=k<0.42?"TREE":k<0.64?"BIG ROCK":k<0.8?"ROCK":k<0.92?"FLOWER":"MUSHROOM";g.scale.multiplyScalar(sc);g.position.copy(dir.clone().multiplyScalar(surfaceR(dir)));g.quaternion.copy(QT.setFromUnitVectors(YUP,dir));scene.add(g);var gb=makeBlob(g.userData.size||0.7);g.add(gb);g.userData.blob=gb;
       obstacles.push({g:g,dir:dir.clone(),size:(g.userData.size||0.7)*sc,dead:false,cl:curCl});}
     var curCl=-1; // which cluster an obstacle belongs to (-1 = single), so the spawn clear-out can move a cluster as one group
     var CLUST=6;for(var ci=0;ci<CLUST;ci++){curCl=ci;var center=fibDir((ci*5+2)%CLUST,CLUST).applyAxisAngle(YUP,rnd()*6.28).normalize();if(relief01(center)<WATER+0.06)continue;
@@ -993,6 +994,341 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     ants.forEach(function(o){var d=o.pos.clone().normalize();if(inC(d))o.pos.copy(at(tangent(d),a0+0.02).multiplyScalar(SR))});
   }
 
+  /* the few landmark helpers the spawner uses (from the landmark test). A site (the belt, the anthill) has a centre c, flat axes
+     a1 and a2 and a radius R; parts placed in its flat coordinates are what the roll's walls and riding check (the spawner's sites have none) */
+  var lms=[],lmBox=null,lmOct=null,lmCyl=null,lmRideP=null;
+  function lmFrame(d,a){var x=a.clone().addScaledVector(d,-a.dot(d)).normalize();return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,d,new THREE.Vector3().crossVectors(x,d)))}
+  function lmAt(S,u,v){return S.c.clone().multiplyScalar(SR).addScaledVector(S.a1,u).addScaledVector(S.a2,v).normalize()}
+  function lmLocal(S,d){var k=SR/Math.max(0.2,d.dot(S.c));return [d.dot(S.a1)*k,d.dot(S.a2)*k]}
+  function lmW(S,u,v){var w=S.a1.clone().multiplyScalar(u).addScaledVector(S.a2,v);return w.lengthSq()>1e-8?w.normalize():w}
+  function lmDist(P,u,v){var du=u-P.u,dv=v-P.v;if(P.rot){var cs=Math.cos(P.rot),sn=Math.sin(P.rot),tt=du*cs+dv*sn;dv=-du*sn+dv*cs;du=tt}var x=Math.max(0,Math.abs(du)-P.sx/2),y=Math.max(0,Math.abs(dv)-P.sz/2);return Math.sqrt(x*x+y*y)}
+  /* where ants and chopsticks walk: the land, or the plaza's tiles */
+  function lmGround(d){var g=surfaceR(d);if(plaza&&d.angleTo(plaza.c)<plaza.ang){var k=mkptTile(d);if(k>=0&&plaza.vis[k]!==false)g=Math.max(g,plaza.tops[k])}return g}
+  function lmBuild(){lms=[];lmRideP=null}
+  /* nothing starts on a site: pickups, scenery, spikes and ants there are slid just outside it */
+  function lmClear(){lms.forEach(function(S){var c=S.c,a0=(S.R+0.6)/SR;
+    function tg(d){var t=d.clone().addScaledVector(c,-d.dot(c));if(t.lengthSq()<1e-8)t.copy(S.a1);return t.normalize()}
+    function at(t,a){return c.clone().multiplyScalar(Math.cos(a)).addScaledVector(t,Math.sin(a)).normalize()}
+    function hit(d){if(d.angleTo(c)>=a0)return false;if(!S.bx)return true;var L=lmLocal(S,d);return L[0]>S.bx[0]&&L[0]<S.bx[1]&&Math.abs(L[1])<S.bx[2]}
+    function off(d){if(!S.bx)return at(tg(d),a0+0.02);var L=lmLocal(S,d);return lmAt(S,L[0],L[1]<0?-S.bx[2]-0.4:S.bx[2]+0.4)}
+    obstacles.forEach(function(o){if(hit(o.dir)){o.dir.copy(off(o.dir));o.g.position.copy(o.dir.clone().multiplyScalar(surfaceR(o.dir)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir))}});
+    props.forEach(function(o){if(hit(o.dir))o.dir.copy(off(o.dir))});
+    terrain.forEach(function(o){if(hit(o.dir))o.dir.copy(off(o.dir))});
+    ants.forEach(function(o){var d=o.pos.clone().normalize();if(hit(d))o.pos.copy(off(d).multiplyScalar(SR))})})}
+  /* every frame: run each site, let the one the roll is on act on it, and put the nearest on the status line */
+  function lmAct(dt,t,pdir){var nb=null,nd=1e9;for(var i=0;i<lms.length;i++){var S=lms[i];S.cd=Math.max(0,S.cd-dt);var da=pdir.angleTo(S.c)*SR;if(da<nd){nd=da;nb=S}
+      if(S.tick)S.tick(t,dt);if(S.act&&da<S.R+ballR+1){var L=lmLocal(S,pdir);S.act(L[0],L[1],dt,t)}}
+    window.MKLM_NEAR=nb?nb.name+(nd>nb.R?" · "+Math.round(nd-nb.R)+" AWAY":" · HERE"):""}
+  /* the piece itself, laid on the ground as 13 x 13 tiles that play the art's real frames. Each tile stands on the land, its top 0.2 over the highest ground under it,
+     so no hill pokes through; on a slope the picture steps like terraces. The roll and ants walk on the tops mkptPC = where it goes: just ahead of the start */
+  function mkptPC(){var S0=new THREE.Vector3(0,1,0.001).normalize(),half=6.5*1.2;
+    return S0.clone().applyAxisAngle(new THREE.Vector3(1,0,0),(half+SPAWN_CLR-1)/SR).normalize()}
+  function mkptPlaza(){var c=mkptPC();if(!c)return;var TS=1.2,G=null;
+    try{var sv=document.querySelector(".art-box svg");G=MKFLAT.grids(window.MKMN_SRC||new XMLSerializer().serializeToString(sv),false).grids}catch(_){}
+    if(!G||!G.length)return;
+    var cx=document.createElement("canvas").getContext("2d"),CM={};
+    G.forEach(function(g){g.forEach(function(f){if(CM[f])return;cx.fillStyle="#000";cx.fillStyle=f;var h=String(cx.fillStyle),r=[0,0,0];if(h.charAt(0)==="#")r=[parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)];CM[f]=col(r)})});
+    var ef=new THREE.Vector3(0,0,1).addScaledVector(c,-c.z);if(ef.lengthSq()<1e-6)ef.set(1,0,0).addScaledVector(c,-c.x);ef.normalize();var er=new THREE.Vector3().crossVectors(ef,c).normalize();
+    var tops=[],BM=[],m=new THREE.InstancedMesh(new THREE.BoxGeometry(TS*0.94,1,TS*0.94),new THREE.MeshStandardMaterial({flatShading:true,roughness:.9}),169);
+    var M=new THREE.Matrix4(),Q=new THREE.Quaternion(),S=new THREE.Vector3(1,1,1),P=new THREE.Vector3(),R=new THREE.Matrix4();
+    for(var k=0;k<169;k++){var x=k%13,y=(k-x)/13,d=c.clone().multiplyScalar(SR).addScaledVector(er,(x-6)*TS).addScaledVector(ef,(6-y)*TS).normalize();
+      var rr=er.clone().addScaledVector(d,-er.dot(d)).normalize(),zz=new THREE.Vector3().crossVectors(rr,d);R.makeBasis(rr,d,zz);Q.setFromRotationMatrix(R);
+      var hi=-1e9,lo=1e9;for(var a=-2;a<=2;a++)for(var b=-2;b<=2;b++){var g=surfaceR(c.clone().multiplyScalar(SR).addScaledVector(er,(x-6+a*0.25)*TS).addScaledVector(ef,(6-y+b*0.25)*TS).normalize());hi=Math.max(hi,g);lo=Math.min(lo,g)}tops[k]=hi+0.2;if(hi-lo>0.25)tops[k]+=0.12; /* a tile on uneven ground sits a little higher: the land mesh runs straight between its points, so in a dip it can poke through a tile that clears the sampled heights */S.set(1,tops[k]-lo+0.5,1);P.copy(d).multiplyScalar((tops[k]+lo-0.5)/2);M.compose(P,Q,S);BM.push(M.clone());m.setMatrixAt(k,M);m.setColorAt(k,CM[G[0][k]])}
+    m.instanceMatrix.needsUpdate=true;m.instanceColor.needsUpdate=true;var bgN={},bg=null;for(var bk=0;bk<169;bk++){var bx=bk%13,by=(bk-bx)/13;if(bx&&by&&bx<12&&by<12)continue;var f0=G[0][bk];bgN[f0]=(bgN[f0]||0)+1;if(!bg||bgN[f0]>bgN[bg])bg=f0}
+    /* which tiles are background. The original art (not the flat copy on the page) is drawn again with its background square in one marker
+       colour and the eyes in another, frame by frame like G. Hidden: every tile the square shows through, plus any tile in the background colour
+       joined to those side to side (like rice in the background colour round the filling, which reads as background in the art), but never
+       the eyes, so a hop pose that brings them next to the outside can't empty them. If that fails, the background colour reachable from the edge */
+    var OUT=null;try{var MK="#fe01fd",ME="#fd02fe",dom=new DOMParser().parseFromString(window.MKMN_SRC||"","image/svg+xml").documentElement,bgr=null;
+      Array.prototype.slice.call(dom.querySelectorAll("rect")).forEach(function(r){if(!bgr&&r.getAttribute("width")==="13"&&r.getAttribute("height")==="13"&&!r.getAttribute("x"))bgr=r;if(r.querySelector("animate[attributeName='y']"))r.setAttribute("fill",ME)});
+      if(bgr){bgr.setAttribute("fill",MK);var GB=MKFLAT.grids(new XMLSerializer().serializeToString(dom),false).grids;
+        if(GB.length===G.length)OUT=GB.map(function(B,fk){var F=G[fk],o=[],st=[];for(var q=0;q<169;q++){o.push(B[q]===MK);if(o[q])st.push(q)}
+          while(st.length){var s=st.pop(),sx=s%13,sy=(s-sx)/13;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(dd){var nx=sx+dd[0],ny=sy+dd[1],n=ny*13+nx;if(nx<0||ny<0||nx>12||ny>12||o[n]||F[n]!==bg||B[n]===ME)return;o[n]=true;st.push(n)})}return o})}}catch(_){OUT=null}
+    if(!OUT)OUT=G.map(function(F){var o=[],st=[];for(var q=0;q<169;q++){var qx=q%13,qy=(q-qx)/13;o.push(false);if((!qx||!qy||qx===12||qy===12)&&F[q]===bg)st.push(q)}
+      st.forEach(function(q){o[q]=true});while(st.length){var s=st.pop(),sx=s%13,sy=(s-sx)/13;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(dd){var nx=sx+dd[0],ny=sy+dd[1],n=ny*13+nx;if(nx<0||ny<0||nx>12||ny>12||o[n]||F[n]!==bg)return;o[n]=true;st.push(n)})}return o});
+    scene.add(m);plaza={m:m,G:G,C:CM,k:0,c:c,er:er,ef:ef,TS:TS,tops:tops,base:BM,bg:bg,out:OUT,vis:[],Z0:new THREE.Matrix4().makeScale(0,0,0),ang:6.5*TS*1.42/SR}}
+  function mkptTile(d){var k=SR/Math.max(0.2,d.dot(plaza.c)),x=Math.round(d.dot(plaza.er)*k/plaza.TS+6),y=Math.round(6-d.dot(plaza.ef)*k/plaza.TS);return x<0||y<0||x>12||y>12?-1:y*13+x}
+  /* nothing starts inside a block cluster or on the plaza: pickups, scenery, spikes and ants there are slid just outside */
+  function mkptClear(){
+    function out(c,a0){function tg(d){var t=d.clone().addScaledVector(c,-d.dot(c));if(t.lengthSq()<1e-8)t.set(1,0,0).addScaledVector(c,-c.x);return t.normalize()}
+      function at(t,a){return c.clone().multiplyScalar(Math.cos(a)).addScaledVector(t,Math.sin(a)).normalize()}
+      obstacles.forEach(function(o){if(o.dir.angleTo(c)<a0){o.dir.copy(at(tg(o.dir),a0+0.02));o.g.position.copy(o.dir.clone().multiplyScalar(surfaceR(o.dir)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir))}});
+      props.forEach(function(o){if(o.dir.angleTo(c)<a0)o.dir.copy(at(tg(o.dir),a0+0.02))});
+      terrain.forEach(function(o){if(o.dir.angleTo(c)<a0)o.dir.copy(at(tg(o.dir),a0+0.02))});
+      ants.forEach(function(o){var d=o.pos.clone().normalize();if(d.angleTo(c)<a0)o.pos.copy(at(tg(d),a0+0.02).multiplyScalar(SR))})}
+    blocks.forEach(function(B){out(B.dir,B.ang+0.6/SR)});if(plaza)out(plaza.c,plaza.ang)}
+  /* things that keep the planet stocked, plus the sky letters.
+     1. An anthill (layered plates in the land's own colour, with scavenged bits and an ant on top) that keeps sending out small ants, twice as fast on ANTS
+        pieces. Rolling the hill up stops it.
+     2. The kaiten road: a conveyor belt running right round the planet beside the start, a little over the land, with plates of sushi riding
+        it. Riding the belt carries the roll; a taken piece is replaced a few seconds later.
+     3. Sky letters in orbit: the message circles the planet above the clouds, letter by letter, and each can be rolled up once the top of the
+        roll reaches it, like a cloud */
+  var twOrb=[],twOrbA=0,twRoadN=null,twR=null;function twAlive(q){return !q.dead}
+  function twM(c){return fmat(c,{roughness:.85})}
+  function twPlate(c,dc){var g=new THREE.Group(),m=new THREE.Mesh(new THREE.CylinderGeometry(.5,.38,.16,14),twM(c));m.position.y=.08;g.add(m);var r=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.02,12),twM(dc));r.position.y=.17;g.add(r);return g}
+  /* the layered anthill: a dome of jagged plates stacked like the reference, alternating the land colour and a darker shade, with scavenged bits
+     (flat chips and a triangle in the piece's colours) poking out between the layers and one ant standing on top */
+  function twHill2(c,dk,K,p,lr){var g=new THREE.Group(),N=7,H=0.62,R=0.6,lt=c.clone().lerp(new THREE.Color(1,1,1),0.18),y=0;var sk=new THREE.Mesh(new THREE.CylinderGeometry(R*0.98,R*1.04,0.5,8),twM(dk));sk.position.y=-0.24;g.add(sk); /* a skirt reaching half its size into the ground, so the hill sits in the land on a slope */
+    for(var i=0;i<N;i++){var f=i/N,r=R*Math.sqrt(Math.max(0.05,1-f*f))*(0.94+lr()*0.12),th=H/N*(1.05+lr()*0.3),ge=new THREE.CylinderGeometry(r*0.9,r,th,8),pa=ge.attributes.position;
+      for(var v=0;v<pa.count;v++){var x=pa.getX(v),z=pa.getZ(v),a=Math.round(Math.atan2(z,x)/(Math.PI/4)),k=0.82+((Math.sin(a*12.9898+i*78.233)*43758.5453)%1+1)%1*0.32;pa.setX(v,x*k);pa.setZ(v,z*k)}ge.computeVertexNormals();
+      var m=new THREE.Mesh(ge,twM(i&1?lt:(i%3===0?dk:c)));m.position.y=y+th/2;m.rotation.y=lr()*6.28;m.rotation.z=(lr()-0.5)*0.12;g.add(m);y+=th*0.82}
+    var bits=[K.lc,K.ac,K.dc,col((p.pip&&p.pip[1])||p.light),col(p.light)];
+    for(var b=0;b<7;b++){var bf=0.15+lr()*0.6,br=R*Math.sqrt(1-bf*bf)*0.98,ba=lr()*6.28,bm;
+      if(b===2)bm=new THREE.Mesh(new THREE.ConeGeometry(0.09,0.02,3),twM(bits[b%bits.length]));else bm=new THREE.Mesh(new THREE.BoxGeometry(b===0?0.32:0.12+lr()*0.1,0.02,0.06+lr()*0.05),twM(bits[b%bits.length]));
+      bm.position.set(Math.cos(ba)*br,bf*y,Math.sin(ba)*br);bm.rotation.y=-ba+(lr()-0.5)*0.6;bm.rotation.z=(lr()-0.5)*0.5;g.add(bm)}
+    var an=buildAnt();an.scale.setScalar(0.16);an.position.y=y+0.01;an.rotation.y=lr()*6.28;g.add(an);return g}
+  function twBuild(p){twOrb=[];twFall=[];twRoadN=null;twR=null;twHP=null;twP=p;twWait=0;twDone=false;if(!lmBox){lmBox=new THREE.BoxGeometry(1,1,1);lmCyl=new THREE.CylinderGeometry(0.5,0.5,1,14);lmOct=new THREE.OctahedronGeometry(0.5,0)}
+    var lr=mulberry(hash(((window.$alea&&$alea.seed)||"m")+"|spawn")),palS=p.uniq.slice().sort(function(a,b){return sum(a)-sum(b)}),land=palS.slice(1);if(!land.length)land=palS;
+    var K={bc:col(land[Math.floor(land.length/2)]),lc:col(p.light),dc:col(p.dark),ac:col((p.pip.length?p.pip:[p.light])[0])};
+    var S0=new THREE.Vector3(0,1,0.001).normalize(),Z=new THREE.Vector3(0,0,1).addScaledVector(S0,-S0.z).normalize(),ZA=new THREE.Vector3(0,0,1);
+    function site(name,c,a1,R){var S={kind:"spawn",name:name,c:c,a1:a1,a2:new THREE.Vector3().crossVectors(c,a1),parts:[],cd:0,gc:surfaceR(c),k:lms.length,R:R,ticks:[],acts:[]};
+      S.tick=function(t,dt){S.ticks.forEach(function(f){f(t,dt)})};S.act=function(u,v,dt,t){S.acts.forEach(function(f){f(u,v,dt,t)})};lms.push(S);return S}
+    function pickup(g,d,s,abs,gain){g.scale.setScalar(s);scene.add(g);var b=makeBlob(.6);g.add(b);g.userData.blob=b;var o={g:g,dir:d.clone(),foot:s*0.9,req:s*0.5,gain:gain||(0.07+s*0.11),spin:lr()*6,dead:false,tw:1};if(abs)o.abs=abs;props.push(o);return o}
+    /* no cloud starts right over the start (one always did: the first cloud sits on the pole the roll starts on); any within 10 units is moved out to 14 */
+    var cA0=10/SR,cA1=14/SR;clouds.forEach(function(cl){if(cl.dir.angleTo(S0)>=cA0)return;var t=cl.dir.clone().addScaledVector(S0,-cl.dir.dot(S0));if(t.lengthSq()<1e-8)t.set(Math.cos(lr()*6.28),0,Math.sin(lr()*6.28));t.normalize();cl.dir.copy(S0).multiplyScalar(Math.cos(cA1)).addScaledVector(t,Math.sin(cA1)).normalize()});
+    /* the road: a winding loop right round the planet, starting 13 units to the side of the start and weaving up to 8 units either way. The belt
+       really moves: its slats and the plates of sushi on it travel together, and a roll standing on it is carried at the same speed (no push).
+       The path is sampled once (twR): direction, the way it runs, its side, the belt top (a little over the land, smoothed, no slope steeper than
+       0.5) and the lowest ground under it, so the slats reach down to the land */
+    {var P0=S0.clone().applyAxisAngle(ZA,-13/SR).normalize(),T0=Z.clone().addScaledVector(P0,-Z.dot(P0)).normalize(),NR=new THREE.Vector3().crossVectors(P0,T0).normalize();
+      var M=1200,R={d:[],T:[],B:[],L:[],top:[],lo:[],spd:2.4*(params.dir||1),off:0,ride:{mv:true,dv:new THREE.Vector3(),rd:1},near:-1};
+      /* the weave, pushed out of the plaza's way (with a margin) and eased in and out so the bend stays smooth */
+      var LA=[],PE=[],PS=[],pcc=plaza?plaza.c:null,plim=plaza?plaza.ang+2.4/SR:0,psg=pcc&&pcc.dot(NR)>0?-1:1,j,q;
+      var pt_=function(th,lat){return P0.clone().multiplyScalar(Math.cos(th)).addScaledVector(T0,Math.sin(th)).multiplyScalar(SR).addScaledVector(NR,lat).normalize()};
+      for(j=0;j<M;j++){var th=j/M*6.283185,lat=5.5*Math.sin(3*th)+2.5*Math.sin(5*th),e=0;if(pcc)while(e<30&&pt_(th,lat+psg*e).angleTo(pcc)<plim)e+=0.25;LA.push(lat);PE.push(e)}
+      var PX=[];for(j=0;j<M;j++){var mx=0;for(q=-60;q<=60;q++)mx=Math.max(mx,PE[(j+q+M)%M]);PX.push(mx)}
+      for(j=0;j<M;j++){var av=0;for(q=-60;q<=60;q++)av+=PX[(j+q+M)%M];PS.push(av/121)}
+      for(j=0;j<M;j++)R.d.push(pt_(j/M*6.283185,LA[j]+psg*Math.max(PS[j],PE[j])))
+      var LT=0;for(j=0;j<M;j++){var dn=R.d[(j+1)%M],t1=dn.clone().sub(R.d[j]);R.L.push(LT);LT+=t1.length()*SR;t1.addScaledVector(R.d[j],-t1.dot(R.d[j])).normalize();R.T.push(t1);R.B.push(new THREE.Vector3().crossVectors(R.d[j],t1))}R.LT=LT;
+      var raw=[];for(j=0;j<M;j++){var hi=-1e9,lo=1e9;for(var w=-1.8;w<=1.81;w+=0.9){var g=lmGround(R.d[j].clone().multiplyScalar(SR).addScaledVector(R.B[j],w).normalize());hi=Math.max(hi,g);lo=Math.min(lo,g)}raw.push(hi);R.lo.push(lo-0.4)}
+      var W=Math.max(1,Math.round(1/(LT/M))),sm=[];for(j=0;j<M;j++){var m=-1e9;for(var q=-W;q<=W;q++)m=Math.max(m,raw[(j+q+M)%M]);sm.push(m)}
+      var ds=LT/M*0.5;for(var pass=0;pass<3;pass++){for(j=0;j<M;j++)sm[j]=Math.max(sm[j],sm[(j+M-1)%M]-ds);for(j=M-1;j>=0;j--)sm[j]=Math.max(sm[j],sm[(j+1)%M]-ds)}
+      for(j=0;j<M;j++)R.top.push(sm[j]+0.9); /* the belt stands 0.9 over the land: a wall at the start size (hop onto it), a step once the roll has grown */
+      R.at=function(a){a=((a%R.LT)+R.LT)%R.LT;var lo_=0,hi_=M-1;while(lo_<hi_){var md=(lo_+hi_+1)>>1;if(R.L[md]<=a)lo_=md;else hi_=md-1}var j0=lo_,j1=(j0+1)%M,seg=(j1?R.L[j1]:R.LT)-R.L[j0],f=seg>0?(a-R.L[j0])/seg:0;
+        return {d:R.d[j0].clone().lerp(R.d[j1],f).normalize(),T:R.T[j0].clone().lerp(R.T[j1],f).normalize(),top:R.top[j0]*(1-f)+R.top[j1]*f,lo:R.lo[j0]*(1-f)+R.lo[j1]*f}}; /* everything blends between samples: snapping the slats' direction and depth from sample to sample made the belt shimmy as it moved */
+      twR=R;R.gone=[];R.need=(p.targetMul||params.targetMul||3.2)*0.9*R0;
+      var NSL=Math.floor(LT/1.25),SLW=LT/NSL,slats=[];R.NSL=NSL;R.SLW=SLW;R.slats=slats;for(var k=0;k<NSL;k++){var sm_=new THREE.Mesh(lmBox,twM(k&1?K.lc:K.bc));sm_.userData.mkO=SLW*3.2;sm_.userData.nm="BELT SLAT";scene.add(sm_);slats.push(sm_)}
+      /* nothing starts on the road: pickups, scenery, spikes and ants there are moved just off its sides */
+      var off=function(d){var bj=0,bd=-2;for(var i=0;i<M;i+=2){var dd=d.dot(R.d[i]);if(dd>bd){bd=dd;bj=i}}var x=d.dot(R.B[bj])*SR;if(Math.abs(x)>=2.6||bd<0.9)return null;return R.d[bj].clone().multiplyScalar(SR).addScaledVector(R.B[bj],x<0?-2.9:2.9).normalize()};
+      obstacles.forEach(function(o){var d=off(o.dir);if(d){o.dir.copy(d);o.g.position.copy(d.clone().multiplyScalar(surfaceR(d)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,d))}});
+      props.forEach(function(o){var d=off(o.dir);if(d)o.dir.copy(d)});terrain.forEach(function(o){var d=off(o.dir);if(d)o.dir.copy(d)});ants.forEach(function(o){var d=off(o.pos.clone().normalize());if(d)o.pos.copy(d.multiplyScalar(SR))});
+      /* a plate goes with its sushi: rolling up the piece takes the plate too, and both come back together 12 s later (not once the belt is broken) */
+      var NPL=30,pls=[];for(var k2=0;k2<NPL;k2++){var pm=twPlate(K.lc,K.ac);pm.scale.setScalar(1.3);pm.userData.nm="PLATE";scene.add(pm);pls.push({m:pm,o:null,at:0,k:k2})}
+      var RS=site("KAITEN ROAD",P0,T0,0);
+      /* once the roll is big enough to eat the belt (90% of the gold size, so it's a late bonus) and rolls up its first slat, the belt breaks: it stops for good, no new sushi arrives, and a plate whose slat is
+         rolled up drops to the ground under it, so nothing floats or keeps moving */
+      RS.tick=function(t,dt){var sp=R.broken?0:R.spd;R.off+=sp*dt;
+        for(var i=0;i<NSL;i++){if(R.gone[i])continue;var A=R.at(i*SLW+R.off),m=slats[i];m.quaternion.copy(lmFrame(A.d,A.T));m.position.copy(A.d).multiplyScalar((A.top+A.lo)/2);m.scale.set(SLW-0.05,A.top-A.lo,3.2)}
+        /* then it rolls up the slats it touches (two a frame at most, each a tiny bit of size), leaving gaps in the road */
+        if(ballR>=R.need){for(var gi=0,gn=0;gi<NSL&&gn<2;gi++){if(R.gone[gi])continue;var gm=slats[gi];if(gm.position.distanceTo(ball.position)<ballR+0.9){R.gone[gi]=true;R.broken=true;R.gn=(R.gn||0)+1;gn++;var gc=gm.clone();gc.userData.req=R.need;scene.add(gc);gm.visible=false;stickToRoll(gc);ballR+=0.05;pips++}}}
+        RS.name=R.broken?"KAITEN ROAD · "+Math.round(100*(R.gn||0)/NSL)+"% ROLLED UP":ballR>=R.need?"KAITEN ROAD · BIG ENOUGH TO ROLL UP":"KAITEN ROAD";
+        if(R.broken&&!R.counted){R.counted=1;pls.forEach(function(L){if(L.m.visible)twW(L.m,1.69);if(L.o&&!L.o.dead)twW(L.o.g,L.o.foot*L.o.foot)})}
+        pls.forEach(function(L){var pa=L.k*R.LT/NPL+R.off,A=R.at(pa),ps=Math.floor(((pa%R.LT)+R.LT)%R.LT/R.SLW)%R.NSL;if(R.gone[ps])A.top=surfaceR(A.d)+0.02;L.m.position.copy(A.d).multiplyScalar(A.top);L.m.quaternion.copy(lmFrame(A.d,A.T));
+          if(L.o&&L.o.dead){var prq=L.o.req;L.o=null;L.at=t+12000;if(L.m.visible){L.m.updateMatrixWorld();var pcl=L.m.clone();pcl.userData.req=prq;scene.add(pcl);L.m.visible=false;stickToRoll(pcl);ballR+=0.01}}if(!L.o&&!R.broken&&t>=L.at){L.m.visible=true;var sz=lr()<0.2?1.3:0.5+lr()*0.4;L.o=pickup(buildIngredient(INGK[(lr()*INGK.length)|0]),A.d,sz,A.top+0.22,(0.07+sz*0.11)*0.5);L.o.g.userData.belt=1}if(L.o){L.o.dir.copy(A.d);L.o.abs=A.top+0.22}});
+        if(R.near>=0)R.ride.dv.copy(R.Tn).multiplyScalar(sp*dt/SR);
+        /* riding the belt round a bend turns the roll with it: its heading turns by however much the belt's direction turned under it */
+        if(R.near>=0&&lmRideP===R.ride&&sp){var Tn=R.Tn;if(R.lastT){var ua=ball.position.clone().normalize(),b0=R.lastT.clone().addScaledVector(ua,-R.lastT.dot(ua)),b1=Tn.clone().addScaledVector(ua,-Tn.dot(ua));if(b0.lengthSq()>1e-8&&b1.lengthSq()>1e-8){b0.normalize();b1.normalize();var ag=Math.atan2(new THREE.Vector3().crossVectors(b0,b1).dot(ua),b0.dot(b1));if(Math.abs(ag)<0.3)fwd.applyAxisAngle(ua,ag)}}R.lastT=Tn.clone()}else R.lastT=null}}
+    /* the anthill: well ahead of the start and to the right, past the plaza's right edge with room to spare, so its top is in view in the distance when the round starts. Its size comes from the
+       seed (a bigger hill sends out bigger ants, faster) and ANTS pieces get a huge one that takes a roll past gold to pick up. In the colour of
+       the land it stands on */
+    {var antsP=/ants/i.test(((window.MAKI_TXT&&MAKI_TXT.msg)||"")+" "+(p.pattern||"")+" "+(p.msg||"")),hs=antsP?15+lr()*5:6.5+lr()*4.5,hr=hs*0.5,RTD=Z.clone().cross(S0).normalize();
+      var hc=S0.clone().multiplyScalar(SR).addScaledVector(Z,34+hr*0.5).addScaledVector(RTD,(plaza?plaza.TS*6.5+1:4)+hr+18).normalize(),AS=site("ANTHILL",hc,Z.clone().addScaledVector(hc,-Z.dot(hc)).normalize(),hr+1);
+      var hp=(AS.gc-SR)/RELIEF,bi=Math.max(0,Math.min(land.length-1,Math.floor((hp-WATER)/(1-WATER)*land.length))),hcl=col(land[bi]),hdk=hcl.clone().multiplyScalar(0.72);
+      var HP=pickup(twHill2(hcl,hdk,K,p,lr),hc,hs,0,Math.min(antsP?1.2:0.6,0.08*hs));HP.req=Math.min(hs*0.5,(p.targetMul||3.2)*(antsP?1.15:0.8)*R0);HP.still=true;twHP=HP;HP.g.userData.nm="ANTHILL";HP.spin=lr()*6.28;
+      /* nothing starts on the hill: pickups, scenery, spikes and ants there are moved just outside it */
+      var hA=(hr+1.5)/SR,hOut=function(d){if(d.angleTo(hc)>=hA)return null;var t=d.clone().addScaledVector(hc,-d.dot(hc));if(t.lengthSq()<1e-8)t.copy(Z);t.normalize();return hc.clone().multiplyScalar(Math.cos(hA+0.02)).addScaledVector(t,Math.sin(hA+0.02)).normalize()};
+      obstacles.forEach(function(o){var d=hOut(o.dir);if(d){o.dir.copy(d);o.g.position.copy(d.clone().multiplyScalar(surfaceR(d)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,d))}});
+      props.forEach(function(o){if(o===HP)return;var d=hOut(o.dir);if(d)o.dir.copy(d)});terrain.forEach(function(o){var d=hOut(o.dir);if(d)o.dir.copy(d)});ants.forEach(function(o){var d=hOut(o.pos.clone().normalize());if(d)o.pos.copy(d.multiplyScalar(SR))});
+      var nx=0,born=[];
+      AS.ticks.push(function(t){if(HP.dead){AS.name="ANTHILL · ROLLED UP";if(!AS.counted){AS.counted=1;born.forEach(function(a){if(!a.dead)twW(a.g,a.sz*a.sz)})}return}var every=Math.max(900,params.stepMs*24)*8.5/hs/(antsP?2:1);if(!nx)nx=t+every;if(t<nx)return;nx=t+every;
+        born=born.filter(function(a){return !a.dead});if(born.length>=24)return;var ag=buildAnt(),asz=Math.min(0.85,0.15+0.045*hs)+lr()*0.12;ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;ag.userData.nm="ANT";
+        var a=lr()*6.283,an={g:ag,pos:lmAt(AS,Math.cos(a)*1.6,Math.sin(a)*1.6).multiplyScalar(SR),head:lmW(AS,Math.cos(a),Math.sin(a)),sz:asz,req:R0,gain:0.05,cd:0,dead:false,ph:lr()*6.28};ants.push(an);born.push(an);AS.name="ANTHILL · "+born.length+" OUT"})}
+    twOrbA=0}
+  /* the belt top under the roll, if it's on the road (0 if not). Searches near where it last was, so it's cheap each frame */
+  function twRoadTop(pdir){var R=twR;if(!R)return 0;var M=R.d.length,bj=0,bd=-2,c=R.hint>=0?R.hint:-1,i,j;
+    if(c<0){for(i=0;i<M;i+=3){var d0=pdir.dot(R.d[i]);if(d0>bd){bd=d0;bj=i}}c=bj}
+    bd=-2;for(i=-40;i<=40;i++){j=(c+i+M)%M;var dd=pdir.dot(R.d[j]);if(dd>bd){bd=dd;bj=j}}
+    R.hint=bd>0.97?bj:-1;var lat=Math.abs(pdir.dot(R.B[bj]))*SR;if(bd<0.97||lat>1.6+ballR*0.3){R.near=-1;return 0}var ar=R.L[bj]+pdir.clone().sub(R.d[bj]).dot(R.T[bj])*SR,A=R.at(ar),si=Math.floor(((((ar-R.off)%R.LT)+R.LT)%R.LT)/R.SLW)%R.NSL;if(R.gone[si]){R.near=-1;return 0}R.near=bj;R.Tn=A.T;return A.top} /* the belt top and direction right under the roll, blended between samples so riding it is smooth */
+  /* the sky letters: the message starts as the usual marquee across the sky, so it reads. Once the roll is 80% of the gold size, its letters fly
+     out of the marquee into an orbit round the planet (tilted 25 degrees), landing in a line just ahead of the roll, in reading order as seen from
+     the camera, and drift right to left. Each can be rolled up once the top of the roll (with a hop, or from high ground) reaches its bottom.
+     Once every letter is rolled up the sky stays clear. Only if the roll shrinks below 80% of the gold size again does the whole message come back
+     as the marquee (entering from the right, as at the start of a round), and it flies out again once the roll is back at 80% */
+  function twBack(t,wait){twOrb.forEach(function(L){if(!L.dead)scene.remove(L.g)});twOrb=[];if(!twP||!window.MKSP_MSG)return;banner=buildBanner(MKSP_MSG,twP);scene.add(banner.g);
+    twWait=t+wait}
+  var twP=null,twSg=1,twWait=0,twFly=1200,twDone=false;
+  function twOrbit(bn,t){var ZA=new THREE.Vector3(0,0,1),RA=SR+RELIEF+4.2,ax=new THREE.Vector3(1,0,0).applyAxisAngle(ZA,0.44).normalize(),e1=new THREE.Vector3(0,1,0).addScaledVector(ax,-ax.y).normalize(),e2=new THREE.Vector3().crossVectors(ax,e1);
+    var pd=ball.position.clone().normalize(),pr=pd.clone().addScaledVector(ax,-pd.dot(ax));if(pr.lengthSq()<1e-6)pr.copy(e1);pr.normalize();var ac=Math.atan2(pr.dot(e2),pr.dot(e1)),tg=e1.clone().multiplyScalar(-Math.sin(ac)).addScaledVector(e2,Math.cos(ac));
+    var rt=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,0);twSg=tg.dot(rt)>=0?1:-1;var W=bn.W*1.3,a0=ac+twSg*(4+ballR)/RA-twSg*(W/2)/RA;twOrbA=0;
+    bn.g.updateWorldMatrix(true,true);bn.letters.forEach(function(l){var lg=l.g,fp=lg.getWorldPosition(new THREE.Vector3()),fs=lg.getWorldScale(new THREE.Vector3()).x;scene.add(lg);lg.position.copy(fp);lg.scale.setScalar(fs);
+      lg.userData.nm="LETTER "+((window.MKSP_MSG||"").toUpperCase().charAt(l.i)||"");twOrb.push({g:lg,a:a0+twSg*(l.x0*1.3)/RA,e1:e1,e2:e2,R:RA,i:l.i,dead:false,from:fp,s0:fs,t0:t})});scene.remove(bn.g)}
+  /* the belt's sides are a wall while the belt top is more than a step over the roll's underside: only moving closer is stopped, and not where a
+     slat has been rolled up */
+  function twRoadWall(pdir,prev){var R=twR;if(lmRideP===R.ride)return false;var M=R.d.length,c=R.hint>=0?R.hint:-1,bj=0,bd=-2,i,j;
+    if(c<0){for(i=0;i<M;i+=3){var d0=pdir.dot(R.d[i]);if(d0>bd){bd=d0;bj=i}}c=bj}bd=-2;for(i=-40;i<=40;i++){j=(c+i+M)%M;var dd=pdir.dot(R.d[j]);if(dd>bd){bd=dd;bj=j}}
+    if(bd<0.97)return false;var lat=Math.abs(pdir.dot(R.B[bj]))*SR,lp=Math.abs(prev.dot(R.B[bj]))*SR,edge=lat-1.6;if(edge>ballR*0.85||lat>=lp||R.top[bj]<=rideB+ballR*0.6)return false;
+    var si=Math.floor(((((R.L[bj]-R.off)%R.LT)+R.LT)%R.LT)/R.SLW)%R.NSL;return !R.gone[si]}
+  /* from 50% of the gold size the roll also rolls up the plaza's tiles it touches (three a frame at most, each a tiny bit of size) */
+  function twEatPlaza(cm){if(!plaza||cm<params.targetMul*0.5)return;if(!plaza.gone)plaza.gone=[];var P=new THREE.Vector3(),Q=new THREE.Quaternion(),S=new THREE.Vector3(),n=0;
+    for(var k=0;k<169&&n<3;k++){if(plaza.gone[k]||plaza.vis[k]===false)continue;plaza.base[k].decompose(P,Q,S);if(P.distanceTo(ball.position)>ballR+plaza.TS*0.6+S.y*0.5)continue;
+      plaza.gone[k]=true;plaza.vis[k]=false;n++;var cc=new THREE.Color();plaza.m.getColorAt(k,cc);var tm=new THREE.Mesh(new THREE.BoxGeometry(plaza.TS*0.94,S.y,plaza.TS*0.94),twM(cc));tm.position.copy(P);tm.quaternion.copy(Q);tm.userData.req=params.targetMul*0.5*R0;tm.userData.mkO=plaza.TS*plaza.TS;tm.userData.nm="PLAZA TILE";plaza.gn=(plaza.gn||0)+1;scene.add(tm);stickToRoll(tm);
+      plaza.m.setMatrixAt(k,plaza.Z0);plaza.m.instanceMatrix.needsUpdate=true;ballR+=0.035;pips++}}
+  /* how far the roll reaches: its radius, plus up to 15% more by gold for the things sticking out of it, so what's under a big roll is picked up */
+  function twRch(){var g=Math.max(0,Math.min(1,(ballR/R0-1)/Math.max(0.5,params.targetMul-1)));return ballR*(1+0.15*g)}
+  /* does the roll really touch it? The roll (with what sticks out of it, about 6% more) against the object as a ball of its own
+     height, measured in 3D from the roll's centre. A small roll reaches about as far as before; a big one only takes what it rolls over or
+     brushes, not things lying 10 units away on the ground. A cheap ground-distance check runs first */
+  function twTouch(p0,dir,h){var c=p0.clone().addScaledVector(dir,h*0.5);return ball.position.distanceTo(c)<ballR*1.06+0.35+h*0.5}
+  /* a hit knocks off a share of what's stuck to the roll, in proportion to the size lost (at least 2, at most 40, the newest first). Each piece is
+     wrapped so its origin is its own bottom-middle (some stuck things are drawn off their origin), is thrown in a plain arc under gravity, tumbling about a random axis, to land just clear of the roll (aimed at
+     2 to 4.5 past the roll's reach), bounces once if it lands hard, then comes to rest at the angle it landed. It can be
+     rolled up again after 2.5 s on the ground, and only by a roll as big as it took to pick it up the first time (a belt slat needs 90% of gold again, the anthill its own size, a cloud the size that reached it, a plate the size its sushi needed), and together the pieces give back a little less than the hit took, so a hit never pays */
+  var twFall=[],twClock=0;
+  function twShed(kids,loss){var n=Math.min(40,kids.length,Math.max(2,Math.ceil(kids.length*loss/Math.max(R0,ballR)*1.5)));
+    for(var i=0;i<n;i++){var k=kids.pop();if(!k)break;twLost++;var rq0=(k.userData&&k.userData.req)||0;scene.attach(k);k.updateMatrixWorld(true);var bb=new THREE.Box3().setFromObject(k),sz=bb.getSize(new THREE.Vector3()),cn=bb.getCenter(new THREE.Vector3()),d=cn.clone().normalize();
+      var he=0.5*(sz.x*Math.abs(d.x)+sz.y*Math.abs(d.y)+sz.z*Math.abs(d.z)),w=new THREE.Group();w.position.copy(cn).addScaledVector(d,-he);w.quaternion.copy(QT.setFromUnitVectors(YUP,d));scene.add(w);w.updateMatrixWorld(true);w.attach(k);
+      var out=cn.clone().sub(ball.position);out.addScaledVector(d,-out.dot(d));if(out.lengthSq()<1e-6)out.set(Math.random()-.5,0,Math.random()-.5).addScaledVector(d,-0);out.addScaledVector(d,-out.dot(d)).normalize();
+      var r=Math.min(3,Math.max(0.2,Math.max(sz.x,sz.y,sz.z)*0.5));
+      var off0=cn.clone().sub(ball.position),hz0=Math.sqrt(Math.max(0,off0.lengthSq()-Math.pow(off0.dot(d),2))),h0=Math.max(0,w.position.length()-lmGround(d)),vu=5+Math.random()*3,tf=(vu+Math.sqrt(vu*vu+60*h0))/30,hd=Math.max(1,twRch()+2+Math.random()*2.5-hz0); /* a plain throw: up at vu, and out just fast enough to land 2 to 4.5 past the roll's reach (tf = time to fall back to the ground under gravity 30) */
+      twFall.push({g:w,v:out.multiplyScalar(hd/tf).addScaledVector(d,vu),r:r,age:0,rq:rq0,g0:loss/n*0.8,sp:(Math.random()-0.5)*7,ax:new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize()})}}
+  function twFallTick(dt){twClock+=dt;for(var i=twFall.length-1;i>=0;i--){var F=twFall[i],p=F.g.position,d=p.clone().normalize();F.age+=dt;
+      /* settling: over 0.35 s it eases down onto the ground, keeping the angle it landed at, then becomes a pickup that stays exactly as it lies */
+      if(F.st!=null){F.st=Math.min(1,F.st+dt/0.35);var e=F.st*F.st*(3-2*F.st);F.g.quaternion.copy(F.q0).slerp(F.q1,e);p.copy(F.nd).multiplyScalar(lmGround(F.nd)+F.h0*(1-e));
+        if(F.st>=1){twFall.splice(i,1);props.push({g:F.g,dir:F.nd,foot:F.r*0.9,req:Math.max(F.r*0.5,F.rq||0),gain:F.g0,spin:F.spin,still:true,keepQ:true,dead:false,tw:1,cool:twClock+2.5})}continue}
+      F.v.addScaledVector(d,-30*dt);p.addScaledVector(F.v,dt);F.g.rotateOnWorldAxis(F.ax,F.sp*dt);
+      var nd=p.clone().normalize(),gr=lmGround(nd);if(p.length()<=gr+0.02&&F.v.dot(d)<=0||F.age>6){var vr=F.v.dot(nd);
+        /* the first hard landing bounces once (a third of the speed back, half the sideways speed, slower tumble); after that it settles */
+        if(!F.b&&vr<-4&&F.age<=6){F.b=1;p.copy(nd).multiplyScalar(gr+0.02);F.v.addScaledVector(nd,-vr*1.33);F.v.multiplyScalar(0.5);F.sp*=0.4;continue}
+        F.st=0;F.nd=nd;F.h0=Math.max(0,p.length()-gr);F.q0=F.g.quaternion.clone();F.spin=0;F.q1=F.q0.clone()}}}
+  function twSky(dt,t,cm,hop){twEatPlaza(cm);twFallTick(dt);
+    if(twDone&&cm<params.targetMul*0.8){twDone=false;twBack(t,0)}
+    if(banner&&!banner.stay&&!twOrb.length&&cm>=params.targetMul*0.8){twOrbit(banner,t);banner=null}
+    if(!twOrb.length)return;if(cm<params.targetMul*0.8){twBack(t,0);return}twOrbA-=twSg*dt*0.035;var pdir=ball.position.clone().normalize(),reach=Math.max(surfaceR(pdir)+hop,rideB)+ballR*2,left=0;
+    for(var i=0;i<twOrb.length;i++){var L=twOrb[i];if(L.dead)continue;left++;var a=L.a+twOrbA,d=L.e1.clone().multiplyScalar(Math.cos(a)).addScaledVector(L.e2,Math.sin(a)),to=d.clone().multiplyScalar(L.R+Math.sin(t/420+L.i*0.7)*0.45);
+      var f=Math.min(1,(t-L.t0)/twFly),e=f*f*(3-2*f);L.g.position.copy(L.from).lerp(to,e);L.g.scale.setScalar(L.s0+(1.3-L.s0)*e);L.g.quaternion.copy(cam.quaternion);L.g.rotateY(Math.sin(t/700+L.i*0.9)*0.45*e);
+      if(f>=1&&pdir.angleTo(d)*SR<ballR*0.9+1.8&&reach>L.R-1.6){L.dead=true;left--;L.g.scale.multiplyScalar(0.45);L.g.userData.req=params.targetMul*0.8*R0;stickToRoll(L.g);ballR+=0.12;pips++}}
+    if(!left){twOrb=[];twDone=true}}
+  /* the HUD. OBJECTS = what is stuck to the roll right now (so a hit that knocks off five takes five off).
+     The status line shows how much of the plaza and the belt is
+     rolled up. Things brushed while just too big (75% of the size they need or more) wobble. The end screen reports how much of the planet
+     was cleared, each piece weighted by its size squared so 169 plaza tiles don't outweigh everything else; the belt's sushi and plates join
+     the total when it breaks, the anthill's ants when it is rolled up */
+  var twTot=0,twGot=0,twLost=0,twAnts=0,twChops=0,twChopT=-1,twLast="",twLastT=0,twNow=0,twWob=[],twHP=null;
+  function twW(o,w){if(o&&o.userData){o.userData.mkO=w;twTot+=w}}
+  function twCount(){(twConf||[]).forEach(function(c){scene.remove(c.m)});twBk=[];twBkN=0;twBkL=null;twOmk=false;twOmkB=false;twFin=null;twConf=[];twTot=0;twGot=0;twLost=0;twChops=0;twChopT=-1;twGL=[];twSrc={};twMT={};twR0=-1;twAnts=0;twLast="";twLastT=0;twWob=[];var el0=GAME.querySelector(".hud .last");if(el0){el0._s="";el0.innerHTML=""}
+    props.forEach(function(o){if(!o.dead&&!o.hid)twW(o.g,o.foot*o.foot)});obstacles.forEach(function(o){if(!o.dead&&!o.hid)twW(o.g,o.size*o.size)});
+    clouds.forEach(function(o){o.g.userData.nm="CLOUD";if(!o.dead){var s=o.g.scale.x*1.5;twW(o.g,s*s)}});ants.forEach(function(o){if(!o.dead){twW(o.g,o.sz*o.sz)}});
+    if(plaza){plaza.gn=0;plaza.n0=0;for(var k=0;k<169;k++)if(!plaza.out||plaza.out.some(function(O){return !O[k]})){plaza.n0++;twTot+=plaza.TS*plaza.TS}}if(twR)twTot+=twR.NSL*twR.SLW*3.2}
+  function twNear(o,ratio,t){if(ratio<0.75||(o.wob&&t-o.wob<650))return;o.wob=t;if(twWob.indexOf(o)<0)twWob.push(o)}
+  function twGrab(g){twGot++;var nm=twNm(g);if(nm==="ANT")twAnts++;if(nm==="CHOPSTICKS")twChops++;if(nm){twLast=nm;twLastT=twNow}twGL.push([twCat(g,nm),ballR])}
+  function twHud(t){twNow=t;twGrowEnd();twMedalT();twChopMsg(t);twBeacons(t);twFinale(t);var pdir=ball.position.clone().normalize(),cm=ballR/R0,G=params.targetMul;
+    for(var i=twWob.length-1;i>=0;i--){var o=twWob[i],a=(t-o.wob)/450,fr=!o.keepQ&&o.dir&&props.indexOf(o)>=0;if(!o.q0&&!fr)o.q0=o.g.quaternion.clone();var base=fr?o.g.quaternion.clone():o.q0;
+      if(a>=1||o.dead){if(!o.dead)o.g.quaternion.copy(base);o.q0=null;twWob.splice(i,1);continue}
+      var push=o.dir.clone().sub(pdir);push.addScaledVector(o.dir,-push.dot(o.dir));var ax=new THREE.Vector3().crossVectors(o.dir,push);if(ax.lengthSq()<1e-10)continue;
+      o.g.quaternion.copy(base).premultiply(new THREE.Quaternion().setFromAxisAngle(ax.normalize(),Math.sin(a*Math.PI*6)*0.13*(1-a)))}
+    if(plaza&&plaza.n0&&pdir.angleTo(plaza.c)<plaza.ang+3/SR)window.MKLM_NEAR="PLAZA · "+(plaza.gn?Math.round(100*plaza.gn/plaza.n0)+"% ROLLED UP":cm>=G*0.5?"BIG ENOUGH TO ROLL UP":"ROLL IT UP AT "+(Math.ceil(G*5)/10).toFixed(1)+"×")
+    pips=clump.children.length-1;var le=GAME.querySelector(".hud .last");if(le){var ls=twLast?"<b>GOT</b>"+twLast:"";if(le._s!==ls){le._s=ls;le.innerHTML=ls}var fa=twLast?Math.max(0,Math.min(1,(4000-(t-twLastT))/600)):0;le.style.opacity=fa.toFixed(2)}
+  }
+  /* free roll has no end screen, so its pause screen shows the same stats (they keep counting from the start of the round) */
+  function twReport(sel){var el=GAME.querySelector(sel||".end .rpt");if(!el)return;if(!sel&&twOmk){HUD.em.textContent="You rolled up the whole planet, every last crumb, at "+(ballR/R0).toFixed(1)+"×. Keep rolling as long as you like."}var on=0;
+    for(var i=0;i<clump.children.length;i++){var c=clump.children[i],w=c.userData.mkO||(c.children[0]&&c.children[0].userData.mkO)||0;on+=w}
+    function cell(l,v){return "<div><b>"+l+"</b><span>"+v+"</span></div>"}
+    el.innerHTML=cell("PLANET CLEARED",twPct())+cell("ANTS",twAnts)+(twChops?cell("CHOPSTICKS",twChops):"")+cell("LOST TO HITS",twLost)+cell("PICKUPS",twGot)}
+  function twNearP(o,pdir,t){if(pdir.angleTo(o.dir)*SR<ballR*0.85+o.foot*0.7)twNear(o,ballR/o.req,t);return true} /* an ingredient too big to roll up: wobble when brushed, then block as before */
+  /* growth and balance. A pickup grows the roll by its area, not a fixed width, so the same pickup grows a small roll as in
+     the original game and a big roll less and less; it is applied once a frame to everything taken that frame. The big pieces give more
+     (plaza tile 0.035, belt slat 0.05, sky letter 0.12), so the plaza and the belt are the way to gold. The balance readout (end screen, and
+     pause in free roll) gives when each medal size was first reached and how much of the growth came from each kind of thing */
+  var twGL=[],twSrc={},twMT={},twR0=-1;
+  function twCat(g,nm){if(g.userData.belt)return "BELT SUSHI";if(/^(TREE|BIG ROCK|ROCK|FLOWER|MUSHROOM)$/.test(nm))return "SCENERY";
+    return {CHOPSTICKS:"CHOPSTICKS",PLATE:"BELT SUSHI","BELT SLAT":"BELT","PLAZA TILE":"PLAZA",ANTHILL:"ANTHILL",ANT:"ANTS",CLOUD:"CLOUDS"}[nm]||(/^LETTER/.test(nm)?"LETTERS":nm?"INGREDIENTS":g.userData.size?"SCENERY":"UNNAMED "+(g.children.length?"GROUP":"MESH"))}
+  function twGrowEnd(){if(twR0<0){twR0=ballR;twGL=[];return}var d=ballR-twR0;if(d<=1e-6){twR0=ballR;twGL=[];return}
+    var nr=Math.sqrt(twR0*twR0+Math.pow(R0+d,2)-R0*R0);
+    var raw={},sum=0;for(var i=0;i<twGL.length;i++){var r1=i+1<twGL.length?twGL[i+1][1]:ballR,dd=Math.max(0,r1-twGL[i][1]);raw[twGL[i][0]]=(raw[twGL[i][0]]||0)+dd;sum+=dd}
+    if(sum<1e-9){raw={"NO PICKUP":1};sum=1}for(var k in raw)twSrc[k]=(twSrc[k]||0)+(nr-twR0)*raw[k]/sum;ballR=nr;twR0=nr;twGL=[]}
+  function twMedalT(){if(freeRoll||!params.time)return;var el=params.time-timeLeft,q=ballR/R0/params.targetMul;[["BRONZE",1],["SILVER",twMG()[0]],["GOLD",twMG()[1]]].forEach(function(m){if(q>=m[1]&&twMT[m[0]]==null)twMT[m[0]]=el})}
+  /* the medal sizes, as a share of the goal (bronze is the goal itself). Growing by area, the last stretch is the slowest, so
+     silver and gold sit closer to the goal than in the original game: 1.2x and 1.4x, not 1.3x and 1.7x */
+  function twMG(){return [1.2,1.4]}
+  /* a picked-up thing's name, looking inside it too: a piece knocked off twice sits two wrappers deep */
+  function twNm(g){var nm="";g.traverse(function(n){if(!nm&&n.userData&&n.userData.nm)nm=n.userData.nm});return nm}
+  /* "NOTHING LEFT TO ROLL." is only said when it's true: gold with most of the planet cleared (60% or more, weighted as in
+     PLANET CLEARED). Otherwise gold picks from its other lines */
+  function twCleared(){var T=twTotNow();if(!T)return 0;var on=0;for(var i=0;i<clump.children.length;i++){var c=clump.children[i];on+=c.userData.mkO||(c.children[0]&&c.children[0].userData.mkO)||0}return Math.min(1,on/T)}
+  function twWinPool(grade,pool){if(grade==="OMAKASE")return TW_OMK;if(grade!=="GOLD")return pool;var R="NOTHING LEFT TO ROLL.";if(twCleared()>=0.6)return [R];var o=pool.filter(function(s){return s!==R});return o.length?o:pool}
+  /* in free roll the chopsticks become food, one size at a time. One can be rolled up once the roll is the goal size (bronze)
+     AND at least as wide as the chopstick is tall (the same rule as a big pickup: radius at least half its height), so the small ones go
+     first and the giants last; until then it hits as before, and a roll at 75% of its size or more makes it wobble when they touch. A big one
+     is a bigger bite. The status line says how many can be rolled up, for 3 s when you cross the goal size in free roll and whenever more
+     become rollable */
+  var twChN=-1;
+  function twChopReq(en){return Math.max(params.targetMul*R0,1.05*(en.sz||1))}
+  function twChopEat(en){if(!freeRoll||ball.position.distanceTo(en.pos)>=ballR+0.8*(en.sz||1))return false;var rq=twChopReq(en);
+    if(ballR<rq){if(ballR>=rq*0.75)en.g.rotateZ(Math.sin(twNow/45)*0.14);return false}
+    en.dead=true;en.g.userData.nm="CHOPSTICKS";en.g.userData.req=rq;stickToRoll(en.g);ballR+=0.1*(1+(en.sz||1));pips++;return true}
+  function twChopMsg(t){if(!freeRoll||ballR<params.targetMul*R0){twChopT=-1;twChN=-1;return}var live=enemies.filter(function(q){return !q.dead});if(!live.length)return;
+    var n=live.filter(function(q){return ballR>=twChopReq(q)}).length;if(twChopT<0||n>twChN)twChopT=t;twChN=n;
+    if(t-twChopT<3000)window.MKLM_NEAR="CHOPSTICKS · "+n+" OF "+live.length+" ROLLABLE"}
+  /* where the chopsticks start. The game puts them on the same fixed points for every token; here each token gets its own,
+     from its seed (its own random stream, so nothing else on the planet moves), at least 14 units from the start and 10 from each other */
+  function twChopDir(e){if(!twCR||e===0)twCR={r:mulberry(hash(((window.$alea&&$alea.seed)||"m")+"|chop")),u:[]};var S0=new THREE.Vector3(0,1,0.001).normalize(),d=null;
+    for(var k=0;k<80;k++){var z=twCR.r()*2-1,a=twCR.r()*6.283,rr=Math.sqrt(1-z*z),c=new THREE.Vector3(Math.cos(a)*rr,z,Math.sin(a)*rr);if(c.angleTo(S0)*SR<14)continue;if(k<60&&twCR.u.some(function(q){return q.angleTo(c)*SR<10}))continue;d=c;break}
+    if(!d)d=fibDir((e+1)*37%50,50);twCR.u.push(d.clone());return d}
+  var twCR=null;
+  /* beacons for the last few things. In free roll, once 10 or fewer counted things are left, each one
+     still on the planet and not on the roll gets a column of light rising out of it: bright at the object, fading to nothing at the top,
+     with three sparks drifting up it and shrinking as they go. Tall enough to see from planet view, growing with the roll. Pickups, scenery,
+     ants, clouds, plaza tiles and belt slats, the nearest 80 at most. The list is rebuilt every
+     8 frames; each beacon follows its own thing every frame (ants, clouds and the belt move) */
+  var twBk=[],twBkN=0,twBkL=null,twBkT=null;
+  function twBkOn(n){return freeRoll&&n<=10}
+  function twLeftList(){var L=[],P=new THREE.Vector3(),Q=new THREE.Quaternion(),S=new THREE.Vector3();
+    function tg(g){return g&&g.userData&&(g.userData.mkO||(g.children[0]&&g.children[0].userData&&g.children[0].userData.mkO))}
+    function add(o){if(!o.dead&&!o.hid&&tg(o.g))L.push({g:o.g})}props.forEach(add);obstacles.forEach(add);ants.forEach(add);clouds.forEach(add);
+    if(plaza&&plaza.n0)for(var k=0;k<169;k++){if((plaza.gone&&plaza.gone[k])||plaza.vis[k]===false)continue;plaza.base[k].decompose(P,Q,S);L.push({p:P.clone().setLength(plaza.tops[k])})}
+    if(twR&&twR.slats)for(var j=0;j<twR.NSL;j++)if(!twR.gone[j]&&twR.slats[j].visible)L.push({g:twR.slats[j],top:1});return L}
+  /* the total PLANET CLEARED is measured against, without what can no longer be picked up: scenery the low-power mode hid.
+     Plaza tiles are counted only if the maki shows on them in some frame (background tiles, hidden with PLAZA BG off, can't be rolled up),
+     counted on the grid cells, so it doesn't depend on which way the plaza ends up facing */
+  function twTotNow(){var T=twTot;function sub(o){if(o.hid&&o.g&&o.g.userData&&o.g.userData.mkO)T-=o.g.userData.mkO}obstacles.forEach(sub);props.forEach(sub);return Math.max(0,T)}
+  /* PLANET CLEARED as shown: rounded down, so 100% only appears when nothing counted is left (a few small things weigh under
+     half a percent and used to round up to 100); with things left at 99%+, it says how many */
+  function twPct(){var c=twCleared(),n=twLeftList().length;if(!n)return "100%";var p=Math.min(99,Math.floor(100*c));return p+"%"+(p>=99?" · "+n+" LEFT":"")}
+  function twBkTex(){var c=document.createElement("canvas");c.width=2;c.height=64;var x=c.getContext("2d"),g=x.createLinearGradient(0,0,0,64);
+    g.addColorStop(0,"rgba(255,255,255,0)");g.addColorStop(0.55,"rgba(255,255,255,0.35)");g.addColorStop(1,"rgba(255,255,255,1)");x.fillStyle=g;x.fillRect(0,0,2,64);var t=new THREE.CanvasTexture(c);t.needsUpdate=true;return t}
+  function twBkKit(){if(twBkT)return twBkT;var K={},bm=function(o){return new THREE.MeshBasicMaterial(Object.assign({color:0xfff2b0,transparent:true,depthWrite:false,side:THREE.DoubleSide},o))};
+    K.colG=new THREE.CylinderGeometry(1,1,1,8,1,true);K.colG.translate(0,0.5,0);K.sparkG=new THREE.OctahedronGeometry(1,0);K.fade=bm({map:twBkTex()});K.spark=bm({color:0xfffbe6,opacity:0.95});twBkT=K;return K}
+  function twBkMake(){var K=twBkKit(),b=new THREE.Group(),m=function(g,mt){var x=new THREE.Mesh(g,mt);x.renderOrder=5;b.add(x);return x};
+    b.userData.col=m(K.colG,K.fade);b.userData.sp=[m(K.sparkG,K.spark),m(K.sparkG,K.spark),m(K.sparkG,K.spark)];b.userData.ph=Math.random()*6.283;scene.add(b);return b}
+  function twBeacons(t){var bp=ball.position;if(!((twBkN++)%8)||!twBkL)twBkL=twLeftList();var on=twBkOn(twBkL.length);if(!on){if(twBk.length)twBk.forEach(function(b){b.visible=false});return}
+    var K=twBkKit(),L=twBkL;if(L.length>80){L.forEach(function(q){q.d=(q.g?q.g.position:q.p).distanceToSquared(bp)});L.sort(function(a,b){return a.d-b.d});L.length=80}
+    var H=8+ballR*4,W=(0.18+ballR*0.05)*1.6,s=t/1000;K.fade.opacity=0.75+0.2*Math.sin(t/260);
+    for(var i=0;i<Math.max(L.length,twBk.length);i++){var b=twBk[i];if(i>=L.length){if(b)b.visible=false;continue}if(!b){b=twBkMake();twBk.push(b)}
+      var q=L[i],at=q.g?q.g.position:q.p,d=at.clone().normalize(),U=b.userData;b.visible=true;b.position.copy(at);if(q.top)b.position.addScaledVector(d,q.g.scale.y*0.5);b.position.addScaledVector(d,0.06);b.quaternion.copy(QT.setFromUnitVectors(YUP,d));
+      U.col.scale.set(W,H,W);U.sp.forEach(function(x,j){var f=((s*0.45+j/3+U.ph)%1);x.position.set(Math.sin(U.ph+j*2.1)*W*0.55,f*H,Math.cos(U.ph+j*2.1)*W*0.55);x.scale.setScalar(Math.max(0.01,(0.14+ballR*0.035)*(1-f)))})}}
+  /* 100%. When nothing counted is left on the planet (and nothing knocked off is still in the air), pixel confetti in the piece's
+     own colours bursts from the roll and rains down over the planet; 2.8 s later the round ends with OMAKASE, the award above gold (the chef
+     served the whole menu), whatever the clock says. Keep rolling still works after it (the confetti stays on the planet) */
+  var twOmk=false,twFin=null,twConf=[];
+  var TW_OMK=["THE CHEF HAS LEFT THE BUILDING."];
+  function twFinale(t){if(twOmk){if(twFin)twConfStep(t);return}
+    if(!twFin){if(!running||!twTot||!twBkL||twBkL.length||twFall.length)return;twFin={t0:t,lt:t};var cs=(params.pip&&params.pip.length?params.pip:[params.light||[255,255,255]]).concat([params.light||[255,255,255]]),g=new THREE.BoxGeometry(1,1,1),M=cs.map(function(c){return new THREE.MeshBasicMaterial({color:col(c)})}),s=0.14+ballR*0.045,up=ball.position.clone().normalize();
+      for(var i=0;i<170;i++){var m=new THREE.Mesh(g,M[i%M.length]);m.scale.set(s,s,s*0.35);var r=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5);r.addScaledVector(up,-r.dot(up));
+        m.position.copy(ball.position).addScaledVector(up,ballR*(0.5+Math.random()*0.6)).addScaledVector(r,ballR*0.8);scene.add(m);var k=Math.sqrt(ballR);
+        twConf.push({m:m,v:up.clone().multiplyScalar((9+Math.random()*9)*k).addScaledVector(r.normalize(),(3+Math.random()*7)*k),ax:new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),sp:(Math.random()-0.5)*14,land:false})}}
+    twConfStep(t);if(t-twFin.t0>2800){twOmk=true;end(true)}}
+  /* falling confetti, kept running after OMAKASE so pieces still in the air keep falling once you keep rolling; each piece rests 2.5-5.5 s
+     after landing, then shrinks away over 0.9 s, timed on play time (the end screen does not count). A new round removes any that are left */
+  function twConfStep(t){var dt=Math.min(0.05,(t-twFin.lt)/1000);twFin.lt=t;twFin.gt=(twFin.gt||0)+dt*1000;t=twFin.gt;
+    twConf=twConf.filter(function(c){if(!c.land)return true;var f=(t-c.lt-c.hold)/900;if(f<=0)return true;if(f>=1){scene.remove(c.m);return false}c.m.scale.copy(c.s0).multiplyScalar(1-f*f);return true});
+    twConf.forEach(function(c){if(c.land)return;var d=c.m.position.clone().normalize();c.v.addScaledVector(d,-18*dt);c.v.multiplyScalar(Math.pow(0.55,dt));c.m.position.addScaledVector(c.v,dt);c.m.rotateOnAxis(c.ax,c.sp*dt);
+      var g=lmGround(c.m.position.clone().normalize());if(c.m.position.length()<g+0.02){c.m.position.setLength(g+0.02);c.land=true;c.lt=t;c.hold=2500+Math.random()*3000;c.s0=c.m.scale.clone()}});
+  }
+  /* keep rolling after OMAKASE: the sky's marquee scrolls NO MORE ANTS across the screen, as the art's message does at the start
+     of a round. It stays a marquee (it never flies out into orbit to be rolled up: a roll that big would take it at once) */
+  var twOmkB=false;
+  function twOmkBanner(){if(!twOmk||twOmkB||!twP)return;twOmkB=true;if(banner)scene.remove(banner.g);banner=buildBanner("NO MORE ANTS",twP);banner.stay=true;scene.add(banner.g)}
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -1029,7 +1365,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     var sv=[];for(var s=0;s<700;s++){var sd=fibDir(s,700).multiplyScalar(900+rnd()*600);sv.push(sd.x,sd.y,sd.z)}
     var sg=new THREE.BufferGeometry();sg.setAttribute("position",new THREE.Float32BufferAttribute(sv,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:1.5,sizeAttenuation:false})));
     // chopstick monsters: chase the player and snatch stuck sushi off the clump
-    enemies=[];for(var e=0;e<Math.max(2,p.enemyN);e++){var ed=fibDir((e+1)*37%50,50);var em=buildChopstick();var esz=(rnd()<0.22?1.9+rnd()*1.9:0.7+rnd()*0.8)*(p.esize||1);em.scale.setScalar(esz);scene.add(em);em.add(makeBlob(0.5));enemies.push({g:em,pos:ed.multiplyScalar(SR).clone(),sign:e%2?1:-1,cd:0,sz:esz})}
+    enemies=[];for(var e=0;e<Math.max(2,p.enemyN);e++){var ed=twChopDir(e);var em=buildChopstick();var esz=(rnd()<0.22?1.9+rnd()*1.9:0.7+rnd()*0.8)*(p.esize||1);em.scale.setScalar(esz);scene.add(em);em.add(makeBlob(0.5));enemies.push({g:em,pos:ed.multiplyScalar(SR).clone(),sign:e%2?1:-1,cd:0,sz:esz})}
     // ants: roam the planet; too big = they bump you and steal, big enough = you roll them up (they flee)
     // ANTS pieces (Message or Pattern mentions ants): the usual 9 plus 21 small ants you can roll up from the start, so the planet reads as an ant planet
     ants=[];var antBig=9,antN=antBig+(/ants/i.test((tr.Message||"")+" "+(tr.Pattern||""))?21:0);
@@ -1040,11 +1376,11 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     clump=new THREE.Group();ball.add(clump);
     ballR=R0;
     core=buildMakiRoll(p);clump.add(core);welG=core.clone(); // the welcome screen's spinning roll: a copy of this exact roll (same filling layout, no extra random draws)
-    spawnWorld(p);clearSpawn();
-    banner=null;if(p.isText||tr.Message||window.MAKI_TXT){var msg=((window.MAKI_TXT&&window.MAKI_TXT.msg)||tr.Message||(tr.Pattern||"").replace(/^text\s*/i,"")||"MAKIMONO").trim()||"MAKIMONO";banner=buildBanner(msg,p);scene.add(banner.g)}
+    spawnWorld(p);clearSpawn();mkptPlaza();lmBuild(p);lmClear();mkptClear();twBuild(p);twCount();
+    banner=null;if(p.isText||tr.Message||window.MAKI_TXT){var msg=((window.MAKI_TXT&&window.MAKI_TXT.msg)||tr.Message||(tr.Pattern||"").replace(/^text\s*/i,"")||"MAKIMONO").trim()||"MAKIMONO";banner=buildBanner(msg,p);scene.add(banner.g);window.MKSP_MSG=msg} /* the message, kept so the sky letters can come back */
     pPos=new THREE.Vector3(0,1,0.001).normalize();pPos.multiplyScalar(surfaceR(pPos)+ballR);
     up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);
-    pips=0;hopT=0;hopMine=false;vel=0;camF=null;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
+    pips=0;hopT=0;hopMine=false;rideB=0;fallV=0;hpB=-1;onBlk=false;vel=0;camF=null;bumpV.set(0,0,0);wobT=0;timeLeft=params.time;ball.position.copy(pPos);
     HUD.traits.innerHTML="<b>OBJECTS</b>0"; // traits hidden in-game; top-left shows the objects count
     HUD.desc.textContent="Push your maki around and roll up everything in your way. Beware of the chopsticks and the ants. Reach "+params.targetMul.toFixed(1)+"× your size before the "+Math.round(params.time)+"s clock runs out.";
     built=true;onResize();
@@ -1061,9 +1397,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function magR(){return 3+ballR*3.2}                         // range in surface units: about 6.5 at the start
   function magPull(d){return 2.5+5*(1-d/magR())}              // pull speed, surface units per second
   function stickToRoll(g){clump.updateWorldMatrix(true,false);var lp=clump.worldToLocal(g.getWorldPosition(new THREE.Vector3()));scene.remove(g);
-    if(g.userData.blob){g.remove(g.userData.blob);g.userData.blob=null}
+    if(g.userData.blob){g.remove(g.userData.blob);g.userData.blob=null}twGrab(g);
     var rd=new THREE.Vector3(0,lp.y,lp.z);if(rd.lengthSq()<1e-6)rd.set(0,1,0);rd.normalize();           // direction out from the roll's axis
-    var s=ballR/R0,xf=Math.max(-0.85,Math.min(0.85,lp.x*0.7/(R0*0.85*s)));                              // position along the barrel as a fraction, off the end caps
+    var s=ballR/R0,xf=Math.max(-0.92,Math.min(0.92,lp.x/(R0*0.85*s)+(Math.random()-0.5)*0.3)); /* placed where it touched along the barrel (no squeeze to the middle), a little sideways scatter, still off the filling ends */                              // position along the barrel as a fraction, off the end caps
     var sk=g.scale.x,dr=Math.random(),sink=dr<0.3?sk*(0.25+Math.random()*0.25):dr<0.75?sk*(0.05+Math.random()*0.15):-sk*(0.05+Math.random()*0.2); // messy: some buried deep, most snug, some perched proud
     g.userData.stick={rd:rd,xf:xf,sink:sink};
     var tilt=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(Math.random()-0.5,0,Math.random()-0.5).normalize(),(Math.random()-0.5)*0.9); // knocked askew, up to ~25 degrees
@@ -1093,21 +1429,37 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(bumpV.lengthSq()>0.01){var bu=bumpV.clone();bu.addScaledVector(up,-bu.dot(up));var bl=bu.length();if(bl>1e-3)pPos.applyAxisAngle(new THREE.Vector3().crossVectors(up,bu).normalize(),bl/SR*dt);bumpV.multiplyScalar(Math.pow(0.02,dt))}else bumpV.set(0,0,0); // monster knockback, decays fast; walls still stop it
     var hop=0;if(hopT>0){hopT-=dt;hop=Math.sin(Math.min(1,1-hopT/hopD)*Math.PI)*(hopMine?hopH:2.0)}if(hopT<=0)hopMine=false;
     var air=hopMine&&hop>hopH*0.3; // in the air: your own hop, past the first 30% of its height. Low things don't block you (chopsticks and ants still can)
+    if(lmRideP&&lmRideP.dv&&lmRideP.mv)pPos.addScaledVector(lmRideP.dv,pPos.length()); /* a moving platform carries the roll */
     var pdir=pPos.clone().normalize();
     // anything too big to collect is a wall: you can't move closer into it, but you can always back away (never stuck)
     var blocked=false;
     function wall(dir,reach,h){if(air&&hop>h)return;var dn=pdir.angleTo(dir)*SR;if(dn<reach&&dn<prevDir.angleTo(dir)*SR)blocked=true}
     for(var oi=0;oi<obstacles.length;oi++){var ob=obstacles[oi];if(ob.dead)continue;
-      if(pdir.angleTo(ob.dir)*SR<ballR+ob.size){
+      if(pdir.angleTo(ob.dir)*SR<ballR+ob.size&&(ballR<=ob.size*0.9||twTouch(ob.g.position,ob.dir,ob.size))){ /* scenery too is only taken when the roll really touches it (see twTouch); too big, it blocks as before */
         if(ballR>ob.size*0.9){ob.dead=true;ob.g.scale.multiplyScalar(0.75);stickToRoll(ob.g);ballR+=Math.min(0.18,ob.size*0.12)}
-        else wall(ob.dir,ballR+ob.size,ob.size*1.4); // h: about how tall it is, to hop over
+        else{wall(ob.dir,ballR+ob.size,ob.size*1.4);twNear(ob,ballR/(ob.size*0.9),t)} // h: about how tall it is, to hop over
       }
     }
-    for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req)wall(bo.dir,ballR*0.85+bo.foot*0.7,bo.foot*1.1)} // oversized ingredients block too
+    for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req&&twNearP(bo,pdir,t))wall(bo.dir,ballR*0.85+bo.foot*0.7,bo.foot*1.1)} // oversized ingredients block too
+    /* a solid part is a wall when its top is more than a step (0.6 of the roll's radius) above the roll's underside and its
+       bottom is below the roll's top (so the roll can pass under floating parts). Hopping above it clears it. Only moving closer is stopped */
+    if(typeof twRoadWall==="function"&&twR&&twRoadWall(pdir,prevDir))blocked=true; /* the belt's sides */
+    if(lms.length){for(var kb=0;kb<lms.length;kb++){var KS=lms[kb];if(pdir.angleTo(KS.c)*SR>KS.R+ballR+1)continue;var KL=lmLocal(KS,pdir),KP=lmLocal(KS,prevDir);for(var kq=0;kq<KS.parts.length;kq++){var KC=KS.parts[kq];if(!KC.solid)continue;var kd=lmDist(KC,KL[0],KL[1]);if(kd<ballR*0.85&&KC.top>rideB+ballR*0.6&&KC.bot<rideB+ballR*1.8&&kd<lmDist(KC,KP[0],KP[1]))blocked=true}}}
     if(blocked){pdir.copy(prevDir);vel*=Math.pow(0.001,dt)} // a wall soaks up the momentum
     up.copy(pdir);
-    pPos.copy(pdir).multiplyScalar(surfaceR(pdir)+ballR+hop);ball.position.copy(pPos);
-    if(playerShadow){playerShadow.position.copy(pdir).multiplyScalar(surfaceR(pdir)+0.05);playerShadow.quaternion.copy(QT.setFromUnitVectors(YUP,pdir));playerShadow.scale.setScalar(ballR*2.3*(1-0.45*Math.min(1,hop/Math.max(2,hopH))))} // single clean shadow under the roll
+    /* the roll stands on the plaza and on landmark parts. rT = the highest top under it that it could get onto (a step, or one
+       it came down on from a hop); a grounded part rising underneath lifts it. A hop that starts up there is measured from there (hpB); stepping
+       off falls with gravity. lmRideP = the part it stands on, so moving ones carry it */
+    var gR=surfaceR(pdir),rT=0,rP=null;
+    if(plaza&&pdir.angleTo(plaza.c)<plaza.ang){var pt=mkptTile(pdir);if(pt>=0&&plaza.vis[pt]!==false)rT=plaza.tops[pt]}
+    if(lms.length){for(var kb=0;kb<lms.length;kb++){var KS=lms[kb];if(pdir.angleTo(KS.c)*SR>KS.R+ballR+1)continue;var KL=lmLocal(KS,pdir);for(var kq=0;kq<KS.parts.length;kq++){var KC=KS.parts[kq];if(!KC.solid)continue;var kd=lmDist(KC,KL[0],KL[1]);if(kd<ballR*0.35&&((KC.gr&&kd<=0)||KC.top<=rideB+ballR*0.6)&&KC.top>rT){rT=KC.top;rP=KC}}}}
+    if(typeof twRoadTop==="function"&&twR){var rq=twRoadTop(pdir);if(rq>rT&&(rq<=rideB+ballR*0.6||lmRideP===twR.ride)){rT=rq;rP=twR.ride}} /* the moving kaiten road */
+    if(hopT<=0)hpB=-1;
+    var tgt=hpB>=0?Math.max(hpB+hop,gR,rT):Math.max(gR+hop,rT),bot=tgt;
+    if(tgt<rideB-0.12&&hopT<=0&&rideB>0){fallV+=45*dt;bot=Math.max(tgt,rideB-fallV*dt)}else fallV=0; /* small drops (a sloping belt or tile edge) are followed straight away, so the roll doesn't lose its footing for a frame */
+    onBlk=rT>0&&rT>=bot-1e-3&&rT>gR+0.01;rideB=bot;lmRideP=onBlk?rP:null;
+    twGrowEnd();pPos.copy(pdir).multiplyScalar(bot+ballR);ball.position.copy(pPos);
+    if(playerShadow){playerShadow.position.copy(pdir).multiplyScalar(Math.max(surfaceR(pdir),rT)+0.05);playerShadow.quaternion.copy(QT.setFromUnitVectors(YUP,pdir));playerShadow.scale.setScalar(ballR*2.3*(1-0.45*Math.min(1,hop/Math.max(2,hopH))))} // single clean shadow under the roll
     var side=new THREE.Vector3().crossVectors(up,fwd).normalize();
     if(keyLight){keyLight.target.position.copy(ball.position);keyLight.position.copy(ball.position).addScaledVector(up,36).addScaledVector(side,12).addScaledVector(fwd,6);keyLight.target.updateMatrixWorld()}
     ball.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(side,up,fwd));
@@ -1117,18 +1469,25 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     for(var sc=0,sS=ballR/R0;sc<clump.children.length;sc++){var sk=clump.children[sc];if(sk.userData.stick)placeStuck(sk,sS)} // push stuck objects out with the growing (or shrinking) roll
     // animate ONLY the sparse filling features (grow up/down); the planet surface is static
     for(var ti=0;ti<terrain.length;ti++){var c=terrain[ti];var sy=Math.max(0.12,c.h0*(0.55+0.45*wave(c,params,t)));c.g.scale.set(c.foot,sy,c.foot);var fr=surfaceR(c.dir);c.g.position.copy(c.dir.clone().multiplyScalar(fr));c.g.quaternion.copy(QT.setFromUnitVectors(YUP,c.dir))}
+    /* the plaza shows the art's frame for this 70ms slot, as on the art page (the background tiles are left out, so only the maki shows), turned to face the camera once it has settled, 1.5 s into the round (then it stays put):
+       the art's top is the far side and its left is the screen's left, whichever way you come at it */
+    if(plaza){var pk=Math.floor(t/MKFLAT.SLOT)%plaza.G.length,cF=new THREE.Vector3(),cR=new THREE.Vector3();cam.getWorldDirection(cF);cR.setFromMatrixColumn(cam.matrixWorld,0);
+      var fe=cF.dot(plaza.ef),fr=cF.dot(plaza.er),FA,RA;if(Math.abs(fe)>=Math.abs(fr)){FA=[0,fe>0?1:-1];RA=[cR.dot(plaza.er)>0?1:-1,0]}else{FA=[fr>0?1:-1,0];RA=[0,cR.dot(plaza.ef)>0?1:-1]}if(!plaza.t0)plaza.t0=t;if(plaza.FA){FA=plaza.FA;RA=plaza.RA}else if(t-plaza.t0>1500){plaza.FA=FA;plaza.RA=RA}
+      var po=FA.join()+"|"+RA.join();
+      if(pk!==plaza.k||po!==plaza.o){plaza.k=pk;plaza.o=po;var pg=plaza.G[pk];for(var pq=0;pq<169;pq++){var gx=pq%13-6,gy=6-(pq-pq%13)/13,ix=gx*RA[0]+gy*RA[1]+6,iy=6-(gx*FA[0]+gy*FA[1]);var pkey=pg[iy*13+ix],phid=plaza.out[pk][iy*13+ix]||!!(plaza.gone&&plaza.gone[pq]);plaza.vis[pq]=!phid;plaza.m.setMatrixAt(pq,phid?plaza.Z0:plaza.base[pq]);plaza.m.setColorAt(pq,plaza.C[pkey])}plaza.m.instanceColor.needsUpdate=true;plaza.m.instanceMatrix.needsUpdate=true}}
+    if(lms.length)lmAct(dt,t,pdir);
     // clouds drift slowly. Once the top of the roll (with a hop) reaches one, it's rolled up like anything else: around the goal size over the sea, sooner from high ground
     for(var ci=0;ci<clouds.length;ci++){var cl=clouds[ci];if(cl.dead)continue;cl.dir.applyAxisAngle(YUP,cl.spd*dt).normalize();cl.g.position.copy(cl.dir.clone().multiplyScalar(cl.rad));cl.g.quaternion.copy(QT.setFromUnitVectors(YUP,cl.dir));
-      var csz=cl.g.scale.x*0.9;if(pdir.angleTo(cl.dir)*SR<ballR*0.9+csz&&surfaceR(pdir)+ballR*2+hop>cl.rad-csz*0.6){cl.dead=true;cl.g.visible=true;cl.g.scale.multiplyScalar(0.6);stickToRoll(cl.g);ballR+=0.15;pips++}}
+      var csz=cl.g.scale.x*0.9;if(pdir.angleTo(cl.dir)*SR<ballR*0.9+csz&&Math.max(surfaceR(pdir)+hop,rideB)+ballR*2>cl.rad-csz*0.6){cl.dead=true;cl.g.visible=true;cl.g.scale.multiplyScalar(0.6);cl.g.userData.req=ballR;stickToRoll(cl.g); /* a knocked-off cloud needs a roll as big as the one that reached it */ballR+=0.15;pips++}}
     // collect ingredients (they sit on the land; chase makes them drift toward you)
     for(var i=0;i<props.length;i++){var o=props[i];if(o.dead)continue;
       if(params.chase){var dA=pdir.angleTo(o.dir)*SR;if(ballR>=o.req&&dA<magR()){var tp=pdir.clone().sub(o.dir);tp.addScaledVector(o.dir,-tp.dot(o.dir));
         if(tp.lengthSq()>1e-5){tp.normalize();o.dir.applyAxisAngle(new THREE.Vector3().crossVectors(o.dir,tp).normalize(),magPull(dA)/SR*dt)}}} // magnet (see magR)
-      o.dir.normalize();o.g.position.copy(o.dir.clone().multiplyScalar(surfaceR(o.dir)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir));o.g.rotateY(o.spin+t/900);
-      if(ballR>=o.req&&ball.position.angleTo(o.dir)*SR<ballR+o.foot){o.dead=true;stickToRoll(o.g);ballR+=o.gain;pips++}}
+      o.dir.normalize();o.g.position.copy(o.dir.clone().multiplyScalar(o.abs||(o.tw?lmGround(o.dir):surfaceR(o.dir))));if(!o.keepQ){o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir));o.g.rotateY(o.still?o.spin:o.spin+t/900)}
+      if(!(o.tops&&o.tops.some(twAlive))&&!(o.cool>twClock)&&ballR>=o.req&&(o.abs||ball.position.angleTo(o.dir)*SR<ballR+o.foot)&&twTouch(o.g.position,o.dir,o.foot)){o.dead=true;o.g.userData.req=o.req;stickToRoll(o.g);ballR+=o.gain;pips++}}
     // chopstick monsters roam and snatch stuck sushi off the clump
-    for(var e=0;e<enemies.length;e++){var en=enemies[e];en.cd=Math.max(0,en.cd-dt);var eu=en.pos.clone().normalize();var toB=ball.position.clone().sub(en.pos);toB.addScaledVector(eu,-toB.dot(eu));if(toB.lengthSq()>1e-5)toB.normalize();var dist=en.pos.angleTo(ball.position)*SR;var tang=new THREE.Vector3().crossVectors(eu,toB).multiplyScalar(en.sign);var orbit=dist<(ballR+5)?0.85:0.25;var edir=toB.multiplyScalar(1-orbit).addScaledVector(tang,orbit);if(edir.lengthSq()>1e-5)edir.normalize();en.pos.applyAxisAngle(new THREE.Vector3().crossVectors(eu,edir).normalize(),2.4*(params.espeed||1)/SR*dt);var endir=en.pos.clone().normalize();en.pos.copy(endir).multiplyScalar(surfaceR(endir));en.g.position.copy(en.pos);var ef=ball.position.clone().sub(en.pos);ef.addScaledVector(endir,-ef.dot(endir));if(ef.lengthSq()<1e-6)ef.set(endir.z,endir.x,endir.y);ef.normalize();var es=new THREE.Vector3().crossVectors(endir,ef).normalize();en.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(es,endir,ef));en.g.rotateZ(Math.sin(t/150+e)*0.16); // always faces the roll (eyes on you), waddling side to side
-      if(en.cd<=0&&ball.position.distanceTo(en.pos)<ballR+0.8*(en.sz||1)){en.cd=1.8;var kids=clump.children.filter(function(c){return c!==core});for(var k=0;k<2&&kids.length;k++)clump.remove(kids.pop());ballR=Math.max(R0,ballR-0.34);pips=Math.max(0,pips-1);
+    for(var e=0;e<enemies.length;e++){var en=enemies[e];if(en.dead)continue;en.cd=Math.max(0,en.cd-dt);var eu=en.pos.clone().normalize();var toB=ball.position.clone().sub(en.pos);toB.addScaledVector(eu,-toB.dot(eu));if(toB.lengthSq()>1e-5)toB.normalize();var dist=en.pos.angleTo(ball.position)*SR;var tang=new THREE.Vector3().crossVectors(eu,toB).multiplyScalar(en.sign);var orbit=dist<(ballR+5)?0.85:0.25;var edir=toB.multiplyScalar(1-orbit).addScaledVector(tang,orbit);if(edir.lengthSq()>1e-5)edir.normalize();en.pos.applyAxisAngle(new THREE.Vector3().crossVectors(eu,edir).normalize(),2.4*(params.espeed||1)/SR*dt);var endir=en.pos.clone().normalize();en.pos.copy(endir).multiplyScalar(lmGround(endir));en.g.position.copy(en.pos);var ef=ball.position.clone().sub(en.pos);ef.addScaledVector(endir,-ef.dot(endir));if(ef.lengthSq()<1e-6)ef.set(endir.z,endir.x,endir.y);ef.normalize();var es=new THREE.Vector3().crossVectors(endir,ef).normalize();en.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(es,endir,ef));en.g.rotateZ(Math.sin(t/150+e)*0.16); // always faces the roll (eyes on you), waddling side to side
+      if(twChopEat(en))continue;if(en.cd<=0&&ball.position.distanceTo(en.pos)<ballR+0.8*(en.sz||1)){en.cd=1.8;var kids=clump.children.filter(function(c){return c!==core});twShed(kids,0.34);ballR=Math.max(R0,ballR-0.34);pips=Math.max(0,pips-1);
         var away=ball.position.clone().sub(en.pos);bumpV.copy(away.normalize().multiplyScalar(16+4*(en.sz||1)));if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.75}wobT=0.5} // knocked away: shove + little hop + wobble
     }
     // ants wander; within sight they come at you while you're small, and run once you can roll them up
@@ -1138,27 +1497,31 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       var big=ballR>=an.req,ad2=an.pos.angleTo(ball.position)*SR,spd=1.6;
       var antMag=params.chase&&big&&ad2<magR(); // Chase magnet: rollable ants in range are dragged in instead of running away
       if(ad2<Math.max(10,antMag?magR():0)){var tb=ball.position.clone().sub(an.pos);tb.addScaledVector(au,-tb.dot(au));if(tb.lengthSq()>1e-5){tb.normalize();if(antMag)spd=magPull(ad2);else if(big){tb.negate();spd=2.3}an.head.lerp(tb,Math.min(1,dt*2.5)).normalize()}}
+      /* ants walk around solid parts: touching one turns them away from it */
+      if(lms.length){for(var kb=0;kb<lms.length;kb++){var KS=lms[kb];if(au.angleTo(KS.c)*SR>KS.R+1.5)continue;var KL=lmLocal(KS,au);for(var kq=0;kq<KS.parts.length;kq++){var KC=KS.parts[kq];if(!KC.solid||!KC.gr||KC.h<0.3)continue;if(lmDist(KC,KL[0],KL[1])<0.3+0.45*an.sz){var aw=au.clone().sub(KC.dirW);aw.addScaledVector(au,-aw.dot(au));if(aw.lengthSq()>1e-10){aw.normalize();if(an.head.dot(aw)<0.3){an.head.addScaledVector(aw,1.2);an.head.addScaledVector(au,-an.head.dot(au)).normalize()}}}}}}
       var aax=new THREE.Vector3().crossVectors(au,an.head);if(aax.lengthSq()>1e-6)an.pos.applyAxisAngle(aax.normalize(),spd/SR*dt);
-      var nu=an.pos.clone().normalize();an.pos.copy(nu).multiplyScalar(surfaceR(nu));an.head.addScaledVector(nu,-an.head.dot(nu)).normalize();
+      var nu=an.pos.clone().normalize();an.pos.copy(nu).multiplyScalar(lmGround(nu));an.head.addScaledVector(nu,-an.head.dot(nu)).normalize();
       an.g.position.copy(an.pos).addScaledVector(nu,Math.abs(Math.sin(t/90+an.ph))*0.05*an.sz);
       an.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(nu,an.head).normalize(),nu,an.head));an.g.rotateZ(Math.sin(t/80+an.ph)*0.06);
-      if(ball.position.distanceTo(an.pos)<ballR+0.55*an.sz){
-        if(big){an.dead=true;stickToRoll(an.g);ballR+=an.gain;pips++}
-        else if(an.cd<=0){an.cd=1.4;var akids=clump.children.filter(function(c){return c!==core});if(akids.length)clump.remove(akids.pop());ballR=Math.max(R0,ballR-0.2);pips=Math.max(0,pips-1);
+      if(ball.position.distanceTo(an.pos)<ballR+0.55*an.sz+0.8&&twTouch(an.pos,an.pos.clone().normalize(),0.55*an.sz)){ /* the roll has to really touch the ant (see twTouch) */
+        if(big){an.dead=true;an.g.userData.req=an.req;stickToRoll(an.g); /* remembered, so a knocked-off ant needs the same size again */ballR+=an.gain;pips++}
+        else if(an.cd<=0){an.cd=1.4;var akids=clump.children.filter(function(c){return c!==core});twShed(akids,0.2);ballR=Math.max(R0,ballR-0.2);pips=Math.max(0,pips-1);
           bumpV.copy(ball.position.clone().sub(an.pos).normalize().multiplyScalar(12+3*an.sz));if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.6}wobT=0.4}} // same knock-back as the chopsticks, a bit softer
     }
     // follow cam (fixed angle): rides along with the roll over the planet, high and 40° down, but never swings round, so up the screen stays the same way; distance grows with the roll
-    var cD=ballR*4+13,cA=40*Math.PI/180,want=pPos.clone().addScaledVector(up,cD*Math.sin(cA)).addScaledVector(camF,-cD*Math.cos(cA));
+    twGrowEnd();/* camera as the roll grows (planet view). cG = growth, 0 at the start, 1 at gold. Up to gold the 40 degree look-down steepens to 68, the camera zooms out a quarter slower and aims below the roll, toward the planet's middle, so the roll sits higher on screen and the planet fills the view; past gold it eases into a view of the whole planet with the roll on top */
+    var cG=Math.max(0,(ballR/R0-1)/Math.max(0.5,params.targetMul-1)),cg=Math.min(1,cG),cA=(40+28*cg)*Math.PI/180,cD=ballR*3+13,want=pPos.clone().addScaledVector(up,cD*Math.sin(cA)).addScaledVector(camF,-cD*Math.cos(cA));
+    var cB=Math.min(1,Math.max(0,(cG-1)/0.6));cB=cB*cB*(3-2*cB);if(cB>0)want.lerp(up.clone().multiplyScalar(Math.cos(0.42)).addScaledVector(camF,-Math.sin(0.42)).multiplyScalar((SR+RELIEF)*2.7+ballR*2),cB);
     var minH=surfaceR(want.clone().normalize())+ballR*1.2+1.5;if(want.length()<minH)want.setLength(minH); // keep above terrain to avoid clipping
     cam.position.lerp(want,1-Math.pow(0.0016,dt));cam.up.copy(up);
     // aim a little ahead of the roll
-    cam.lookAt(ball.position.clone().addScaledVector(up,ballR*0.3).addScaledVector(camF,ballR*2));
+    var cAim=ball.position.clone().addScaledVector(up,ballR*0.3*(1-cg)-ballR*1.4*cg).addScaledVector(camF,ballR*2*(1-cg*0.5));if(cB>0)cAim.lerp(up.clone().multiplyScalar(SR*0.35),cB);cam.lookAt(cAim);
     // goal: reach the target size before the clock runs out; after a medal the clock is gone (free roll)
-    var curMul=ballR/R0,hit=curMul>=params.targetMul;
+    var curMul=ballR/R0,hit=curMul>=params.targetMul;twSky(dt,t,curMul,hop);twGrowEnd();curMul=ballR/R0;hit=curMul>=params.targetMul;
     if(!freeRoll){timeLeft-=dt;if(timeLeft<0)timeLeft=0}
     HUD.bar.style.width=Math.min(100,(curMul/params.targetMul)*100)+"%";
     var szk=curMul.toFixed(1)+"|"+params.targetMul.toFixed(1);if(HUD.sizelab._k!==szk){HUD.sizelab._k=szk;HUD.sizelab.innerHTML="<span><b>SIZE</b>"+curMul.toFixed(1)+"×</span><span class=\"gl\"><b>GOAL</b>"+params.targetMul.toFixed(1)+"×</span>"} // size and goal as a scoreboard row, rebuilt only when a number changes
-    if(HUD.traits._n!==pips){HUD.traits._n=pips;HUD.traits.innerHTML="<b>OBJECTS</b>"+pips}
+    twHud(t);if(HUD.traits._n!==pips){HUD.traits._n=pips;HUD.traits.innerHTML="<b>OBJECTS</b>"+pips}
     HUD.timer.textContent=freeRoll?"FREE ROLL":Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2);
     stepBanner(dt,t);
     renderer.render(scene,cam);
@@ -1181,13 +1544,13 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function pick(slot,pool){var i=(Math.random()*pool.length)|0;if(pool.length>1&&i===lastPick[slot])i=(i+1+((Math.random()*(pool.length-1))|0))%pool.length;lastPick[slot]=i;return pool[i]}
   function fill(s,v){return s.replace(/\{(\w+)\}/g,function(m,k){return v[k]!==undefined?v[k]:m})}
   function end(win){running=false;cancelAnimationFrame(raf);
-    var curMul=ballR/R0,ratio=curMul/params.targetMul,grade=ratio>=1.7?"GOLD":ratio>=1.3?"SILVER":ratio>=1?"BRONZE":"";
-    var pal={GOLD:["#f6c945","#b8860b"],SILVER:["#dde2e8","#9aa3ad"],BRONZE:["#d99a5c","#9c5a24"]}[grade];
+    var curMul=ballR/R0,ratio=curMul/params.targetMul,grade=twOmk?"OMAKASE":ratio>=1.4?"GOLD":ratio>=1.2?"SILVER":ratio>=1?"BRONZE":"";
+    var pal={OMAKASE:["#ff8a6a","#c2452f"],GOLD:["#f6c945","#b8860b"],SILVER:["#dde2e8","#9aa3ad"],BRONZE:["#d99a5c","#9c5a24"]}[grade];
     var v={current:curMul.toFixed(1),target:params.targetMul.toFixed(1),count:pips};
     HUD.medal.innerHTML=win&&pal?winArt(grade,pal):"";
     HUD.grade.textContent=win?grade:"";HUD.grade.style.color=pal?pal[0]:"#fff";
     if(win){
-      HUD.et.textContent=pick("win"+grade,COPY.win[grade]);
+      HUD.et.textContent=pick("win"+grade,twWinPool(grade,COPY.win[grade]));
       HUD.em.textContent=fill("You rolled up to {current}× (target {target}×) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
     } else {
       var band=ratio<0.5?"low":ratio<0.8?"mid":"high";                 // progress bands: under 50%, 50-79%, 80%+
@@ -1195,14 +1558,14 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       HUD.em.textContent=fill(pick("fail"+band,COPY.failBody[band]),v);
     }
     /* Keep rolling (Enter) shows on every end screen */HUD.again.querySelector(".al").textContent=win?"Restart":"Try again";
-    HUD.end.classList.remove("hidden");phase="end"}
-  function keepRolling(){freeRoll=true;begin()}
+    twReport();HUD.end.classList.remove("hidden");phase="end"}
+  function keepRolling(){freeRoll=true;twOmkBanner();begin()}
   // ---- round phases: welcome -> play <-> pause (<-> confirm) -> end. Leaving for the art mid-round pauses it. ----
   var phase="welcome";
   function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
   function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};releaseStick();
     var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
-    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / Goal "+params.targetMul.toFixed(1)+"× · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");
+    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / Goal "+params.targetMul.toFixed(1)+"× · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display=freeRoll?"":"none";if(freeRoll)twReport(".pause .rpt")}
     overlays(HUD.pause);phase="pause"}
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
@@ -1291,7 +1654,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   hopB.addEventListener("pointerdown",function(e){e.preventDefault();e.stopPropagation();hopB.classList.add("on");startHop()});
   ["pointerup","pointercancel","pointerleave"].forEach(function(n){hopB.addEventListener(n,function(){hopB.classList.remove("on")})});
   tpad.querySelector(".tpause").addEventListener("click",function(){pauseGame()});
-  GAME.querySelector(".toart").addEventListener("click",function(e){e.stopPropagation();exit()}); // pause screen: back to the art (the round stays paused)
+  GAME.querySelector(".toart").addEventListener("click",function(e){e.stopPropagation();exit()});GAME.querySelector(".omart").addEventListener("click",function(e){e.stopPropagation();exit()}); // pause screen: back to the art (the round stays paused)
   ["touchstart","touchmove"].forEach(function(n){GAME.addEventListener(n,function(e){if(GAME.classList.contains("touch")&&!e.target.closest(".overlay, .tbtns, .perf"))e.preventDefault()},{passive:false})}); // no page scroll, pinch or double-tap zoom while playing
   document.addEventListener("visibilitychange",function(){if(document.hidden)pauseGame()}); // app switch, lock screen, incoming call: pause the round
   // ---- adaptive quality: watch the frame rate while playing and step down only if the device struggles.

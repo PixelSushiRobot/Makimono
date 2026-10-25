@@ -73,7 +73,52 @@ The traits use the new wave names (Wave, Short Wave) on both sides.
 
 - **Buttons:** KATAMAKI · B-SIDE · ⋯. B-SIDE is a toggle (it stays pressed while on) and adds `&art=b` to the address, so a shared link opens on the B-side. A new seed starts on its minted art. ⋯ opens a menu: Download SVG, Download GIF, View Seed (opens the seed field) and Random Seed, each with its key.
 - **Keyboard shortcuts:** the v2 edition's keys (above), plus `B` B-side, `V` view seed and `N` new seed. The shortcuts card lists them all.
-- **Katamaki** is the v2 edition's game, with the keys, hints, scoreboard and end-screen lines above.
+- **Katamaki** starts from the v2 edition's game (keys, hints, scoreboard and end-screen lines above) and adds the changes in **Katamaki on this page**, below. The v2 edition (`makimono.html`, the mint build) keeps the game as described above.
 - **Lighter page:** three.js loads after the art is drawn, so the piece never waits for the game's library. Pressing `G` or KATAMAKI before it has arrived marks the button as loading, and the game opens as soon as it's ready. Space Mono comes from Google Fonts instead of being embedded (the mint build still embeds it), and only its regular weight is used.
 - **Find your token without the seed:** the seed field also takes a token number (`51` or `#51`), an Aleatory or objkt link, or a wallet address or `.tez` name, which lists the wallet's pieces with thumbnails. A button with the wallet's name (.tez names in full, addresses shortened in the middle) then sits before KATAMAKI to reopen the list, for this tab; Random Seed or entering anything else removes it. Lookups use TzKT. `?token=51` in the address opens that token.
 - The SEED pill, the home-screen icon, the background fill and the art at the bottom are as in the player.
+
+### Katamaki on this page
+
+Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint.html`) and the root player are unchanged.
+
+**Things to roll up**
+- **A belt of plates:** a ring of conveyor-belt sushi plates. The plates and the sushi on them can be rolled up, and so can the belt's slats once you're big enough.
+- **An anthill:** a layered anthill some way off to the right of the start. Once you're big enough, the hill itself rolls up.
+- **The piece's own art as a plaza:** a 13×13 plaza of raised tiles just ahead of the start, laid out like the art. Only the maki's tiles count. The background tiles are left out, and the eyes stay right in every pose. The roll can hop up onto the tiles.
+- **Sky letters:** the message's letters in the sky can be rolled up too once the roll reaches them.
+- **Real contact:** things are only picked up when the roll actually touches them. When the roll was big, it used to grab things from a distance.
+- **Where pickups stick:** pickups stay where they touched along the roll, with a little random scatter, and stay off the filling ends. They used to be squeezed toward the middle.
+
+**Growth and medals**
+- **Growth is by area,** so each pickup adds size like real stuff stuck to a ball, and the last stretch is the slowest.
+- **Goals:** Fast 2.7×, Normal 3.2×, Slow 3.7×, so every speed asks for the same growth per second. Speed sets the pace, not the difficulty.
+- **Medals:** silver at 1.2× the goal and gold at 1.4×. They used to be 1.3× and 1.7×.
+- **Big pieces count:** a plaza tile adds 0.035, a belt slat 0.05 and a sky letter 0.12.
+
+**HUD and reports**
+- **PLANET CLEARED:** how much of the planet you've rolled up, weighted by size. It rounds down, so it only says 100% when nothing is left. Near the end it reads "99% · N LEFT".
+- **Last pickup:** a line under the scoreboard names the last thing you rolled up.
+- **Stats:** the end screen, and the pause screen in free roll, list what made you grow, the ants you rolled up and when you passed each medal.
+- **Gold line:** "NOTHING LEFT TO ROLL." only shows at gold with at least 60% of the planet cleared.
+
+**Free roll**
+- **Chopsticks:** two on every piece, in spots that change with the seed. They can be rolled up in free roll once the roll is at least the goal size and 1.05× theirs, and they wobble when you're close but not quite big enough.
+- **Beacons:** once 10 or fewer things are left, each has a rising light column that follows it, so the last pieces are easy to find.
+
+**100% and OMAKASE**
+- **Confetti:** clearing the whole planet sets off confetti in the piece's colours. It lands, rests a few seconds and fades away.
+- **OMAKASE:** after the confetti comes a new top grade, OMAKASE: "THE CHEF HAS LEFT THE BUILDING."
+- **After OMAKASE:** Keep rolling still works, and the sky's marquee then scrolls NO MORE ANTS.
+- **Back to art:** every end screen has a Back to art button.
+
+**Rule changes**
+- **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.
+- **Chopstick counts:** every pattern gets 2 chopsticks. Before, Sparkle, Checker and Ripple had 2 and the rest had 1.
+
+**Models**
+- **Carrot:** the cone with its point cut off flat, topped with a green disc and three square stalks.
+- **Onigiri:** a triangle with its corners cut flat, and the nori no longer flickers through the rice at some angles.
+- **Cucumber** spins on its centre.
+- **Mushroom:** the cap has an underside.
+- **Bush:** now a big rock.
