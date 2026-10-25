@@ -112,6 +112,10 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **After OMAKASE:** Keep rolling still works, and the sky's marquee then scrolls NO MORE ANTS.
 - **Back to art:** every end screen has a Back to art button.
 
+**On phones**
+- **Stats in a 2×2 grid:** on touch screens, the end-screen and free-roll pause stats sit two per row. A fifth stat (chopsticks) gets its own centred row.
+- **Short screens (landscape phones):** the buttons sit side by side instead of stacked, the medal, title and spacing shrink, and the screen scrolls if it still doesn't fit, so no button ends up off-screen.
+
 **Rule changes**
 - **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.
 - **Chopstick counts:** every pattern gets 2 chopsticks. Before, Sparkle, Checker and Ripple had 2 and the rest had 1.
