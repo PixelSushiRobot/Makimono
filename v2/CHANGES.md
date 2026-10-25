@@ -98,13 +98,13 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 
 **HUD and reports**
 - **PLANET CLEARED:** how much of the planet you've rolled up, weighted by size. It rounds down, so it only says 100% when nothing is left. Near the end it reads "99% · N LEFT".
-- **Last pickup:** a line under the scoreboard names the last thing you rolled up.
+- **Last pickup:** a line under the scoreboard names the last thing you rolled up. A belt sushi rolled up with its plate reads SALMON + PLATE.
 - **Stats:** the end screen, and the pause screen in free roll, list what made you grow, the ants you rolled up and when you passed each medal.
-- **Gold line:** "NOTHING LEFT TO ROLL." only shows at gold with at least 60% of the planet cleared.
+- **Gold titles:** a gold run with 95% or more of the planet cleared reads "NOTHING LEFT TO ROLL.", and one with 60% or more reads "THE PLANET IS GETTING NERVOUS." Below that, gold picks from its other lines. The losing line "The ants are nervous." is now "The ants are taking notes.", so "nervous" only appears once.
 
 **Free roll**
 - **Chopsticks:** two on every piece, in spots that change with the seed. They can be rolled up in free roll once the roll is at least the goal size and 1.05× theirs, and they wobble when you're close but not quite big enough.
-- **Beacons:** once 10 or fewer things are left, each has a rising light column that follows it, so the last pieces are easy to find.
+- **Beacons:** once 10 or fewer things are left, each has a rising light column that follows it, so the last pieces are easy to find. Once on, they stay on for the rest of the round, and the timer slot (FREE ROLL) shows how many are left, e.g. 7 LEFT, then ALL CLEAR.
 
 **100% and OMAKASE**
 - **Confetti:** clearing the whole planet sets off confetti in the piece's colours. It lands, rests a few seconds and fades away.

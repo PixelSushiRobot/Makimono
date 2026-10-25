@@ -1220,12 +1220,15 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      the total when it breaks, the anthill's ants when it is rolled up */
   var twTot=0,twGot=0,twLost=0,twAnts=0,twChops=0,twChopT=-1,twLast="",twLastT=0,twNow=0,twWob=[],twHP=null;
   function twW(o,w){if(o&&o.userData){o.userData.mkO=w;twTot+=w}}
-  function twCount(){if(typeof twBg==="function")setTimeout(twBg,0);(twConf||[]).forEach(function(c){scene.remove(c.m)});twBk=[];twBkN=0;twBkL=null;twOmk=false;twOmkB=false;twFin=null;twConf=[];twTot=0;twGot=0;twLost=0;twChops=0;twChopT=-1;twGL=[];twSrc={};twMT={};twR0=-1;twAnts=0;twLast="";twLastT=0;twWob=[];var el0=GAME.querySelector(".hud .last");if(el0){el0._s="";el0.innerHTML=""}
+  function twCount(){if(typeof twBg==="function")setTimeout(twBg,0);twBkLat=false;(twConf||[]).forEach(function(c){scene.remove(c.m)});twBk=[];twBkN=0;twBkL=null;twOmk=false;twOmkB=false;twFin=null;twConf=[];twTot=0;twGot=0;twLost=0;twChops=0;twChopT=-1;twGL=[];twSrc={};twMT={};twR0=-1;twAnts=0;twLast="";twLastT=0;twBu=[];twBuT=-1e9;twWob=[];var el0=GAME.querySelector(".hud .last");if(el0){el0._s="";el0.innerHTML=""}
     props.forEach(function(o){if(!o.dead&&!o.hid)twW(o.g,o.foot*o.foot)});obstacles.forEach(function(o){if(!o.dead&&!o.hid)twW(o.g,o.size*o.size)});
     clouds.forEach(function(o){o.g.userData.nm="CLOUD";if(!o.dead){var s=o.g.scale.x*1.5;twW(o.g,s*s)}});ants.forEach(function(o){if(!o.dead){twW(o.g,o.sz*o.sz)}});
     if(plaza){plaza.gn=0;plaza.n0=0;for(var k=0;k<169;k++)if(!plaza.out||plaza.out.some(function(O){return !O[k]})){plaza.n0++;twTot+=plaza.TS*plaza.TS}}if(twR)twTot+=twR.NSL*twR.SLW*3.2}
   function twNear(o,ratio,t){if(ratio<0.75||(o.wob&&t-o.wob<650))return;o.wob=t;if(twWob.indexOf(o)<0)twWob.push(o)}
-  function twGrab(g){twGot++;var nm=twNm(g);if(nm==="ANT")twAnts++;if(nm==="CHOPSTICKS")twChops++;if(nm){twLast=nm;twLastT=twNow}twGL.push([twCat(g,nm),ballR])}
+  function twGrab(g){twGot++;var nm=twNm(g);if(nm==="ANT")twAnts++;if(nm==="CHOPSTICKS")twChops++;if(nm){if(nm==="PLATE"&&twBu.length===1&&twBu[0]!=="PLATE"&&twNow-twBuT<=200){twLast=twBu[0]+" + PLATE";twBu=[]}else{twBu=[nm];twBuT=twNow;twLast=nm}twLastT=twNow}twGL.push([twCat(g,nm),ballR])}
+  /* the last-pickup line: a belt sushi and the plate under it (added a frame later) show as one line, SALMON + PLATE, instead of
+     flicking from the sushi's name to PLATE. Anything else replaces the line as it is rolled up */
+  var twBu=[],twBuT=-1e9;
   function twHud(t){twNow=t;twGrowEnd();twMedalT();twChopMsg(t);twBeacons(t);twFinale(t);var pdir=ball.position.clone().normalize(),cm=ballR/R0,G=params.targetMul;
     for(var i=twWob.length-1;i>=0;i--){var o=twWob[i],a=(t-o.wob)/450,fr=!o.keepQ&&o.dir&&props.indexOf(o)>=0;if(!o.q0&&!fr)o.q0=o.g.quaternion.clone();var base=fr?o.g.quaternion.clone():o.q0;
       if(a>=1||o.dead){if(!o.dead)o.g.quaternion.copy(base);o.q0=null;twWob.splice(i,1);continue}
@@ -1257,10 +1260,10 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function twMG(){return [1.2,1.4]}
   /* a picked-up thing's name, looking inside it too: a piece knocked off twice sits two wrappers deep */
   function twNm(g){var nm="";g.traverse(function(n){if(!nm&&n.userData&&n.userData.nm)nm=n.userData.nm});return nm}
-  /* "NOTHING LEFT TO ROLL." is only said when it's true: gold with most of the planet cleared (60% or more, weighted as in
-     PLANET CLEARED). Otherwise gold picks from its other lines */
+  /* gold's title follows how much of the planet is cleared (weighted as in PLANET CLEARED): 95% or more "NOTHING LEFT TO ROLL.",
+     60% or more "THE PLANET IS GETTING NERVOUS.", otherwise one of gold's other lines */
   function twCleared(){var T=twTotNow();if(!T)return 0;var on=0;for(var i=0;i<clump.children.length;i++){var c=clump.children[i];on+=c.userData.mkO||(c.children[0]&&c.children[0].userData.mkO)||0}return Math.min(1,on/T)}
-  function twWinPool(grade,pool){if(grade==="OMAKASE")return TW_OMK;if(grade!=="GOLD")return pool;var R="NOTHING LEFT TO ROLL.";if(twCleared()>=0.6)return [R];var o=pool.filter(function(s){return s!==R});return o.length?o:pool}
+  function twWinPool(grade,pool){if(grade==="OMAKASE")return TW_OMK;if(grade!=="GOLD")return pool;var R="NOTHING LEFT TO ROLL.",c=twCleared();if(c>=0.95)return [R];if(c>=0.6)return ["THE PLANET IS GETTING NERVOUS."];var o=pool.filter(function(s){return s!==R});return o.length?o:pool}
   /* in free roll the chopsticks become food, one size at a time. One can be rolled up once the roll is the goal size (bronze)
      AND at least as wide as the chopstick is tall (the same rule as a big pickup: radius at least half its height), so the small ones go
      first and the giants last; until then it hits as before, and a roll at 75% of its size or more makes it wobble when they touch. A big one
@@ -1286,11 +1289,14 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      ants, clouds, plaza tiles and belt slats, the nearest 80 at most. The list is rebuilt every
      8 frames; each beacon follows its own thing every frame (ants, clouds and the belt move) */
   var twBk=[],twBkN=0,twBkL=null,twBkT=null;
-  function twBkOn(n){return freeRoll&&n<=10}
+  /* beacons: on once 10 or fewer are left, then they stay on for the round. A plaza tile counts as left whatever pose the maki is in (it
+     used to count only in poses that show it, so the count jumped with every hop and the beams blinked), and belt sushi coming back
+     can't switch them off again */
+  var twBkLat=false;function twBkOn(n){if(freeRoll&&n<=10)twBkLat=true;return freeRoll&&twBkLat}
   function twLeftList(){var L=[],P=new THREE.Vector3(),Q=new THREE.Quaternion(),S=new THREE.Vector3();
     function tg(g){return g&&g.userData&&(g.userData.mkO||(g.children[0]&&g.children[0].userData&&g.children[0].userData.mkO))}
     function add(o){if(!o.dead&&!o.hid&&tg(o.g))L.push({g:o.g})}props.forEach(add);obstacles.forEach(add);ants.forEach(add);clouds.forEach(add);
-    if(plaza&&plaza.n0)for(var k=0;k<169;k++){if((plaza.gone&&plaza.gone[k])||plaza.vis[k]===false)continue;plaza.base[k].decompose(P,Q,S);L.push({p:P.clone().setLength(plaza.tops[k])})}
+    if(plaza&&plaza.n0)for(var k=0;k<169;k++){if((plaza.gone&&plaza.gone[k])||(plaza.ix&&plaza.out?!plaza.out.some(function(O){return !O[plaza.ix[k]]}):plaza.vis[k]===false))continue;plaza.base[k].decompose(P,Q,S);L.push({p:P.clone().setLength(plaza.tops[k])})}
     if(twR&&twR.slats)for(var j=0;j<twR.NSL;j++)if(!twR.gone[j]&&twR.slats[j].visible)L.push({g:twR.slats[j],top:1});return L}
   /* the total PLANET CLEARED is measured against, without what can no longer be picked up: scenery the low-power mode hid.
      Plaza tiles are counted only if the maki shows on them in some frame (background tiles, hidden with PLAZA BG off, can't be rolled up),
@@ -1478,7 +1484,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(plaza){var pk=Math.floor(t/MKFLAT.SLOT)%plaza.G.length,cF=new THREE.Vector3(),cR=new THREE.Vector3();cam.getWorldDirection(cF);cR.setFromMatrixColumn(cam.matrixWorld,0);
       var fe=cF.dot(plaza.ef),fr=cF.dot(plaza.er),FA,RA;if(Math.abs(fe)>=Math.abs(fr)){FA=[0,fe>0?1:-1];RA=[cR.dot(plaza.er)>0?1:-1,0]}else{FA=[fr>0?1:-1,0];RA=[0,cR.dot(plaza.ef)>0?1:-1]}if(!plaza.t0)plaza.t0=t;if(plaza.FA){FA=plaza.FA;RA=plaza.RA}else if(t-plaza.t0>1500){plaza.FA=FA;plaza.RA=RA}
       var po=FA.join()+"|"+RA.join();
-      if(pk!==plaza.k||po!==plaza.o){plaza.k=pk;plaza.o=po;var pg=plaza.G[pk];for(var pq=0;pq<169;pq++){var gx=pq%13-6,gy=6-(pq-pq%13)/13,ix=gx*RA[0]+gy*RA[1]+6,iy=6-(gx*FA[0]+gy*FA[1]);var pkey=pg[iy*13+ix],phid=plaza.out[pk][iy*13+ix]||!!(plaza.gone&&plaza.gone[pq]);plaza.vis[pq]=!phid;plaza.m.setMatrixAt(pq,phid?plaza.Z0:plaza.base[pq]);plaza.m.setColorAt(pq,plaza.C[pkey])}plaza.m.instanceColor.needsUpdate=true;plaza.m.instanceMatrix.needsUpdate=true}}
+      if(pk!==plaza.k||po!==plaza.o){plaza.k=pk;plaza.o=po;var pg=plaza.G[pk];for(var pq=0;pq<169;pq++){var gx=pq%13-6,gy=6-(pq-pq%13)/13,ix=gx*RA[0]+gy*RA[1]+6,iy=6-(gx*FA[0]+gy*FA[1]);(plaza.ix||(plaza.ix=[]))[pq]=iy*13+ix;var pkey=pg[iy*13+ix],phid=plaza.out[pk][iy*13+ix]||!!(plaza.gone&&plaza.gone[pq]);plaza.vis[pq]=!phid;plaza.m.setMatrixAt(pq,phid?plaza.Z0:plaza.base[pq]);plaza.m.setColorAt(pq,plaza.C[pkey])}plaza.m.instanceColor.needsUpdate=true;plaza.m.instanceMatrix.needsUpdate=true}}
     if(lms.length)lmAct(dt,t,pdir);
     // clouds drift slowly. Once the top of the roll (with a hop) reaches one, it's rolled up like anything else: around the goal size over the sea, sooner from high ground
     for(var ci=0;ci<clouds.length;ci++){var cl=clouds[ci];if(cl.dead)continue;cl.dir.applyAxisAngle(YUP,cl.spd*dt).normalize();cl.g.position.copy(cl.dir.clone().multiplyScalar(cl.rad));cl.g.quaternion.copy(QT.setFromUnitVectors(YUP,cl.dir));
@@ -1526,7 +1532,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     HUD.bar.style.width=Math.min(100,(curMul/params.targetMul)*100)+"%";
     var szk=curMul.toFixed(1)+"|"+params.targetMul.toFixed(1);if(HUD.sizelab._k!==szk){HUD.sizelab._k=szk;HUD.sizelab.innerHTML="<span><b>SIZE</b>"+curMul.toFixed(1)+"×</span><span class=\"gl\"><b>GOAL</b>"+params.targetMul.toFixed(1)+"×</span>"} // size and goal as a scoreboard row, rebuilt only when a number changes
     twHud(t);if(HUD.traits._n!==pips){HUD.traits._n=pips;HUD.traits.innerHTML="<b>OBJECTS</b>"+pips}
-    HUD.timer.textContent=freeRoll?"FREE ROLL":Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2);
+    HUD.timer.textContent=freeRoll?(twBkL&&twBkOn(twBkL.length)?(twBkL.length?twBkL.length+" LEFT":"ALL CLEAR"):"FREE ROLL"):Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2);
     stepBanner(dt,t);
     renderer.render(scene,cam);
     if(!freeRoll&&timeLeft<=0){end(hit);return}
@@ -1542,7 +1548,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
          BRONZE:["THAT'S... SOMETHING.","WELL, IT HOLDS TOGETHER.","IT ROLLS. TECHNICALLY.","GOOD ENOUGH FOR LUNCH."]},
     fail:["TIME'S UP.","OUT OF TIME, CHEF.","THE CLOCK WINS THIS ONE.","THE RICE HAS GONE COLD.","ORDER UP. NOT QUITE.","ALMOST A MEAL."], // no ants in the titles: the messages below have one ant line per band
     failBody:{low:["Only {current}× of {target}×. The ants are very pleased with themselves. Try again?","Only {current}× of {target}×. Even the chopsticks felt bad. Try again?","Only {current}× of {target}×. The planet barely noticed you. Try again?"],
-              mid:["{current}× of {target}×. Over halfway to legend. The ants are nervous. Try again?","{current}× of {target}×. Respectable roll, dubious pace. Try again?","{current}× of {target}×. The chopsticks saw you coming. Try again?"],
+              mid:["{current}× of {target}×. Over halfway to legend. The ants are taking notes. Try again?","{current}× of {target}×. Respectable roll, dubious pace. Try again?","{current}× of {target}×. The chopsticks saw you coming. Try again?"],
               high:["SO CLOSE! {current}× of {target}×. One more crumb. Try again?","{current}× of {target}×. You could taste it. So could the ants. Try again?","{current}× of {target}×. One more lap would have done it. Try again?"]}},
     lastPick={};
   function pick(slot,pool){var i=(Math.random()*pool.length)|0;if(pool.length>1&&i===lastPick[slot])i=(i+1+((Math.random()*(pool.length-1))|0))%pool.length;lastPick[slot]=i;return pool[i]}
