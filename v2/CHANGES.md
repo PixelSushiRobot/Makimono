@@ -107,16 +107,27 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Beacons:** once 10 or fewer things are left, each has a rising light column that follows it, so the last pieces are easy to find. Once on, they stay on for the rest of the round, and the timer slot (FREE ROLL) shows how many are left, e.g. 7 LEFT, then ALL CLEAR.
 
 **100% and OMAKASE**
-- **Confetti:** clearing the whole planet sets off confetti in the piece's colours. It lands, rests a few seconds and fades away.
+- **Confetti:** clearing the whole planet sets off confetti in the piece's colours. It lands on the ground or on the maki, rests a few seconds and fades away.
 - **OMAKASE:** after the confetti comes a new top grade, OMAKASE: "THE CHEF HAS LEFT THE BUILDING."
 - **After OMAKASE:** Keep rolling still works, and the sky's marquee then scrolls NO MORE ANTS.
 - **Back to art:** every end screen has a Back to art button.
+
+**The chopsticks monster (after OMAKASE)**
+- **When it comes:** after OMAKASE, if both chopsticks have been rolled up (before or after the OMAKASE screen), Keep rolling, let the confetti settle and the NO MORE ANTS marquee cross once. Then a giant chopsticks monster lands on the far side of the planet with a thump. The timer slot reads !!! and the marquee switches to UH OH...
+- **The chase:** it hop-walks toward the roll, always turning to keep its eyes on it, and sends little chopsticks after it. They start few and slow (2 at a time, slower than the roll) and build up over about 45 s, to 10 at a time, faster than the roll and from every side. Each bump knocks the roll away from the chopstick that hit it, so sooner or later it runs into the giant. They can't be rolled up and nothing falls off.
+- **The grab:** touching the giant sets it off. It closes on the maki and everything on it is knocked off and scattered around. Then it lifts the bare maki away out of the sky.
+- **The restore:** the scattered pickups, and everything else that was moved or rolled up, fly back to where they stood at the start of the round. A glitchy pixel transition hands over to the planet running again as it was at the start (ants walking, belt turning), without the maki. The planet turns slowly and the arrow keys, WASD or the stick spin it. NO MORE MAKI scrolls across the sky.
+- **Shadows:** the giant, the little chopsticks and the scattered pickups cast a soft shadow on the ground that shrinks as they rise.
 
 **End, pause and restart screens**
 - **Buttons:** stacked in one column on every screen, all as wide as the widest. Labels are centred; with key hints shown (keyboard), the label sits left and the key on the right. On short screens (landscape phones, 520px tall or less) they sit side by side in one row so everything fits.
 - **Stats:** one row when there's room. On narrow touch screens (under 600px wide), a 2×2 grid; a fifth stat (chopsticks) gets its own centred row.
 - **Short screens (landscape phones):** only the spacing tightens and the message gets wider, so everything fits without shrinking. If a very small screen still can't fit it all, it scrolls.
 - **Turning the phone:** in a home-screen web app on iOS, turning the phone mid-game could leave taps landing away from the buttons (jump read as the stick, pause-screen taps missed). The page under the game no longer scrolls while it's open, and on every turn, resize or return to the app it's put back in place and the screen size re-read. A stick or hop held through a turn is let go. While the game is open, the page behind it takes the planet's sky colour, so turning the phone no longer flashes white.
+
+**Fixes**
+- **W A S D:** a letter key let go while Shift or Caps Lock had changed could stay held, so the roll kept reversing or turning. Letter keys now go by their place on the keyboard (any layout, Shift or Caps Lock), and every key is let go when the window loses focus.
+- **Knocked-off pickups:** things knocked off the roll now cast a shadow on the ground while they fly, and keep one once they land.
 
 **Rule changes**
 - **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.
@@ -128,3 +139,4 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Cucumber** spins on its centre.
 - **Mushroom:** the cap has an underside.
 - **Bush:** now a big rock.
+- **Eyes:** the fish, shrimp, ant and chopsticks eyes are each one low-poly ball with the iris painted on, instead of a ball with a flat disc floating in front.
