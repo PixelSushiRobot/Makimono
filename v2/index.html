@@ -1753,9 +1753,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* the final planet view's marquee: NO MORE MAKI scrolls across the sky, as the art's message does at the start */
   var twSpecB=false;function twSpecBanner(){if(twSpecB||!twP)return;if(twSpec&&(twMz||twSpT<1.2))return; /* waits for the mosaic to clear and the planet to get going */twSpecB=true;if(banner&&banner.g.parent)banner.g.parent.remove(banner.g);banner=buildBanner("NO MORE MAKI",twP);banner.stay=true;if(twMq){banner.o=twMq.o;banner.dir=twMq.dir;twMq=null}scene.add(banner.g)}
   function twSpecCam(dt){twFadeTick();twSpecBanner();if(!twSC)twSpecFrom(cam.position,cam.up);var I=twSpecIn(),V3=THREE.Vector3;
-    twSC.q.multiply(new THREE.Quaternion().setFromAxisAngle(new V3(0,1,0),-(I.x*1.2+0.1)*dt)).multiply(new THREE.Quaternion().setFromAxisAngle(new V3(1,0,0),I.y*1.2*dt)).normalize();
+    var zk=twSZoom(dt),zf=1-0.82*zk;twSC.q.multiply(new THREE.Quaternion().setFromAxisAngle(new V3(0,1,0),-(I.x*1.2+0.1)*zf*dt)).multiply(new THREE.Quaternion().setFromAxisAngle(new V3(1,0,0),I.y*1.2*zf*dt)).normalize();
     var z=new V3(0,0,1).applyQuaternion(twSC.q),y=new V3(0,1,0).applyQuaternion(twSC.q),x=new V3(1,0,0).applyQuaternion(twSC.q);
-    cam.position.copy(z).multiplyScalar(twSC.d);cam.up.copy(y);cam.lookAt(0,0,0);
+    var sd=twSDist(z,zk);cam.position.copy(z).multiplyScalar(sd);if(zk>0){cam.up.copy(y).multiplyScalar(1-zk).addScaledVector(z,zk).normalize();cam.lookAt(z.clone().multiplyScalar(SR*zk).addScaledVector(y,(sd-SR)*0.9*zk*zk))}else{cam.up.copy(y);cam.lookAt(0,0,0)} /* ZOOM: closer in, the view tips forward toward the horizon, as in Google Earth */
     if(keyLight){keyLight.target.position.set(0,0,0);keyLight.position.copy(z).multiplyScalar(twSC.d*0.8).addScaledVector(y,twSC.d*0.6).addScaledVector(x,twSC.d*0.3);keyLight.target.updateMatrixWorld()}}
   /* the swap freeze: the running planet draws without the light's real shadows, so on its first frame every shader would be rebuilt at once.
      They are now built in the background (compileAsync) while the still and the GLITCH/MOSAIC hold cover the screen; nothing is drawn and the
@@ -1799,7 +1799,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
        like the block's labels, as a heading for it: FREE ROLL, 3 LEFT, ALL CLEAR, !!! with the monster out, FINAL on the final planet */
     var ps=HUD.pstat;if(freeRoll){ps.textContent=twSpec?"FINAL":(twGi||twEnd)?"!!!":((HUD.timer&&HUD.timer.textContent)||"FREE ROLL").trim();ps.style.cssText="text-transform:uppercase;font:700 11px ui-monospace,monospace;letter-spacing:.24em;opacity:.6"}else ps.style.cssText="text-transform:uppercase";
     twClosedUI(!!twSpec)};
-  var twMq=null;function twSpecInit(){twSpec=true;twSpT=0;twSpW=0;twFxHook();twSpecRdy=false;if(keyLight)keyLight.castShadow=false;try{renderer.compileAsync(scene,cam).then(function(){twSpecRdy=true},function(){twSpecRdy=true})}catch(e){twSpecRdy=true}freeRoll=true;if(keyLight)keyLight.castShadow=false;ballR=1e-3;ball.visible=false;if(playerShadow)playerShadow.visible=false;var h=GAME.querySelector(".hud");if(h)h.style.visibility="hidden";
+  var twMq=null;function twSpecInit(){twSpec=true;twSZ=twSZT=1;twSDm=0;twZBtn();twSpT=0;twSpW=0;twFxHook();twSpecRdy=false;if(keyLight)keyLight.castShadow=false;try{renderer.compileAsync(scene,cam).then(function(){twSpecRdy=true},function(){twSpecRdy=true})}catch(e){twSpecRdy=true}freeRoll=true;if(keyLight)keyLight.castShadow=false;ballR=1e-3;ball.visible=false;if(playerShadow)playerShadow.visible=false;var h=GAME.querySelector(".hud");if(h)h.style.visibility="hidden";
     if(twSC0)twSpecFrom(twSC0.p,twSC0.u);twSC0=null}
   /* the world wakes up: for its first moments everything runs slow and speeds up to normal over about 1.5 s */
   var twSpT=0;function twSpecPre(dt){ballR=1e-3;vel=0;ball.visible=false;if(playerShadow)playerShadow.visible=false;if(twSpecRdy===false){twSpW+=dt;if(twSpW>1.5)twSpecRdy=true;else return 0.04}twSpT+=dt;var k=Math.max(0,Math.min(1,(twSpT-0.1)/1.5));return 0.04+0.96*k*k*(3-2*k)}
@@ -1846,14 +1846,15 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     twZ+=(twZT-twZ)*(1-Math.pow(0.00005,dt));if(Math.abs(twZT-twZ)<1e-3)twZ=twZT;
     var cb=Math.min(1,Math.max(0,(cG-1)/0.6));cb=cb*cb*(3-2*cb);
     if(true){twZB=1-(1-twZ)/(1-ZMIN);return twZ}twZB=1;return twZ+(1-twZ)*cb}
-  function twZPlay(){return GAME.classList.contains("on")&&phase==="play"&&!twEnd&&!twSpec}
+  function twZPlay(){return GAME.classList.contains("on")&&phase==="play"&&!twEnd}
   function twZTwo(){return false}
-  function twZBtn(){if(twZBt)twZBt.querySelector(".zv").style.display=twZT<0.8?"none":""}
-  function twZSet(v){twZT=Math.max(ZMIN,Math.min(1,v));twZBtn()}
-  function twZTog(){twZSet(twZT<0.8?1:ZMIN)}
+  function twZBtn(){if(twZBt)twZBt.querySelector(".zv").style.display=twZGet()<0.8?"none":""}
+  function twZGet(){return twSpec?twSZT:twZT}
+  function twZSet(v){v=Math.max(ZMIN,Math.min(1,v));if(twSpec)twSZT=v;else twZT=v;twZBtn()}
+  function twZTog(){twZSet(twZGet()<0.8?1:ZMIN)}
   GAME.addEventListener("wheel",function(e){if(!twZPlay())return;e.preventDefault();var dy=e.deltaY*(e.deltaMode===1?16:1);
     if(twZTwo()){if(Math.abs(dy)<4)return;var n=performance.now();if(n<twZW)return;twZW=n+350;twZSet(dy<0?ZMIN:1);return}
-    twZSet(twZT*Math.exp(dy*(e.ctrlKey?0.01:0.0015)))},{passive:false});
+    twZSet(twZGet()*Math.exp(dy*(e.ctrlKey?0.01:0.0015)))},{passive:false});
   window.addEventListener("keydown",function(e){if(e.metaKey||e.ctrlKey||e.altKey||e.repeat||!twZPlay())return;if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
     if(e.key==="z"||e.key==="Z"||e.code==="KeyZ"){e.preventDefault();twZTog()}},true);
   (function(){var tb=GAME.querySelector(".tbtns");if(!tb)return;var b=document.createElement("button");b.className="tzoom";b.setAttribute("aria-label","Zoom");
@@ -1865,10 +1866,18 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     function n(){return Object.keys(P).length}function dist(){var k=Object.keys(P),a=P[k[0]],c=P[k[1]];return Math.hypot(a.x-c.x,a.y-c.y)}
     tp.addEventListener("pointerdown",function(e){if(e.pointerType!=="touch"||e.target.closest("button"))return;P[e.pointerId]={x:e.clientX,y:e.clientY};
       if(n()===2&&twZPlay()){e.stopImmediatePropagation();e.preventDefault();Object.keys(P).forEach(function(id){dead[id]=1});
-        if(typeof releaseStick==="function")releaseStick();pin={d:Math.max(20,dist()),z:twZT}}},true);
+        if(typeof releaseStick==="function")releaseStick();pin={d:Math.max(20,dist()),z:twZGet()}}},true);
     tp.addEventListener("pointermove",function(e){if(!P[e.pointerId])return;P[e.pointerId]={x:e.clientX,y:e.clientY};if(!dead[e.pointerId])return;e.stopImmediatePropagation();
       if(pin&&n()===2){var r=pin.d/Math.max(20,dist());if(twZTwo()){if(r<0.8)twZSet(ZMIN);else if(r>1.25)twZSet(1)}else twZSet(pin.z*r)}},true);
     ["pointerup","pointercancel"].forEach(function(t){tp.addEventListener(t,function(e){delete P[e.pointerId];if(n()<2)pin=null;if(dead[e.pointerId]){delete dead[e.pointerId];e.stopImmediatePropagation()}},true)})})();
+  /* ZOOM on the final planet, like Google Earth: the same controls (wheel / trackpad pinch, Z, the button, a two-finger pinch) bring the camera
+     down from the whole-planet view to just above the ground. twSZ eases toward twSZT (1 = the whole planet, ZMIN = closest), and starts at the
+     whole planet each time the final planet opens. zk (0 far, 1 closest) is eased so most of the travel happens near the ground. Closer in, the
+     turning slows (to 18% at the closest, so the ground doesn't race by) and the view tips forward toward the horizon. The camera keeps above
+     the land under it plus a margin, eased so it rises smoothly over a hill */
+  var twSZ=1,twSZT=1,twSDm=0;
+  function twSZoom(dt){twSZ+=(twSZT-twSZ)*(1-Math.pow(0.00005,dt));if(Math.abs(twSZT-twSZ)<1e-3)twSZ=twSZT;var k=(1-twSZ)/(1-ZMIN);k=Math.max(0,Math.min(1,k));return 1-Math.pow(1-k,2)}
+  function twSDist(z,zk){var m=Math.max(SR+RELIEF*0.6+4,surfaceR(z)+6);twSDm=twSDm?twSDm+(m-twSDm)*0.08:m;var d0=twSC.d;return d0+(Math.min(d0,twSDm)-d0)*zk}
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
