@@ -122,7 +122,7 @@ function build(G,Ls){var segs=[];G.forEach(function(g,k){var key=g.join("");if(s
   return{svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 13" width="520" height="520" shape-rendering="crispEdges">'+body+'</svg>',frames:order.length,L:L}}
 window.MKFLAT={SLOT:SLOT,grids:grids,flatten:function(svgStr,noHop){var R=grids(svgStr,noHop),B=build(R.grids,R.Ls);return{svg:B.svg,grids:R.grids,Ls:R.Ls,L:B.L,frames:B.frames,off:R.off}}};
 })();
-window.MKMN_FLAT=(function(){var c={};return function(src,noHop){var k=(noHop?"n:":"h:")+src;if(c[k])return c[k];var o;try{o=MKFLAT.flatten(src,noHop).svg}catch(e){console.warn("flat frames failed, showing live art",e);return src}return c[k]=o}})(); /* PLAYER: the art shown as flat full frames (hop and hop-off versions, cached per piece) */
+window.MKMN_FLAT=(function(){var c={},ks=[];return function(src,noHop){var k=(noHop?"n:":"h:")+src;if(c[k])return c[k];var o;try{o=MKFLAT.flatten(src,noHop).svg}catch(e){console.warn("flat frames failed, showing live art",e);return src}ks.push(k);if(ks.length>6)delete c[ks.shift()];return c[k]=o}})(); /* PLAYER: only the last 6 are kept (each is a whole SVG; typing a message used to keep one per keystroke) */ /* PLAYER: the art shown as flat full frames (hop and hop-off versions, cached per piece) */
 </script>
 <script>
 (function () {
@@ -482,7 +482,7 @@ function wireMessage(basePreset){
     window.MKMN_SRC=res.svg;curSvg=MKMN_FLAT(res.svg);artBox.innerHTML=curSvg;if(!hopOn)applyHop();bars.innerHTML=barsHTML(res.pal,res.usage);
     patV.textContent=isType?"Text":res.tr.Pattern;dirV.textContent=res.tr.Direction;band.querySelector(".drow.bot").innerHTML=botHTML(res.tr);/* a custom message turns Classic Maki into Type, where the ramp matters again */
   }
-  msgv.addEventListener("input",applyMsg);
+  var msgT=0;msgv.addEventListener("input",function(){clearTimeout(msgT);msgT=setTimeout(applyMsg,150)}); /* PLAYER: the art is redrawn 150ms after the last keystroke, not on every one (slow phones lagged while typing) */
   msgv.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();msgv.blur()}});
   msgv.addEventListener("blur",function(){
     /* emptied -> ADD… placeholder, unless the seed is a Type piece, then restore its word */
@@ -2684,8 +2684,8 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
     var groups=[["W S","Roll"],["A D","Steer"],["Space","Hop"],["P","Pause"],["R","Restart"]];
     function draw(){if(G.classList.contains("touch")){h.classList.remove("caps");return}h.classList.add("caps");h.innerHTML=groups.map(function(g){return '<span class="g">'+caps(g[0])+'<span class="t">'+g[1]+'</span></span>'}).join("")}
     draw();new MutationObserver(function(){if(G.classList.contains("touch")&&h.classList.contains("caps"))draw()}).observe(G,{attributes:true,attributeFilter:["class"]});
-    var t0=0;(function tick(t){requestAnimationFrame(tick);var play=G.classList.contains("on")&&![].some.call(G.querySelectorAll(".overlay"),function(o){return !o.classList.contains("hidden")});
-      if(!play)t0=0;else if(!t0)t0=t;var gone=play&&t-t0>8000;h.classList.toggle("gone",gone);if(x)x.classList.toggle("gone",gone)})(0)})();
+    var t0=0,hr=0;function tick(t){hr=0;if(!G.classList.contains("on")){t0=0;h.classList.remove("gone");if(x)x.classList.remove("gone");return}hr=requestAnimationFrame(tick);var play=G.classList.contains("on")&&![].some.call(G.querySelectorAll(".overlay"),function(o){return !o.classList.contains("hidden")});
+      if(!play)t0=0;else if(!t0)t0=t;var gone=play&&t-t0>8000;h.classList.toggle("gone",gone);if(x)x.classList.toggle("gone",gone)}new MutationObserver(function(){if(!hr&&G.classList.contains("on"))hr=requestAnimationFrame(tick)}).observe(G,{attributes:true,attributeFilter:["class"]});tick(0)})(); /* PLAYER: the hints' fade timer runs only while the game is open */
   /* a field outside the game (the seed field, or the Message cell) can keep keyboard focus behind the game, and the game ignores keys typed into a field. Opening the game drops that focus */
   (function(){var G=document.getElementById("game");if(!G)return;new MutationObserver(function(){if(!G.classList.contains("on"))return;var a=document.activeElement;if(a&&a!==document.body&&!G.contains(a)&&(a.isContentEditable||/^(INPUT|TEXTAREA)$/.test(a.tagName)))a.blur()}).observe(G,{attributes:true,attributeFilter:["class"]})})();
   /* B-SIDE toggle */
@@ -2722,11 +2722,12 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 .export-bar.seeding .wlb{display:none}
 .export-bar .mkmenu .mi.tk.cur::after{content:"";width:calc(var(--scale-unit)*6);height:calc(var(--scale-unit)*6);border-radius:50%;background:currentColor;margin-left:auto;flex-shrink:0}
 </style>
-<!-- the secret magnet (a tool for playing through quickly): while the game is on, M toggles it and Shift+M toggles SUPER (pulls from anywhere on the planet). While it is on, a small yellow line at the top says so and shows the nearest site (plaza, belt, anthill) and how far, the plaza's and belt's progress, and the chopsticks in free roll -->
+<!-- the secret magnet (a tool for playing through quickly): while the game is on, M toggles it and Shift+M toggles SUPER (pulls from anywhere on the planet). While it is on, a small yellow line at the top says MAGNET MODE or SUPER MAGNET MODE. It is redrawn only when the magnet or the game is switched, no loop -->
 <div id="ptT" style="position:fixed;left:50%;top:max(96px,calc(env(safe-area-inset-top) + 96px));transform:translateX(-50%);z-index:2147483647;display:none;max-width:calc(100vw - 16px);padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#ffd84a;font:700 10px ui-monospace,monospace;letter-spacing:.04em;text-align:center;pointer-events:none"></div>
-<script>(function(){var bar=document.getElementById("ptT");
-(function tick(){requestAnimationFrame(tick);var g=document.getElementById("game"),m=window.MKPT_MAG,n=window.MKLM_NEAR||"",tx=(m==="super"?"SUPER MAGNET":"MAGNET")+(n?" · "+n:"");bar.style.display=g&&g.classList.contains("on")&&m?"block":"none";if(m&&bar.textContent!==tx)bar.textContent=tx})()})();
-window.addEventListener("keydown",function(e){var g=document.getElementById("game");if(!g||!g.classList.contains("on"))return;if(e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
-if(e.key==="m"||e.key==="M"||e.code==="KeyM"){e.preventDefault();e.stopImmediatePropagation();window.MKPT_MAG=e.shiftKey?(window.MKPT_MAG==="super"?false:"super"):(window.MKPT_MAG?false:true)}},true);</script>
+<script>(function(){var bar=document.getElementById("ptT"),g=document.getElementById("game");
+function draw(){var m=window.MKPT_MAG,on=!!(g&&g.classList.contains("on")&&m);bar.style.display=on?"block":"none";if(on)bar.textContent=m==="super"?"SUPER MAGNET MODE":"MAGNET MODE"}
+if(g)new MutationObserver(draw).observe(g,{attributes:true,attributeFilter:["class"]});
+window.addEventListener("keydown",function(e){if(!g||!g.classList.contains("on"))return;if(e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
+if(e.key==="m"||e.key==="M"||e.code==="KeyM"){e.preventDefault();e.stopImmediatePropagation();window.MKPT_MAG=e.shiftKey?(window.MKPT_MAG==="super"?false:"super"):(window.MKPT_MAG?false:true);draw()}},true)})();</script>
 </body>
 </html>
