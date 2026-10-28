@@ -1326,11 +1326,14 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     K.colG=new THREE.CylinderGeometry(1,1,1,8,1,true);K.colG.translate(0,0.5,0);K.sparkG=new THREE.OctahedronGeometry(1,0);K.fade=bm({map:twBkTex()});K.spark=bm({color:0xfffbe6,opacity:0.95});twBkT=K;return K}
   function twBkMake(){var K=twBkKit(),b=new THREE.Group(),m=function(g,mt){var x=new THREE.Mesh(g,mt);x.renderOrder=5;b.add(x);return x};
     b.userData.col=m(K.colG,K.fade);b.userData.sp=[m(K.sparkG,K.spark),m(K.sparkG,K.spark),m(K.sparkG,K.spark)];b.userData.ph=Math.random()*6.283;scene.add(b);return b}
+  /* a beam's thing that has just been rolled up (now on the roll, its position no longer on the planet) loses its beam at once; the list is also
+     rebuilt on the next frame (stickToRoll clears it), so no beam points off in a wrong direction for the frames before the next refresh */
+  function twBkGone(g){for(var p=g.parent;p;p=p.parent)if(p===clump)return true;return false}
   function twBeacons(t){var bp=ball.position;if(!((twBkN++)%8)||!twBkL)twBkL=twLeftList();var on=twBkOn(twBkL.length);if(!on){if(twBk.length)twBk.forEach(function(b){b.visible=false});return}
     var K=twBkKit(),L=twBkL;if(L.length>80){L.forEach(function(q){q.d=(q.g?q.g.position:q.p).distanceToSquared(bp)});L.sort(function(a,b){return a.d-b.d});L.length=80}
     var H=8+ballR*4,W=(0.18+ballR*0.05)*1.6,s=t/1000;K.fade.opacity=0.75+0.2*Math.sin(t/260);
     for(var i=0;i<Math.max(L.length,twBk.length);i++){var b=twBk[i];if(i>=L.length){if(b)b.visible=false;continue}if(!b){b=twBkMake();twBk.push(b)}
-      var q=L[i],at=q.g?q.g.position:q.p,d=at.clone().normalize(),U=b.userData;b.visible=true;b.position.copy(at);if(q.top)b.position.addScaledVector(d,q.g.scale.y*0.5);b.position.addScaledVector(d,0.06);b.quaternion.copy(QT.setFromUnitVectors(YUP,d));
+      var q=L[i];if(q.g&&twBkGone(q.g)){b.visible=false;continue}var at=q.g?q.g.position:q.p,d=at.clone().normalize(),U=b.userData;b.visible=true;b.position.copy(at);if(q.top)b.position.addScaledVector(d,q.g.scale.y*0.5);b.position.addScaledVector(d,0.06);b.quaternion.copy(QT.setFromUnitVectors(YUP,d));
       U.col.scale.set(W,H,W);U.sp.forEach(function(x,j){var f=((s*0.45+j/3+U.ph)%1);x.position.set(Math.sin(U.ph+j*2.1)*W*0.55,f*H,Math.cos(U.ph+j*2.1)*W*0.55);x.scale.setScalar(Math.max(0.01,(0.14+ballR*0.035)*(1-f)))})}}
   /* 100%. When nothing counted is left on the planet (and nothing knocked off is still in the air), pixel confetti in the piece's
      own colours bursts from the roll and rains down over the planet; 2.8 s later the round ends with OMAKASE, the award above gold (the chef
@@ -1542,7 +1545,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* its size: 10x the roll, up to 2.4x the planet's radius (it towers over the planet, a monster from elsewhere); and always over 3.2x the
      roll, so its legs can still straddle it */
   function twGiL(r){return Math.max(r*3.2,Math.min(r*10,SR*2.4))}
-  function twGiSpawn(){if(twGi||twEnd||!running)return;var G=ball.position.clone().normalize().negate(),L=twGiL(ballR),M=twGiModel(L);M.L=L;M.dir=G;M.t=0;M.th=false;scene.add(M.g);twGi=M}
+  function twGiSpawn(){if(twGi||twEnd||!running)return;var G=ball.position.clone().normalize().negate(),L=twGiL(ballR),M=twGiModel(L);M.L=L;M.dir=G;M.t=0;M.th=false;scene.add(M.g);twGi=M;twOsSnap()} /* the final numbers are taken now, with every chopstick rolled up (some may have been rolled up after the OMAKASE screen) */
   /* ground shadows for the chopsticks that come out of the sky (the giant and the little ones it sends): a soft blob on the ground under each
      foot, like the roll's, small and faint-looking while high up and growing to full size as they come down */
   var twShd=[];function twShadow(){var g=new THREE.PlaneGeometry(1,1);g.rotateX(-Math.PI/2);var m=new THREE.Mesh(g,blobMat);m.renderOrder=2;scene.add(m);twShd.push(m);return m}
@@ -1762,6 +1765,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(k){k.style.display=on?"":"none";if(on){k.querySelector(".medal").innerHTML=twMedalX();k.querySelector(".grade").style.display=("sign")==="sign"?"none":""}} /* the sign says CLOSED itself, so the label goes */
     h.textContent=on?"YOU ARE OFF THE MENU.":"PAUSED";if(cb&&cb.firstChild&&cb.firstChild.nodeType===3)cb.firstChild.nodeValue=on?"Keep rolling":"Resume"}
 
+  function twOsSnap(){var r=GAME.querySelector(".pause .rpt");if(!r)return;var d=r.style.display;twReport(".pause .rpt");twOs={c:ballR/R0,t:params.targetMul,n:pips,r:r.innerHTML};r.style.display=d}
   var _twPause0=pauseGame;pauseGame=function(){_twPause0();if(phase!=="pause")return;var fin=!!(twGi||twSpec||twEnd);
     if(fin&&twOs){HUD.pstat.textContent="Size "+twOs.c.toFixed(1)+"× / Goal "+twOs.t.toFixed(1)+"× · "+(twSpec?"Final":"!!!")+" · "+twOs.n+" "+(twOs.n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display="";prp.innerHTML=twOs.r}}
     else if(freeRoll&&!fin&&HUD.timer){var tt=(HUD.timer.textContent||"").trim();if(tt&&tt!=="FREE ROLL")HUD.pstat.textContent=HUD.pstat.textContent.replace("· Free roll ·","· "+(tt.charAt(0)+tt.slice(1).toLowerCase())+" ·")} /* free roll: the pause line says what the timer slot says (3 left, All clear) */
@@ -1840,7 +1844,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   // faster the closer they get; anything still too big stays put until you've grown. 9 chopsticks balance it.
   function magR(){return 3+ballR*3.2}                         // range in surface units: about 6.5 at the start
   function magPull(d){return 2.5+5*(1-d/magR())}              // pull speed, surface units per second
-  function stickToRoll(g){twW0(g);clump.updateWorldMatrix(true,false);var lp=clump.worldToLocal(g.getWorldPosition(new THREE.Vector3()));scene.remove(g);
+  function stickToRoll(g){twW0(g);twBkL=null;clump.updateWorldMatrix(true,false);var lp=clump.worldToLocal(g.getWorldPosition(new THREE.Vector3()));scene.remove(g);
     if(g.userData.blob){g.remove(g.userData.blob);g.userData.blob=null}twGrab(g);
     var rd=new THREE.Vector3(0,lp.y,lp.z);if(rd.lengthSq()<1e-6)rd.set(0,1,0);rd.normalize();           // direction out from the roll's axis
     var s=ballR/R0,xf=Math.max(-0.92,Math.min(0.92,lp.x/(R0*0.85*s)+(Math.random()-0.5)*0.3)); /* placed where it touched along the barrel (no squeeze to the middle), a little sideways scatter, still off the filling ends */                              // position along the barrel as a fraction, off the end caps

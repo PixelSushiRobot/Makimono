@@ -119,7 +119,7 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **The grab:** touching the giant sets it off. It closes on the maki and everything on it is knocked off and scattered around. Then it lifts the bare maki away out of the sky.
 - **The restore:** the scattered pickups, and everything else that was moved or rolled up, fly back to where they stood at the start of the round. A glitch transition (blocky pixels with torn bands in the planet's own ground colours) hands over to the planet running again as it was at the start (ants walking, belt turning), without the maki. The planet turns slowly and the arrow keys, WASD or the stick spin it. NO MORE MAKI scrolls across the sky.
 - **Shadows:** the giant, the little chopsticks and the scattered pickups cast a soft shadow on the ground that shrinks as they rise.
-- **The pause screen:** from the monster's arrival on, it keeps the OMAKASE numbers, the round's final ones. On the final planet it becomes a closing card: a pink neon CLOSED sign, YOU ARE OFF THE MENU., the final numbers and Keep rolling.
+- **The pause screen:** from the monster's arrival on, it keeps the round's final numbers, taken when the monster arrives (so chopsticks rolled up after the OMAKASE screen count). On the final planet it becomes a closing card: a pink neon CLOSED sign, YOU ARE OFF THE MENU., the final numbers and Keep rolling.
 
 **End, pause and restart screens**
 - **Buttons:** stacked in one column on every screen, all as wide as the widest. Labels are centred; with key hints shown (keyboard), the label sits left and the key on the right. On short screens (landscape phones, 520px tall or less) they sit side by side in one row so everything fits.
@@ -129,7 +129,7 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 
 **Fixes**
 - **W A S D:** a letter key let go while Shift or Caps Lock had changed could stay held, so the roll kept reversing or turning. Letter keys now go by their place on the keyboard (any layout, Shift or Caps Lock), and every key is let go when the window loses focus.
-- **Beacons:** the planet's faint atmosphere no longer cuts off the tops of the beams.
+- **Beacons:** the planet's faint atmosphere no longer cuts off the tops of the beams, and a beam no longer swings off in a wrong direction for a moment when its thing is rolled up.
 - **Home-screen icon:** drawn on the piece's background colour, so it's never black or see-through where the art leaves pixels empty.
 - **Free roll after OMAKASE:** the pause screen's line says what the timer slot says (3 left, All clear) instead of Free roll.
 - **Knocked-off pickups:** things knocked off the roll now cast a shadow on the ground while they fly, and keep one once they land.
