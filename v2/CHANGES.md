@@ -85,7 +85,7 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 
 **Things to roll up**
 - **A belt of plates:** a ring of conveyor-belt sushi plates. The plates and the sushi on them can be rolled up, and so can the belt's slats once you're big enough.
-- **An anthill:** a layered anthill some way off to the right of the start. Once you're big enough, the hill itself rolls up.
+- **An anthill:** a layered anthill some way off to the right of the start. Once you're big enough, the hill itself rolls up. On the roll it shrinks to at most 1.2× the roll's size, so a big hill (an ANTS planet's is 15 to 20) no longer hides the maki.
 - **The piece's own art as a plaza:** a 13×13 plaza of raised tiles just ahead of the start, laid out like the art. Only the maki's tiles count. The background tiles are left out, and the eyes stay right in every pose. The roll can hop up onto the tiles.
 - **Sky letters:** the message's letters in the sky can be rolled up too once the roll reaches them.
 - **Real contact:** things are only picked up when the roll actually touches them. When the roll was big, it used to grab things from a distance.
@@ -114,10 +114,10 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Back to art:** every end screen has a Back to art button.
 
 **The chopsticks monster (after OMAKASE)**
-- **When it comes:** after OMAKASE, if both chopsticks have been rolled up (before or after the OMAKASE screen), Keep rolling, let the confetti settle and the NO MORE ANTS marquee cross once. Then a giant chopsticks monster lands on the far side of the planet with a thump. The timer slot reads !!! and the marquee switches to UH OH... (the pause screen's free-roll line reads !!! too)
+- **When it comes:** after OMAKASE, if both chopsticks have been rolled up (before or after the OMAKASE screen), Keep rolling, let the confetti settle and the NO MORE ANTS marquee cross once (it always finishes its pass, even when the last chopsticks are rolled up mid-scroll). Then a giant chopsticks monster lands on the far side of the planet with a thump. The timer slot reads !!! and UH OH... scrolls in once the sky is clear (the pause screen's free-roll line reads !!! too)
 - **The chase:** it hop-walks toward the roll, always turning to keep its eyes on it, and sends little chopsticks after it. They start few and slow (2 at a time, slower than the roll) and build up over about 45 s, to 10 at a time, faster than the roll and from every side. They hold their ground when they hit, and each bump knocks the roll away from the chopstick and partly toward the giant, so sooner or later it runs into the giant. They can't be rolled up and nothing falls off.
 - **The grab:** touching the giant sets it off. It closes on the maki and everything on it is knocked off and scattered around. Then it lifts the bare maki away out of the sky.
-- **The restore:** the scattered pickups, and everything else that was moved or rolled up, fly back to where they stood at the start of the round. A glitch transition (blocky pixels with torn bands in the planet's own ground colours) hands over to the planet running again as it was at the start (ants walking, belt turning), without the maki. The planet turns slowly and the arrow keys, WASD or the stick spin it. NO MORE MAKI scrolls across the sky.
+- **The restore:** the scattered pickups, and everything else that was moved or rolled up, fly back to where they stood at the start of the round. Belt slats and plates go back into their own spots on the stopped belt, and the rebuilt belt starts from where it stopped, so nothing jumps at the hand-over. The glitch waits until everything has landed. A glitch transition (blocky pixels with torn bands in the planet's own ground colours) hands over to the planet running again as it was at the start (ants walking, belt turning), without the maki. The planet turns slowly and the arrow keys, WASD or the stick spin it. NO MORE MAKI scrolls across the sky.
 - **Shadows:** the giant, the little chopsticks and the scattered pickups cast a soft shadow on the ground that shrinks as they rise.
 - **The pause screen:** from the monster's arrival on, it keeps the round's final numbers, taken when the monster arrives (so chopsticks rolled up after the OMAKASE screen count). On the final planet it becomes a closing card: a pink neon CLOSED sign, YOU ARE OFF THE MENU., the final numbers and Keep rolling.
 
@@ -131,8 +131,9 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **W A S D:** a letter key let go while Shift or Caps Lock had changed could stay held, so the roll kept reversing or turning. Letter keys now go by their place on the keyboard (any layout, Shift or Caps Lock), and every key is let go when the window loses focus.
 - **Beacons:** the planet's faint atmosphere no longer cuts off the tops of the beams, and a beam no longer swings off in a wrong direction for a moment when its thing is rolled up.
 - **Home-screen icon:** drawn on the piece's background colour, so it's never black or see-through where the art leaves pixels empty.
-- **Free roll after OMAKASE:** the pause screen's line says what the timer slot says (3 left, All clear) instead of Free roll.
+- **Free roll pause line:** in caps, small and dim, it shows only where the round stands, as the timer slot does: FREE ROLL, 3 LEFT, ALL CLEAR, then !!! in the chase and FINAL on the final planet.
 - **Knocked-off pickups:** things knocked off the roll now cast a shadow on the ground while they fly, and keep one once they land.
+- **A secret magnet** for playing through quickly: while the game is on, `M` pulls in everything the roll can already pick up, from a range that grows with the roll (as Chase's magnet did), and `Shift`+`M` is SUPER, which pulls from anywhere on the planet. Belt sushi flies in on its plate; once the first belt slat or plaza tile has been rolled up, the rest fly in too; the anthill and the sky letters come once the roll is big enough. While it's on, a small yellow line at the top says MAGNET (or SUPER MAGNET) with the nearest site and how far. It isn't listed on the shortcuts card.
 
 **Rule changes**
 - **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.

@@ -1078,6 +1078,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function twPlate(c,dc){var g=new THREE.Group(),m=new THREE.Mesh(new THREE.CylinderGeometry(.5,.38,.16,14),twM(c));m.position.y=.08;g.add(m);var r=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.02,12),twM(dc));r.position.y=.17;g.add(r);return g}
   /* the layered anthill: a dome of jagged plates stacked like the reference, alternating the land colour and a darker shade, with scavenged bits
      (flat chips and a triangle in the piece's colours) poking out between the layers and one ant standing on top */
+  /* a rolled-up anthill shrinks onto the roll: no bigger than 1.2 times the roll's size (an ANTS hill is 15-20, so it hid the whole roll), easing down over about a third of a second, and sitting snug rather than buried */
+  function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ballR*1.2;return g.scale.x>m?m:0}
+  function twHillEase(g,k){var c=g.scale.x+(k.gs-g.scale.x)*0.15;if(Math.abs(c-k.gs)<0.01){c=k.gs;k.gs=0}g.scale.setScalar(c)}
   function twHill2(c,dk,K,p,lr){var g=new THREE.Group(),N=7,H=0.62,R=0.6,lt=c.clone().lerp(new THREE.Color(1,1,1),0.18),y=0;var sk=new THREE.Mesh(new THREE.CylinderGeometry(R*0.98,R*1.04,0.5,8),twM(dk));sk.position.y=-0.24;g.add(sk); /* a skirt reaching half its size into the ground, so the hill sits in the land on a slope */
     for(var i=0;i<N;i++){var f=i/N,r=R*Math.sqrt(Math.max(0.05,1-f*f))*(0.94+lr()*0.12),th=H/N*(1.05+lr()*0.3),ge=new THREE.CylinderGeometry(r*0.9,r,th,8),pa=ge.attributes.position;
       for(var v=0;v<pa.count;v++){var x=pa.getX(v),z=pa.getZ(v),a=Math.round(Math.atan2(z,x)/(Math.PI/4)),k=0.82+((Math.sin(a*12.9898+i*78.233)*43758.5453)%1+1)%1*0.32;pa.setX(v,x*k);pa.setZ(v,z*k)}ge.computeVertexNormals();
@@ -1116,14 +1119,14 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       for(j=0;j<M;j++)R.top.push(sm[j]+0.9); /* the belt stands 0.9 over the land: a wall at the start size (hop onto it), a step once the roll has grown */
       R.at=function(a){a=((a%R.LT)+R.LT)%R.LT;var lo_=0,hi_=M-1;while(lo_<hi_){var md=(lo_+hi_+1)>>1;if(R.L[md]<=a)lo_=md;else hi_=md-1}var j0=lo_,j1=(j0+1)%M,seg=(j1?R.L[j1]:R.LT)-R.L[j0],f=seg>0?(a-R.L[j0])/seg:0;
         return {d:R.d[j0].clone().lerp(R.d[j1],f).normalize(),T:R.T[j0].clone().lerp(R.T[j1],f).normalize(),top:R.top[j0]*(1-f)+R.top[j1]*f,lo:R.lo[j0]*(1-f)+R.lo[j1]*f}}; /* everything blends between samples: snapping the slats' direction and depth from sample to sample made the belt shimmy as it moved */
-      twR=R;R.gone=[];R.need=(p.targetMul||params.targetMul||3.2)*0.9*R0;
+      twR=R;R.gone=[];if(twBeltOff!=null){R.off=twBeltOff;twBeltOff=null} /* after the ending the rebuilt belt starts where the old one stopped, so its slats and plates line up at the hand-over */R.need=(p.targetMul||params.targetMul||3.2)*0.9*R0;
       var NSL=Math.floor(LT/1.25),SLW=LT/NSL,slats=[];R.NSL=NSL;R.SLW=SLW;R.slats=slats;for(var k=0;k<NSL;k++){var sm_=new THREE.Mesh(lmBox,twM(k&1?K.lc:K.bc));sm_.userData.mkO=SLW*3.2;sm_.userData.nm="BELT SLAT";scene.add(sm_);slats.push(sm_)}
       /* nothing starts on the road: pickups, scenery, spikes and ants there are moved just off its sides */
       var off=function(d){var bj=0,bd=-2;for(var i=0;i<M;i+=2){var dd=d.dot(R.d[i]);if(dd>bd){bd=dd;bj=i}}var x=d.dot(R.B[bj])*SR;if(Math.abs(x)>=2.6||bd<0.9)return null;return R.d[bj].clone().multiplyScalar(SR).addScaledVector(R.B[bj],x<0?-2.9:2.9).normalize()};
       obstacles.forEach(function(o){var d=off(o.dir);if(d){o.dir.copy(d);o.g.position.copy(d.clone().multiplyScalar(surfaceR(d)));o.g.quaternion.copy(QT.setFromUnitVectors(YUP,d))}});
       props.forEach(function(o){var d=off(o.dir);if(d)o.dir.copy(d)});terrain.forEach(function(o){var d=off(o.dir);if(d)o.dir.copy(d)});ants.forEach(function(o){var d=off(o.pos.clone().normalize());if(d)o.pos.copy(d.multiplyScalar(SR))});
       /* a plate goes with its sushi: rolling up the piece takes the plate too, and both come back together 12 s later (not once the belt is broken) */
-      var NPL=30,pls=[];for(var k2=0;k2<NPL;k2++){var pm=twPlate(K.lc,K.ac);pm.scale.setScalar(1.3);pm.userData.nm="PLATE";scene.add(pm);pls.push({m:pm,o:null,at:0,k:k2})}
+      var NPL=30,pls=[];for(var k2=0;k2<NPL;k2++){var pm=twPlate(K.lc,K.ac);pm.scale.setScalar(1.3);pm.userData.nm="PLATE";pm.userData.pk=k2;scene.add(pm);pls.push({m:pm,o:null,at:0,k:k2})}R.pl=pls;
       var RS=site("KAITEN ROAD",P0,T0,0);
       /* once the roll is big enough to eat the belt (90% of the gold size, so it's a late bonus) and rolls up its first slat, the belt breaks: it stops for good, no new sushi arrives, and a plate whose slat is
          rolled up drops to the ground under it, so nothing floats or keeps moving */
@@ -1132,9 +1135,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
         /* then it rolls up the slats it touches (two a frame at most, each a tiny bit of size), leaving gaps in the road */
         if(ballR>=R.need){for(var gi=0,gn=0;gi<NSL&&gn<2;gi++){if(R.gone[gi])continue;var gm=slats[gi];if(gm.position.distanceTo(ball.position)<ballR+0.9){R.gone[gi]=true;R.broken=true;R.gn=(R.gn||0)+1;gn++;var gc=gm.clone();gc.userData.req=R.need;scene.add(gc);gm.visible=false;stickToRoll(gc);ballR+=0.05;pips++}}}
         RS.name=R.broken?"KAITEN ROAD · "+Math.round(100*(R.gn||0)/NSL)+"% ROLLED UP":ballR>=R.need?"KAITEN ROAD · BIG ENOUGH TO ROLL UP":"KAITEN ROAD";
-        if(R.broken&&!R.counted){R.counted=1;pls.forEach(function(L){if(L.m.visible)twW(L.m,1.69);if(L.o&&!L.o.dead)twW(L.o.g,L.o.foot*L.o.foot)})}
+        R.pls=pls;if(R.broken&&!R.counted){R.counted=1;pls.forEach(function(L){if(L.m.visible)twW(L.m,1.69);if(L.o&&!L.o.dead)twW(L.o.g,L.o.foot*L.o.foot)})}
         pls.forEach(function(L){var pa=L.k*R.LT/NPL+R.off,A=R.at(pa),ps=Math.floor(((pa%R.LT)+R.LT)%R.LT/R.SLW)%R.NSL;if(R.gone[ps])A.top=surfaceR(A.d)+0.02;L.m.position.copy(A.d).multiplyScalar(A.top);L.m.quaternion.copy(lmFrame(A.d,A.T));
-          if(L.o&&L.o.dead){var prq=L.o.req;L.o=null;L.at=t+12000;if(L.m.visible){L.m.updateMatrixWorld();var pcl=L.m.clone();pcl.userData.req=prq;scene.add(pcl);L.m.visible=false;stickToRoll(pcl);ballR+=0.01}}if(!L.o&&!R.broken&&t>=L.at){L.m.visible=true;var sz=lr()<0.2?1.3:0.5+lr()*0.4;L.o=pickup(buildIngredient(INGK[(lr()*INGK.length)|0]),A.d,sz,A.top+0.22,(0.07+sz*0.11)*0.5);L.o.g.userData.belt=1}if(L.o){L.o.dir.copy(A.d);L.o.abs=A.top+0.22}});
+          if(L.o&&L.o.dead){var prq=L.o.req;L.o=null;L.at=t+12000;if(L.m.visible){L.m.updateMatrixWorld();var pcl=L.m.clone();pcl.userData.req=prq;scene.add(pcl);L.m.visible=false;stickToRoll(pcl);ballR+=0.01}}if(!L.o&&!R.broken&&t>=L.at){L.m.visible=true;var sz=lr()<0.2?1.3:0.5+lr()*0.4;L.o=pickup(buildIngredient(INGK[(lr()*INGK.length)|0]),A.d,sz,A.top+0.22,(0.07+sz*0.11)*0.5);L.o.g.userData.belt=1;L.o.g.userData.pk=L.k}if(L.o){L.o.dir.copy(A.d);L.o.abs=A.top+0.22}});
         if(R.near>=0)R.ride.dv.copy(R.Tn).multiplyScalar(sp*dt/SR);
         /* riding the belt round a bend turns the roll with it: its heading turns by however much the belt's direction turned under it */
         if(R.near>=0&&lmRideP===R.ride&&sp){var Tn=R.Tn;if(R.lastT){var ua=ball.position.clone().normalize(),b0=R.lastT.clone().addScaledVector(ua,-R.lastT.dot(ua)),b1=Tn.clone().addScaledVector(ua,-Tn.dot(ua));if(b0.lengthSq()>1e-8&&b1.lengthSq()>1e-8){b0.normalize();b1.normalize();var ag=Math.atan2(new THREE.Vector3().crossVectors(b0,b1).dot(ua),b0.dot(b1));if(Math.abs(ag)<0.3)fwd.applyAxisAngle(ua,ag)}}R.lastT=Tn.clone()}else R.lastT=null}}
@@ -1244,7 +1247,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* the last-pickup line: a belt sushi and the plate under it (added a frame later) show as one line, SALMON + PLATE, instead of
      flicking from the sushi's name to PLATE. Anything else replaces the line as it is rolled up */
   var twBu=[],twBuT=-1e9;
-  function twHud(t){twNow=t;twGiantW(t);twGrowEnd();twMedalT();twChopMsg(t);twBeacons(t);twFinale(t);var pdir=ball.position.clone().normalize(),cm=ballR/R0,G=params.targetMul;
+  function twHud(t){twNow=t;twMagnet(t);twGiantW(t);twGrowEnd();twMedalT();twChopMsg(t);twBeacons(t);twFinale(t);var pdir=ball.position.clone().normalize(),cm=ballR/R0,G=params.targetMul;
     for(var i=twWob.length-1;i>=0;i--){var o=twWob[i],a=(t-o.wob)/450,fr=!o.keepQ&&o.dir&&props.indexOf(o)>=0;if(!o.q0&&!fr)o.q0=o.g.quaternion.clone();var base=fr?o.g.quaternion.clone():o.q0;
       if(a>=1||o.dead){if(!o.dead)o.g.quaternion.copy(base);o.q0=null;twWob.splice(i,1);continue}
       var push=o.dir.clone().sub(pdir);push.addScaledVector(o.dir,-push.dot(o.dir));var ax=new THREE.Vector3().crossVectors(o.dir,push);if(ax.lengthSq()<1e-10)continue;
@@ -1359,7 +1362,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* keep rolling after OMAKASE: the sky's marquee scrolls NO MORE ANTS across the screen, as the art's message does at the start
      of a round. It stays a marquee (it never flies out into orbit to be rolled up: a roll that big would take it at once) */
   var twOmkB=false;
-  function twOmkBanner(){if(!twOmk||twOmkB||!twP)return;twOmkB=true;if(banner)scene.remove(banner.g);banner=buildBanner("NO MORE ANTS",twP);banner.stay=true;scene.add(banner.g)}
+  function twOmkBanner(){if(!twOmk||twOmkB||!twP)return;twOmkB=true;if(banner)scene.remove(banner.g);banner=buildBanner("NO MORE ANTS",twP);banner.stay=true;banner.ants=true;scene.add(banner.g)}
   /* the giant chopsticks, a prototype of what follows OMAKASE. If both chopsticks were rolled up, pressing Keep rolling on the
      OMAKASE screen and rolling on a moment (or rolling up the last one later) starts it:
        the camera moves to look at the top of the planet with the roll on it, leaving sky above;
@@ -1373,12 +1376,12 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      twEndStep */
   var twEnd=null,twEndT="",twSnap=false,twFadeEl=null,twFadeN=0;
   function twEndReset(){twShdClear();twGiBarsOff(twGi);if(twGi&&twGi.g.parent)twGi.g.parent.remove(twGi.g);twGi=null;twGiPre=null;twEnd=null;twEndT="";twSnap=false;twBp=0;twBo=0;twSpec=false;twSC=null;twSpecB=false;var h=GAME.querySelector(".hud");if(h)h.style.visibility="";if(twSpecNext){twSpecNext=false;twSpecInit()}}
-  function twW0(g){g.updateMatrixWorld(true);if(!g._w0)g._w0=g.matrixWorld.clone()}
+  var twW0n=0;function twW0(g){g.updateMatrixWorld(true);if(!g._w0){g._w0=g.matrixWorld.clone();g._wn=++twW0n}}
   /* after OMAKASE, while you keep rolling: once both chopsticks are rolled up (before or after the OMAKASE screen), the confetti has come down
      and 2.5 s have passed, the giant one comes, but not before the NO MORE ANTS marquee has crossed the sky once. The first frame of a
      round records where everything stands, for AFTER · RESTORE */
-  var twGW=-1,twBp=0,twBo=0;function twGiantW(t){if(banner&&twOmkB&&banner.stay){if(banner.o<twBo)twBp++;twBo=banner.o}if(!twSnap){twSnap=true;scene.children.forEach(function(c){if(c.isLight||c.isPoints||c===cam||c===ball)return;twW0(c)})}
-    if(!twOmk||twEnd||!freeRoll||!enemies.length||!enemies.every(function(e){return e.dead})){twGW=-1;return}if(twGW<0)twGW=t;if(t-twGW>2500&&(!twOmkB||twBp>=1)&&!twConf.some(function(c){return !c.land}))twGiSpawn()}
+  var twGW=-1,twBp=0,twBo=0;function twGiantW(t){var wr=false;if(banner&&twOmkB&&banner.stay){if(banner.o<twBo){twBp++;wr=true}twBo=banner.o}if(!twSnap){twSnap=true;scene.children.forEach(function(c){if(c.isLight||c.isPoints||c===cam||c===ball)return;twW0(c)})}
+    if(!twOmk||twEnd||!freeRoll||!enemies.length||!enemies.every(function(e){return e.dead})){twGW=-1;return}if(twGW<0)twGW=t;if(t-twGW>2500&&(!twOmkB||twBp>=1)&&(!(banner&&banner.ants)||wr)&&!twConf.some(function(c){return !c.land}))twGiSpawn()} /* it comes only as NO MORE ANTS has just scrolled off (or when it isn't up), so the sky is clear when it lands */
   /* the held still for the hand-over: a copy of the frame just drawn, laid over the game until the rebuilt world is running */
   function twFadeSnap(){var c=renderer.domElement,o=document.createElement("canvas");o.width=c.width;o.height=c.height;o.getContext("2d").drawImage(c,0,0);
     o.style.cssText="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:1;transition:opacity .9s ease";GAME.appendChild(o);twFadeEl=o;twFadeN=0}
@@ -1545,7 +1548,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* its size: 10x the roll, up to 2.4x the planet's radius (it towers over the planet, a monster from elsewhere); and always over 3.2x the
      roll, so its legs can still straddle it */
   function twGiL(r){return Math.max(r*3.2,Math.min(r*10,SR*2.4))}
-  function twGiSpawn(){if(twGi||twEnd||!running)return;var G=ball.position.clone().normalize().negate(),L=twGiL(ballR),M=twGiModel(L);M.L=L;M.dir=G;M.t=0;M.th=false;scene.add(M.g);twGi=M;twOsSnap()} /* the final numbers are taken now, with every chopstick rolled up (some may have been rolled up after the OMAKASE screen) */
+  function twGiSpawn(){if(twGi||twEnd||!running)return;var G=ball.position.clone().normalize().negate(),L=twGiL(ballR),M=twGiModel(L);M.L=L;M.dir=G;M.t=0;M.th=false;scene.add(M.g);twGi=M;twOsSnap();if(banner&&banner.ants&&banner.o<1.5){if(banner.g.parent)banner.g.parent.remove(banner.g);banner=null}} /* the final numbers are taken now, with every chopstick rolled up (some may have been rolled up after the OMAKASE screen) */
   /* ground shadows for the chopsticks that come out of the sky (the giant and the little ones it sends): a soft blob on the ground under each
      foot, like the roll's, small and faint-looking while high up and growing to full size as they come down */
   var twShd=[];function twShadow(){var g=new THREE.PlaneGeometry(1,1);g.rotateX(-Math.PI/2);var m=new THREE.Mesh(g,blobMat);m.renderOrder=2;scene.add(m);twShd.push(m);return m}
@@ -1575,7 +1578,11 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     {var to=bd.clone().addScaledVector(G,-bd.dot(G));if(to.lengthSq()<1e-8)to.set(G.y,G.z,G.x).cross(G);to.normalize();var z=to.clone().negate(),x=new V3().crossVectors(G,z).normalize();
       var tq=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,G,z));if(!M.qs){M.qs=true;M.g.quaternion.copy(tq)}else M.g.quaternion.slerp(tq,Math.min(1,dt*4))} /* it turns to keep its eyes on the roll: the chase */
     M.arms.forEach(function(m){m.rotation.z=m.userData.sg*aO});twShadeGi(M,true);
-    if(M.t>=1.2&&!M.th){M.th=true;M.shT=M.t;if(twP){if(banner&&banner.g.parent)banner.g.parent.remove(banner.g);banner=buildBanner("UH OH...",twP);banner.stay=true;scene.add(banner.g)}} /* at the thump the sky marquee switches from NO MORE ANTS to UH OH..., entering fresh from the edge */
+    if(M.t>=1.2&&!M.th){M.th=true;M.shT=M.t;M.uh=1}
+    /* the sky marquee: NO MORE ANTS finishes the pass it is on and doesn't start another (if it had only just started one when the monster came,
+       it is taken off before it shows); UH OH... comes in from the edge once the thump has happened and the sky is clear */
+    if(banner&&banner.ants){if(M.bo!=null&&banner.o<M.bo){if(banner.g.parent)banner.g.parent.remove(banner.g);banner=null}else M.bo=banner.o}
+    if(M.uh===1&&twP&&!(banner&&banner.g.parent)){M.uh=2;banner=buildBanner("UH OH...",twP);banner.stay=true;scene.add(banner.g)} /* at the thump the sky marquee switches from NO MORE ANTS to UH OH..., entering fresh from the edge */
     if(M.th&&M.shT!=null&&M.t-M.shT<0.9){var s=SR*0.035*Math.pow(1-(M.t-M.shT)/0.9,1.5);cam.position.add(new V3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).multiplyScalar(s))}
     if(M.th&&HUD.timer&&HUD.timer.textContent!=="!!!")HUD.timer.textContent="!!!";
     if(M.t<1.2)return;
@@ -1664,9 +1671,28 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(o.ph===3){if(t<o.go){hop();return true}d=c.position.clone().normalize();var td=o.T.clone().normalize(),an=d.angleTo(td);if(an*SR<Math.max(1,o.h)){o.fd=0.45;return false}
       var ax=new V3().crossVectors(d,td);if(ax.lengthSq()<1e-12){o.fd=0.45;return false}ax.normalize();d.applyAxisAngle(ax,Math.min(an,10*dt/SR));c.position.copy(d).multiplyScalar(lmGround(d)+o.h*0.5);c.rotateOnWorldAxis(ax,10*dt/Math.max(0.3,o.h*0.5));return true}
     return false}
+  /* RESTORE · the belt: the rebuilt world starts its belt where this one stopped (twBeltOff), with the plate and sushi each slot had at the start.
+     So each slot's first plate and sushi taken (wherever they are now: on the roll, knocked off, lying about) go home to that slot on the stopped
+     belt rather than to where they were picked up, which was somewhere else along a moving belt. A plate and sushi that came along later for
+     that slot don't exist in the rebuilt world: one still riding the belt goes in a puff, one that was taken goes back where it was taken as
+     before (and is gone at the hand-over). Plates still riding that dropped onto the ground over a gap rise back onto the belt */
+  var twBeltOff=null;
+  function twBeltHome(E){var R=twR;if(!R||!R.pl||!E.Wd)return;var V3=THREE.Vector3,Qn=THREE.Quaternion,M4=THREE.Matrix4,NP=R.pl.length,by={};E.Wd.updateMatrixWorld(true);clump.updateMatrixWorld(true);
+    function tag(c){var n=null;c.traverse(function(x){if(!n&&x.userData&&x.userData.pk!=null)n=x});return n}
+    E.Wd.children.concat(clump.children.filter(function(c){return c!==core})).forEach(function(c){var n=tag(c);if(!n)return;var e=by[n.userData.pk]||(by[n.userData.pk]={}),pl=n.userData.nm==="PLATE",wn=n._wn||c._wn||0,s={c:c,n:n,wn:wn};
+      if(!wn){if(pl)e.lp=s;else e.ls=s}else if(pl){if(!e.p||wn<e.p.wn)e.p=s}else if(!e.s||wn<e.s.wn)e.s=s});
+    function home(s,T,Q){var c=s.c,n=s.n,t0=new V3(),q0=new Qn(),s0=new V3();(n._w0||n.matrixWorld).decompose(t0,q0,s0);if(!Q)Q=new Qn().setFromUnitVectors(t0.clone().normalize(),T.clone().normalize()).multiply(q0);
+      var rel=c.matrixWorld.clone().invert().multiply(n.matrixWorld);c._w0=new M4().compose(T,Q,s0).multiply(rel.invert())}
+    for(var k=0;k<NP;k++){var e=by[k];if(!e)continue;var A=R.at(k*R.LT/NP+R.off),pT=A.d.clone().multiplyScalar(A.top),pQ=lmFrame(A.d,A.T),sT=A.d.clone().multiplyScalar(A.top+0.22);
+      if(e.p||e.s)[e.lp,e.ls].forEach(function(x){if(x&&x.c.visible){if(typeof twPuff==="function")twPuff(x.c,0.55);x.c.visible=false}});
+      var P=e.p||(e.lp&&e.lp.c.visible?e.lp:null),S=e.s||(e.ls&&e.ls.c.visible?e.ls:null);if(P)home(P,pT,pQ);if(S)home(S,sT,null)}}
+  /* RESTORE · what LEAVE 15 cleared away never moved, so it has no home to fly to: it comes back where it stood, in a puff, and a belt slat goes back into its place on the stopped belt */
+  function twLvBack(c){c.visible=true;c._lv=false;var R=twR,j=R&&R.slats?R.slats.indexOf(c):-1;
+    if(j>=0){R.gone[j]=false;var A=R.at(j*R.SLW+R.off);c.quaternion.copy(lmFrame(A.d,A.T));c.position.copy(A.d).multiplyScalar((A.top+A.lo)/2);c.scale.set(R.SLW-0.05,A.top-A.lo,3.2)}
+    if(typeof twPuff==="function")twPuff(c,0.55,Math.random()*0.6)}
   function twEndDrop(E){E.it=[];var R=E.mode==="restore";E.dm=E.dm0;E.dt0=E.t;var NC=Math.max(1,clump.children.length-2);
     function back(c,o){if(!c._w0)return false;o.T=new THREE.Vector3();o.Q=new THREE.Quaternion();o.S=new THREE.Vector3();c._w0.decompose(o.T,o.Q,o.S);o.st=E.t+0.2+Math.random()*1.2;return true}
-    if(R){E.Wd.updateMatrixWorld(true);E.Wd.children.slice().forEach(function(c){if(!c._w0)return;var P=new THREE.Vector3().setFromMatrixPosition(c.matrixWorld),P0=new THREE.Vector3().setFromMatrixPosition(c._w0);
+    if(R)twBeltHome(E);if(R){E.Wd.updateMatrixWorld(true);E.Wd.children.slice().forEach(function(c){if(!c._w0){if(c._lv)twLvBack(c);return}var P=new THREE.Vector3().setFromMatrixPosition(c.matrixWorld),P0=new THREE.Vector3().setFromMatrixPosition(c._w0);
         if(!c._lv&&P.distanceToSquared(P0)<1e-4)return;if(c._lv){c.visible=true;c._lv=false}var o={m:c};back(c,o);E.it.push(o)});
       if(plaza&&plaza.lv){plaza.lv.forEach(function(k){plaza.gone[k]=false;var hid=plaza.ix&&plaza.out&&plaza.out[plaza.k]?plaza.out[plaza.k][plaza.ix[k]]:false;plaza.vis[k]=!hid;plaza.m.setMatrixAt(k,hid?plaza.Z0:plaza.base[k])});plaza.lv=[];plaza.m.instanceMatrix.needsUpdate=true}}
     clump.updateMatrixWorld(true);clump.children.slice().forEach(function(c,ci){if(c===core)return;E.Wd.attach(c);var bx=new THREE.Box3().setFromObject(c),sz=bx.getSize(new THREE.Vector3());
@@ -1707,7 +1733,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     var all=E.it&&E.it.every(function(o){return o.land&&!(o.bt<0.45)}),near=E.it&&E.it.every(function(o){return o.land||(o.ft!=null&&t-o.ft>=1.44)}); /* near: everything is at least 80% of the way home */
     if(E.mode==="restore"){if(keyLight){var z=cam.position.clone().normalize(),y=cam.up.clone(),x=new V3().crossVectors(y,z),dd=cam.position.length();keyLight.target.position.set(0,0,0);keyLight.position.copy(z).multiplyScalar(dd*0.8).addScaledVector(y,dd*0.6).addScaledVector(x,dd*0.3);keyLight.target.updateMatrixWorld()}
       if(t>TL&&banner&&banner.g.parent)banner.g.parent.remove(banner.g); /* the sky is clear during the restore: NO MORE MAKI only comes in once the running planet is turning */
-      renderer.render(scene,cam);if((/^(mosaic|glitch)$/.test("glitch")?near:all)&&E.wk==null&&t>TU+2.5){E.wk=t;twPfWake(E)}if(E.wk!=null&&t>E.wk+0.16&&t>TU+2.7){twMq=null;twFadeSnap();twSpecNext=true;twSC0={p:cam.position.clone(),u:cam.up.clone()};restart()}return}
+      renderer.render(scene,cam);if(all&&E.wk==null&&t>TU+2.5){E.wk=t;twPfWake(E)} /* the swap waits till everything is home: the still is taken then, and stays up (under the glitch) while the running world gets ready */if(E.wk!=null&&t>E.wk+0.16&&t>TU+2.7){twMq=null;twFadeSnap();twSpecNext=true;twSC0={p:cam.position.clone(),u:cam.up.clone()};twBeltOff=twR?twR.off:null;restart()}return}
     /* MESS: once everything is down (or after 15 s at most) the planet slowly starts turning on its own and WASD takes over */
     if(all&&E.sT==null)E.sT=t;if(E.sT==null&&t>15)E.sT=t;
     if(E.sT!=null&&!E.hud){E.spin+=dt*0.1*ez((t-E.sT-0.6)/4);E.Pv.quaternion.copy(E.q0).multiply(new THREE.Quaternion().setFromAxisAngle(E.Y,E.spin))}
@@ -1769,6 +1795,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   var _twPause0=pauseGame;pauseGame=function(){_twPause0();if(phase!=="pause")return;var fin=!!(twGi||twSpec||twEnd);
     if(fin&&twOs){HUD.pstat.textContent="Size "+twOs.c.toFixed(1)+"× / Goal "+twOs.t.toFixed(1)+"× · "+(twSpec?"Final":"!!!")+" · "+twOs.n+" "+(twOs.n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display="";prp.innerHTML=twOs.r}}
     else if(freeRoll&&!fin&&HUD.timer){var tt=(HUD.timer.textContent||"").trim();if(tt&&tt!=="FREE ROLL")HUD.pstat.textContent=HUD.pstat.textContent.replace("· Free roll ·","· "+(tt.charAt(0)+tt.slice(1).toLowerCase())+" ·")} /* free roll: the pause line says what the timer slot says (3 left, All clear) */
+    /* the line under the title: all caps. In free roll (where the stats block below already has the numbers) it is only the status, small and dim
+       like the block's labels, as a heading for it: FREE ROLL, 3 LEFT, ALL CLEAR, !!! with the monster out, FINAL on the final planet */
+    var ps=HUD.pstat;if(freeRoll){ps.textContent=twSpec?"FINAL":(twGi||twEnd)?"!!!":((HUD.timer&&HUD.timer.textContent)||"FREE ROLL").trim();ps.style.cssText="text-transform:uppercase;font:700 11px ui-monospace,monospace;letter-spacing:.24em;opacity:.6"}else ps.style.cssText="text-transform:uppercase";
     twClosedUI(!!twSpec)};
   var twMq=null;function twSpecInit(){twSpec=true;twSpT=0;twSpW=0;twFxHook();twSpecRdy=false;if(keyLight)keyLight.castShadow=false;try{renderer.compileAsync(scene,cam).then(function(){twSpecRdy=true},function(){twSpecRdy=true})}catch(e){twSpecRdy=true}freeRoll=true;if(keyLight)keyLight.castShadow=false;ballR=1e-3;ball.visible=false;if(playerShadow)playerShadow.visible=false;var h=GAME.querySelector(".hud");if(h)h.style.visibility="hidden";
     if(twSC0)twSpecFrom(twSC0.p,twSC0.u);twSC0=null}
@@ -1777,6 +1806,34 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* a chopstick with no roll to chase wanders: it heads for a point a little ahead of itself that keeps veering */
   function twSpecT(en,t){var u=en.pos.clone().normalize();if(!en.wh)en.wh=new THREE.Vector3(u.y,u.z,u.x).cross(u).normalize();en.wh.applyAxisAngle(u,Math.sin(t/900+(en.sign||1)*2)*0.03);
     en.wh.addScaledVector(u,-en.wh.dot(u)).normalize();return u.clone().multiplyScalar(SR).addScaledVector(en.wh,SR*0.3)}
+  /* MAGNET (M, a secret shortcut; Shift+M for SUPER, which pulls from anywhere on the planet): a test tool. Everything the roll can already pick up is pulled toward it from within a range that
+     grows with the roll, as Chase's magnet (magR: about 6.5 at the start, 3 + 3.2 x the roll's radius), at twice Chase's pull speed: ingredients,
+     scenery, shed pickups, ants, and clouds once the roll is tall enough to reach them. The belt's slats and the plaza's tiles can't slide (the
+     belt runs and the plaza poses), so once the first slat or the first tile has been rolled up the usual way, the ones in range lift off and
+     fly to the roll (three a frame). Belt sushi flies in on its plate, the anthill slides like the rest, and the letters fly down from their orbit. */
+  var twMagT=-1,twMagF=[];
+  function twMagFly(dt){twMagF=twMagF.filter(function(f){var p=f.m.position,to=ball.position.clone().sub(p),d=to.length();if(d<ballR+0.6||!running&&f.t>3){f.done();return false}f.t+=dt;
+      var mv=to.normalize().multiplyScalar(Math.min(d,(8+f.t*30)*dt));p.add(mv);if(f.x)f.x.position.add(mv);return true})}
+  function twMagnet(t){var dt=twMagT<0?0:Math.min(0.05,(t-twMagT)/1000);twMagT=t;if(dt)twMagFly(dt);if(!window.MKPT_MAG||!running||!dt)return;var pd=ball.position.clone().normalize(),sup=window.MKPT_MAG==="super",RM=sup?1e9:magR(),V3=THREE.Vector3;
+    function pull(d){var a=d.angleTo(pd);if(a<1e-4||a*SR>RM)return false;var ax=new V3().crossVectors(d,pd);if(ax.lengthSq()<1e-10)return false;d.applyAxisAngle(ax.normalize(),Math.min(a,(sup?Math.max(12,a*SR*0.8):magPull(a*SR)*2)*dt/SR));return true}
+    props.forEach(function(o){if(o.dead||o.hid||o.abs||o.g.userData.belt||ballR<o.req)return;twW0(o.g);var L=o.g.position.length();if(pull(o.dir)&&o.still)o.g.position.copy(o.dir).multiplyScalar(L)});
+    obstacles.forEach(function(o){if(o.dead||o.hid||ballR<=o.size*0.9)return;twW0(o.g);var L=o.g.position.length();if(pull(o.dir)){o.g.position.copy(o.dir).multiplyScalar(L);o.g.quaternion.setFromUnitVectors(new V3(0,1,0),o.dir)}});
+    ants.forEach(function(o){if(o.dead||ballR<(o.req||0))return;var L=o.pos.length(),d=o.pos.clone().normalize();if(pull(d))o.pos.copy(d.multiplyScalar(L))});
+    clouds.forEach(function(o){if(o.dead)return;var cs=o.g.scale.x*0.9;if(surfaceR(pd)+ballR*2>o.rad-cs*0.6)pull(o.dir)});
+    function inR(p){return p.clone().normalize().angleTo(pd)*SR<RM}
+    /* belt sushi: its plate is lifted off the belt with it (the belt then waits to put out a new plate, as when one is rolled up), and the two fly in
+       together, the sushi stuck on first and then its plate, so the last-pickup line reads SALMON + PLATE as usual */
+    if(R0&&twR&&twR.pls)twR.pls.forEach(function(L){var o=L.o;if(!o||o.dead||o.hid||!L.m.visible||ballR<o.req||!inR(o.g.position))return;o.dead=true;L.o=null;L.at=t+12000;L.m.updateMatrixWorld();var pc=L.m.clone();pc.userData.req=o.req;scene.add(pc);L.m.visible=false;twW0(o.g);twW0(pc);
+      twMagF.push({m:o.g,x:pc,t:0,done:function(){o.g.userData.req=o.req;stickToRoll(o.g);ballR+=o.gain;pips++;stickToRoll(pc);ballR+=0.01}})});
+    /* the anthill comes with the props above once the roll is big enough. The orbiting letters: once in range (or anywhere with SUPER) each one
+       leaves its orbit and flies down to the roll */
+    if(twOrb&&twOrb.length)twOrb.forEach(function(L){if(L.dead||!inR(L.g.position))return;var f=Math.min(1,(t-L.t0)/twFly);if(f<1)return;L.dead=true;twMagF.push({m:L.g,t:0,done:function(){L.g.scale.multiplyScalar(0.45);L.g.userData.req=params.targetMul*0.8*R0;stickToRoll(L.g);ballR+=0.12;pips++}})});
+    var R=twR,n=0;if(R&&R.slats&&R.gn>0&&ballR>=R.need)for(var i=0;i<R.NSL&&n<3;i++){if(R.gone[i])continue;var gm=R.slats[i];if(!gm.visible||!inR(gm.position))continue;
+      R.gone[i]=true;R.broken=true;R.gn++;n++;var gc=gm.clone();gc.userData.req=R.need;scene.add(gc);twW0(gc);gm.visible=false;twMagF.push({m:gc,t:0,done:(function(gc){return function(){stickToRoll(gc);ballR+=0.05;pips++}})(gc)})}
+    if(plaza&&plaza.gn>0&&plaza.gone){var P=new V3(),Q=new THREE.Quaternion(),S=new V3();n=0;for(var k=0;k<169&&n<3;k++){if(plaza.gone[k]||plaza.vis[k]===false)continue;plaza.base[k].decompose(P,Q,S);if(!inR(P))continue;
+      plaza.gone[k]=true;plaza.vis[k]=false;n++;var cc=new THREE.Color();plaza.m.getColorAt(k,cc);var tm=new THREE.Mesh(new THREE.BoxGeometry(plaza.TS*0.94,S.y,plaza.TS*0.94),twM(cc));tm.position.copy(P);tm.quaternion.copy(Q);
+      tm.userData.req=params.targetMul*0.5*R0;tm.userData.mkO=plaza.TS*plaza.TS;tm.userData.nm="PLAZA TILE";plaza.gn++;scene.add(tm);twW0(tm);plaza.m.setMatrixAt(k,plaza.Z0);plaza.m.instanceMatrix.needsUpdate=true;
+      twMagF.push({m:tm,t:0,done:(function(tm){return function(){stickToRoll(tm);ballR+=0.035;pips++}})(tm)})}}}
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -1848,12 +1905,12 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(g.userData.blob){g.remove(g.userData.blob);g.userData.blob=null}twGrab(g);
     var rd=new THREE.Vector3(0,lp.y,lp.z);if(rd.lengthSq()<1e-6)rd.set(0,1,0);rd.normalize();           // direction out from the roll's axis
     var s=ballR/R0,xf=Math.max(-0.92,Math.min(0.92,lp.x/(R0*0.85*s)+(Math.random()-0.5)*0.3)); /* placed where it touched along the barrel (no squeeze to the middle), a little sideways scatter, still off the filling ends */                              // position along the barrel as a fraction, off the end caps
-    var sk=g.scale.x,dr=Math.random(),sink=dr<0.3?sk*(0.25+Math.random()*0.25):dr<0.75?sk*(0.05+Math.random()*0.15):-sk*(0.05+Math.random()*0.2); // messy: some buried deep, most snug, some perched proud
-    g.userData.stick={rd:rd,xf:xf,sink:sink};
+    var gs=twHillGs(g),sk=gs||g.scale.x,dr=Math.random(),sink=dr<0.3?sk*(0.25+Math.random()*0.25):dr<0.75?sk*(0.05+Math.random()*0.15):-sk*(0.05+Math.random()*0.2); // messy: some buried deep, most snug, some perched proud
+    g.userData.stick={rd:rd,xf:xf,sink:gs?gs*0.06:sink,gs:gs};
     var tilt=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(Math.random()-0.5,0,Math.random()-0.5).normalize(),(Math.random()-0.5)*0.9); // knocked askew, up to ~25 degrees
     g.quaternion.setFromUnitVectors(YUP,rd).multiply(tilt).multiply(new THREE.Quaternion().setFromAxisAngle(YUP,Math.random()*6.283)); // base against the roll, random lean + spin
     clump.add(g);placeStuck(g,s)}
-  function placeStuck(g,s){var k=g.userData.stick;g.position.set(k.xf*R0*0.85*s,0,0).addScaledVector(k.rd,R0*0.98*s-k.sink)} // on the current (scaled) roll surface
+  function placeStuck(g,s){var k=g.userData.stick;if(k.gs)twHillEase(g,k);g.position.set(k.xf*R0*0.85*s,0,0).addScaledVector(k.rd,R0*0.98*s-k.sink)} // on the current (scaled) roll surface
   function step(t){
     if(!running)return;
     raf=requestAnimationFrame(step);
@@ -2665,5 +2722,11 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 .export-bar.seeding .wlb{display:none}
 .export-bar .mkmenu .mi.tk.cur::after{content:"";width:calc(var(--scale-unit)*6);height:calc(var(--scale-unit)*6);border-radius:50%;background:currentColor;margin-left:auto;flex-shrink:0}
 </style>
+<!-- the secret magnet (a tool for playing through quickly): while the game is on, M toggles it and Shift+M toggles SUPER (pulls from anywhere on the planet). While it is on, a small yellow line at the top says so and shows the nearest site (plaza, belt, anthill) and how far, the plaza's and belt's progress, and the chopsticks in free roll -->
+<div id="ptT" style="position:fixed;left:50%;top:max(96px,calc(env(safe-area-inset-top) + 96px));transform:translateX(-50%);z-index:2147483647;display:none;max-width:calc(100vw - 16px);padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#ffd84a;font:700 10px ui-monospace,monospace;letter-spacing:.04em;text-align:center;pointer-events:none"></div>
+<script>(function(){var bar=document.getElementById("ptT");
+(function tick(){requestAnimationFrame(tick);var g=document.getElementById("game"),m=window.MKPT_MAG,n=window.MKLM_NEAR||"",tx=(m==="super"?"SUPER MAGNET":"MAGNET")+(n?" · "+n:"");bar.style.display=g&&g.classList.contains("on")&&m?"block":"none";if(m&&bar.textContent!==tx)bar.textContent=tx})()})();
+window.addEventListener("keydown",function(e){var g=document.getElementById("game");if(!g||!g.classList.contains("on"))return;if(e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
+if(e.key==="m"||e.key==="M"||e.code==="KeyM"){e.preventDefault();e.stopImmediatePropagation();window.MKPT_MAG=e.shiftKey?(window.MKPT_MAG==="super"?false:"super"):(window.MKPT_MAG?false:true)}},true);</script>
 </body>
 </html>
