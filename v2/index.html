@@ -536,7 +536,7 @@ function mkmnRender(){
   feats=msg?Object.assign({},res.tr,{Pattern:"Text",Message:msg}):res.tr;
   window.MKMN_SRC=res.svg;curSvg=MKMN_FLAT(res.svg);artBox.innerHTML=curSvg;
   stage.style.setProperty("--bg",res.bg);
-  document.documentElement.style.background=document.body.style.background=res.bg;var tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.content=res.bg; // the whole page takes the piece's background, and so does the browser bar (theme-color, read by iPhone Safari and Android Chrome)
+  document.documentElement.style.background=document.body.style.background=res.bg;window.MKMN_BG=res.bg;var tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.content=res.bg; // the whole page takes the piece's background, and so does the browser bar (theme-color, read by iPhone Safari and Android Chrome)
   stage.style.setProperty("--ink-rgb",hexRGB(res.ink));
   band.innerHTML=bandHTML(res);
   wireMessage(msg);
@@ -1439,12 +1439,62 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function twFxSmp(P){var c=twFadeEl||renderer.domElement,s=twFxS,n=4,R=Math.max(2,P.r*0.55),x=Math.max(0,Math.round(P.x-R)),y=Math.max(0,Math.round(P.y-R)),w=Math.min(c.width-x,Math.round(R*2)),h=Math.min(c.height-y,Math.round(R*2));P.smp=false;if(w<1||h<1)return;
     s.width=n;s.height=n;var sg=s.getContext("2d");sg.imageSmoothingEnabled=true;sg.drawImage(c,x,y,w,h,0,0,n,n);var d=sg.getImageData(0,0,n,n).data,cs=[];for(var i=0;i<n*n;i++)if(d[i*4+3]>0)cs.push("rgb("+d[i*4]+","+d[i*4+1]+","+d[i*4+2]+")");if(!cs.length)return;
     P.bl.forEach(function(b){b.k=cs[Math.random()*cs.length|0]});P.sp.forEach(function(q){q.k=cs[Math.random()*cs.length|0]})}
-  /* GLITCH: MOSAIC with a broken-signal look on top: a few bands of the blocky picture slide sideways and some get a cyan or magenta tint,
+  /* GLITCH: MOSAIC with a broken-signal look on top: a few bands of the blocky picture slide sideways and some get a tint of one or two of the planet's own colours (twGlFrame),
      redrawn in new places every 0.07 s; the bigger the blocks, the more bands and the further they slide. So a frame that freezes for a
      moment just reads as part of the glitch */
-  function twGlDraw(g,s,w,h,W,H,b,dp){var M=twMz,G=M.G,bp=Math.max(1,Math.round(b*dp));if(!G||M.a-G.t>0.07||G.b!==b){G=M.G={t:M.a,b:b,sl:[]};var ns=2+Math.round(b*0.45);
-      for(var i=0;i<ns;i++){var hh=bp*(1+(Math.random()*3|0)),r=Math.random();G.sl.push({y:Math.floor(Math.random()*H/bp)*bp,h:hh,dx:Math.round((Math.random()-0.5)*bp*(3+b*0.5)),c:r<0.25?"rgba(0,240,255,0.32)":r<0.5?"rgba(255,0,170,0.3)":null})}}
-    G.sl.forEach(function(q){var hg=Math.min(q.h,H-q.y);if(hg<=0)return;g.drawImage(s,0,q.y/H*h,w,hg/H*h,q.dx,q.y,W,hg);if(q.c){g.fillStyle=q.c;g.fillRect(Math.max(0,q.dx),q.y,W,hg)}})}
+  /* GLITCH colours, held back: of the colours given it keeps at most two, the most vivid one and, only if there is one, a second vivid
+     colour of a clearly different hue (over 60 degrees away). A mono palette gives one tint; a full neon spectrum still gives just two, so
+     the bands read as a designed glitch, not random colour */
+  function twGlPick(L){var C=L.map(function(s){var r,g,b,m=/^#?([0-9a-f]{6})$/i.exec(String(s).trim());if(m){var v=parseInt(m[1],16);r=v>>16;g=v>>8&255;b=v&255}else{m=String(s).match(/[\d.]+/g)||[0,0,0];r=+m[0];g=+m[1];b=+m[2]}
+      var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0;if(d){h=mx===r?((g-b)/d+6)%6:mx===g?(b-r)/d+2:(r-g)/d+4}return{s:s,h:h*60,v:d/255*(mx/255),l:0.3*r+0.59*g+0.11*b}}).sort(function(a,b){return b.v-a.v});
+    if(!C.length)return["#ffffff"];if(C[0].v<0.18){C.sort(function(a,b){return b.l-a.l});return[C[0].s]} /* a planet in greys: tint with its lightest grey */
+    var out=[C[0].s];for(var i=1;i<C.length;i++){var dh=Math.abs(C[i].h-C[0].h);dh=Math.min(dh,360-dh);if(dh>60&&C[i].v>0.35){out.push(C[i].s);break}}return out}
+  /* GLITCH colours from the planet itself: the colours that cover most of its ground (counted on the planet's faces, the ones covering 80%,
+     so a colour on a thin band of the ground is left out), held back by twGlPick; if that fails, the middle of the first blocky frame. twGlPick keeps at
+     most two of its colours, so a black-and-white planet glitches in its own greys whatever colours the art's letters are */
+  function twGlPlanet(){try{var A=planet.geometry.attributes.color,n=A.count,T={},K=[],tot=0;
+      for(var i=0;i<n;i+=3){var r=A.getX(i),g=A.getY(i),b=A.getZ(i),k=Math.round(r*24)+","+Math.round(g*24)+","+Math.round(b*24);if(!T[k]){T[k]={c:0,r:r,g:g,b:b};K.push(k)}T[k].c++;tot++}
+      K.sort(function(a,b){return T[b].c-T[a].c});var L=[],acc=0;function s8(x){return Math.round(Math.pow(Math.max(0,Math.min(1,x)),1/2.2)*255)}
+      twGlAll=K.map(function(k){var t=T[k];return "rgb("+s8(t.r)+","+s8(t.g)+","+s8(t.b)+")"});for(var j=0;j<K.length&&acc<tot*0.8;j++){var t=T[K[j]];acc+=t.c;L.push("rgb("+s8(t.r)+","+s8(t.g)+","+s8(t.b)+")")}return L.length?twGlPick(L):null}catch(e){return null}}
+  function twGlFrame(s,w,h){try{var x0=Math.floor(w*0.25),y0=Math.floor(h*0.25),ww=Math.max(1,Math.floor(w*0.5)),hh=Math.max(1,Math.floor(h*0.5)),d=s.getContext("2d").getImageData(x0,y0,ww,hh).data,L=[];
+    for(var i=0;i<d.length;i+=8)L.push("rgb("+d[i]+","+d[i+1]+","+d[i+2]+")");return twGlPick(L)}catch(e){return["#ffffff"]}}
+  /* GLITCH accents: the planet ground's other colours (never the art's letter colours) peek in as thin streaks, half a block tall, a few at a time:
+     the next most common ground colours not close to the main tint, three colours in all at most. The main tint stays on the wide bands */
+  var twGlAll=null;
+  function twGlAcc(main){try{var src=twGlAll||[],cap=Math.max(0,3-main.length);
+      function rgb(s){var m=/^#?([0-9a-f]{6})$/i.exec(String(s).trim());if(m){var v=parseInt(m[1],16);return[v>>16,v>>8&255,v&255]}m=String(s).match(/[\d.]+/g)||[0,0,0];return[+m[0],+m[1],+m[2]]}
+      var mc=main.map(rgb),out=[];src.map(function(s){return{s:s,c:rgb(s)}}).forEach(function(o){
+        if(out.length>=cap)return;if(mc.concat(out.map(function(x){return x.c})).some(function(m){return Math.abs(m[0]-o.c[0])+Math.abs(m[1]-o.c[1])+Math.abs(m[2]-o.c[2])<90}))return;out.push(o)});return out.map(function(o){return o.s})}catch(e){return[]}}
+  /* GLITCH colour test (toggle GLITCH · PLANET / ART / CLASSIC): PLANET the current one, the ground's own colours; ART the version before it, the
+     art's colours (two at most on the bands, up to three vivid others as streaks); CLASSIC the first one, cyan and magenta */
+  function twGlArt(){var TX=window.MAKI_TXT;return TX&&TX.cols&&TX.cols.length?TX.cols:(twP&&twP.pip&&twP.pip.length?twP.pip:(twP&&twP.uniq)||[[0,240,255],[255,0,170]]).map(function(a){return "rgb("+(a[0]|0)+","+(a[1]|0)+","+(a[2]|0)+")"})}
+  function twGlArtAcc(main){function rgb(s){var m=/^#?([0-9a-f]{6})$/i.exec(String(s).trim());if(m){var v=parseInt(m[1],16);return[v>>16,v>>8&255,v&255]}m=String(s).match(/[\d.]+/g)||[0,0,0];return[+m[0],+m[1],+m[2]]}
+    var mc=main.map(rgb),out=[];twGlArt().map(function(s){var c=rgb(s),mx=Math.max(c[0],c[1],c[2]),mn=Math.min(c[0],c[1],c[2]);return{s:s,c:c,v:(mx-mn)/255*(mx/255)}}).sort(function(a,b){return b.v-a.v}).forEach(function(o){
+      if(out.length>=3||o.v<0.2)return;if(mc.concat(out.map(function(x){return x.c})).some(function(m){return Math.abs(m[0]-o.c[0])+Math.abs(m[1]-o.c[1])+Math.abs(m[2]-o.c[2])<90}))return;out.push(o)});return out.map(function(o){return o.s})}
+  /* GLITCH · TEAR: the planet's ground colours (three at most, as PLANET) as a tear in its surface. Each time the bands move, every band reads the
+     average colour of the picture under it and takes the one of the three that stands out from it most (by perceived colour, brightness and hue
+     together), now and then the second best so it stays irregular; only if none stands out enough does it go black or white. Thin streaks sit on
+     band edges (some float loose), nearly solid, in the colour that stands out from both the band and the picture there. SKY · TINT colours the
+     bands across the whole screen; SKY · PLAIN colours them only over the planet's disc (the sky only slides) */
+  function twGlRgb(s){var m=/^#?([0-9a-f]{6})$/i.exec(String(s).trim());if(m){var v=parseInt(m[1],16);return[v>>16,v>>8&255,v&255]}m=String(s).match(/[\d.]+/g)||[0,0,0];return[+m[0],+m[1],+m[2]]}
+  function twGlDist(a,b){var rm=(a[0]+b[0])/2,dr=a[0]-b[0],dg=a[1]-b[1],db=a[2]-b[2];return Math.sqrt((2+rm/256)*dr*dr+4*dg*dg+(2+(255-rm)/256)*db*db)}
+  function twGlBest(P,u,v){var L=P.map(function(c){var d=twGlDist(c,u);if(v)d=Math.min(d,twGlDist(c,v));return{c:c,d:d}}).sort(function(a,b){return b.d-a.d});
+    var o=L.length>1&&Math.random()<0.25&&L[1].d>150?L[1]:L[0];if(!o||o.d<150){var bw=twGlDist([0,0,0],u)>twGlDist([255,255,255],u)?[0,0,0]:[255,255,255];return bw}return o.c}
+  function twGlTear(g,s,w,h,W,H,b,dp){var M=twMz,G=M.G,bp=Math.max(1,Math.round(b*dp)),sky="tint"!=="plain";
+    if(!M.tp){var mn=twGlPlanet()||twGlFrame(s,w,h);M.tp=mn.concat(twGlAcc(mn)).slice(0,3).map(twGlRgb)}
+    var dk=null;if(!sky){var c0=new THREE.Vector3(0,0,0).project(cam),ds=cam.position.length(),rr=SR+(typeof RELIEF==="number"?RELIEF:0),an=Math.asin(Math.min(0.999,rr/Math.max(rr+1e-3,ds)));dk={x:(c0.x+1)/2*W,y:(1-c0.y)/2*H,r:Math.tan(an)/Math.tan(cam.fov*Math.PI/360)*H/2}}
+    function avg(y,hh){var sy=Math.max(0,Math.floor(y/H*h)),sh=Math.max(1,Math.min(h-sy,Math.ceil(hh/H*h))),x0=0,x1=w;if(dk){var cy=(y+hh/2-dk.y),hw=dk.r*dk.r-cy*cy;if(hw>0){hw=Math.sqrt(hw);x0=Math.max(0,Math.floor((dk.x-hw)/W*w));x1=Math.min(w,Math.ceil((dk.x+hw)/W*w))}}if(x1<=x0)return null;
+      try{var d=s.getContext("2d").getImageData(x0,sy,x1-x0,sh).data,r=0,gg=0,bb=0,n=0;for(var i=0;i<d.length;i+=4){r+=d[i];gg+=d[i+1];bb+=d[i+2];n++}return n?[r/n,gg/n,bb/n]:null}catch(e){return null}}
+    if(!G||M.a-G.t>0.07||G.b!==b){G=M.G={t:M.a,b:b,sl:[]};var ns=2+Math.round(b*0.45),wide=[];
+      for(var i=0;i<ns;i++){var hh=bp*(1+(Math.random()*3|0)),y=Math.floor(Math.random()*H/bp)*bp,u=avg(y,hh),tn=Math.random()<0.55&&u;var q={y:y,h:hh,dx:Math.round((Math.random()-0.5)*bp*(3+b*0.5)),c:tn?twGlBest(M.tp,u):null,u:u,a:0.5};G.sl.push(q);wide.push(q)}
+      var na=1+Math.round(b*0.25);for(var j=0;j<na;j++){var th=Math.max(1,Math.round(bp*0.5)),w0=wide[(Math.random()*wide.length)|0],loose=Math.random()<0.3||!w0,ys=loose?Math.floor(Math.random()*H/th)*th:(Math.random()<0.5?w0.y-th:w0.y+w0.h),u2=avg(ys,th);if(!u2)continue;
+        G.sl.push({y:ys,h:th,dx:Math.round((Math.random()-0.5)*bp*(4+b*0.6)),c:twGlBest(M.tp,u2,!loose&&w0.c?w0.c:null),a:0.9})}}
+    G.sl.forEach(function(q){var hg=Math.min(q.h,H-q.y);if(hg<=0||q.y<0)return;g.drawImage(s,0,q.y/H*h,w,hg/H*h,q.dx,q.y,W,hg);if(!q.c)return;g.globalAlpha=q.a;g.fillStyle="rgb("+(q.c[0]|0)+","+(q.c[1]|0)+","+(q.c[2]|0)+")";
+      if(dk){g.save();g.beginPath();g.arc(dk.x+q.dx,dk.y,dk.r,0,Math.PI*2);g.clip();g.fillRect(Math.max(0,q.dx),q.y,W,hg);g.restore()}else g.fillRect(Math.max(0,q.dx),q.y,W,hg);g.globalAlpha=1})}
+  function twGlDraw(g,s,w,h,W,H,b,dp){var gm0="tear";if(gm0==="tear")return twGlTear(g,s,w,h,W,H,b,dp);var M=twMz,G=M.G,gm=gm0,twGlPal=M.pal||(M.pal=gm==="classic"?["#00f0ff","#ff00aa"]:gm==="art"?twGlPick(twGlArt()):twGlPlanet()||twGlFrame(s,w,h)),acc=M.acc||(M.acc=gm==="classic"?[]:gm==="art"?twGlArtAcc(twGlPal):twGlAcc(twGlPal)),bp=Math.max(1,Math.round(b*dp));if(!G||M.a-G.t>0.07||G.b!==b){G=M.G={t:M.a,b:b,sl:[]};var ns=2+Math.round(b*0.45);
+      for(var i=0;i<ns;i++){var hh=bp*(1+(Math.random()*3|0)),r=Math.random();G.sl.push({y:Math.floor(Math.random()*H/bp)*bp,h:hh,dx:Math.round((Math.random()-0.5)*bp*(3+b*0.5)),c:r<0.5?twGlPal[(Math.random()*twGlPal.length)|0]:null,a:0.5})}
+      if(acc.length){var na=1+Math.round(b*0.2);for(var i2=0;i2<na;i2++){var th=Math.max(1,Math.round(bp*0.5));G.sl.push({y:Math.floor(Math.random()*H/th)*th,h:th,dx:Math.round((Math.random()-0.5)*bp*(4+b*0.6)),c:acc[(Math.random()*acc.length)|0],a:0.75})}}}
+    G.sl.forEach(function(q){var hg=Math.min(q.h,H-q.y);if(hg<=0)return;g.drawImage(s,0,q.y/H*h,w,hg/H*h,q.dx,q.y,W,hg);if(q.c){g.globalAlpha=q.a||0.5;g.fillStyle=q.c;g.fillRect(Math.max(0,q.dx),q.y,W,hg);g.globalAlpha=1}})}
   function twFxDraw(){if(!twFx)return;twPfL.forEach(function(P){if(P.smp)twFxSmp(P)});var lc=twPfL.some(function(P){return P.st==="local"&&P.a>=0});if(!twMz&&!lc){if(twFxD){twFx.getContext("2d").clearRect(0,0,twFx.width,twFx.height);twFxD=false}return}
     var c=renderer.domElement,src=twFadeEl||c,g=twFx.getContext("2d"),W=twFx.width,H=twFx.height,dp=W/Math.max(1,c.clientWidth||W),s=twFxS,sg;g.clearRect(0,0,W,H);g.imageSmoothingEnabled=false;twFxD=true;
     if(twMz){var b=twMzBlk();if(!b)twMz=null;else twMz.dr=true;if(b>1){var bp=Math.max(1,Math.round(b*dp)),w=Math.max(1,Math.round(W/bp)),h=Math.max(1,Math.round(H/bp));s.width=w;s.height=h;sg=s.getContext("2d");sg.imageSmoothingEnabled=true;sg.drawImage(src,0,0,w,h);g.drawImage(s,0,0,w,h,0,0,W,H);if(twMz.gl)twGlDraw(g,s,w,h,W,H,b,dp)}}
@@ -1499,6 +1549,10 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function twShadeAt(m,p,base,hmax){var d=p.clone().normalize(),g=lmGround(d),h=Math.max(0,p.length()-g),k=Math.min(1,h/hmax);m.visible=k<1;m.position.copy(d).multiplyScalar(g+0.05);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d);m.scale.setScalar(base*(0.3+0.7*(1-k)))}
   function twShadeGi(M,vis){if(!M||!vis)return;M.g.updateMatrixWorld(true);M.arms.forEach(function(a){twSBAdd(a.localToWorld(new THREE.Vector3(0,-M.L,0)),M.L*0.16,SR*2)})}
   function twShdClear(){twShd.forEach(function(m){if(m.parent)m.parent.remove(m)});twShd=[]}
+  /* the knock's direction: mostly straight away from the little chopstick that hit (60%), bent toward the giant (40%), so being chased from
+     behind still brings the roll nearer the giant. Returns the axis to turn the roll's spot about */
+  function twKnAx(u,pd,G){var aw=pd.clone().sub(u);aw.addScaledVector(pd,-aw.dot(pd));var tg=G.clone().addScaledVector(pd,-G.dot(pd));if(aw.lengthSq()>1e-12)aw.normalize();if(tg.lengthSq()>1e-12)tg.normalize();
+    var dr=aw.multiplyScalar(0.6).addScaledVector(tg,0.4);if(dr.lengthSq()<1e-10)dr=tg;var ax=new THREE.Vector3().crossVectors(pd,dr);return ax.lengthSq()>1e-12?ax.normalize():new THREE.Vector3()}
   function twGiStep(dt,t){var M=twGi;if(!M||twEnd||!running)return;M.t+=dt;var L=M.L,aO=0.34,V3=THREE.Vector3,G=M.dir,wk=true,tr="army";
     function cl(x){return Math.max(0,Math.min(1,x))}function ez(x){x=cl(x);return x*x*(3-2*x)}
     var bd=ball.position.clone().normalize();
@@ -1535,7 +1589,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
        away for long, but the start is easy to escape: 2 at a time for the first 10 s, then one more every 6 s up to 10, sent more often (every 2.2 s down
        to 0.6 s), running faster (4.5 a second, slower than the roll at 7.5, up to 9) and knocking harder (about half as hard at first), and over 45 s
        they stop coming only from behind the roll and come from the sides and ahead too. Each one drops in from above,
-       runs at the roll and, on contact, knocks it away from itself (the way it was hit), hops away and comes back for more; they stay till the end. They can't be rolled up and
+       runs at the roll and, on contact, knocks it away from itself and partly toward the giant, hops away and comes back for more; they stay till the end. They can't be rolled up and
        nothing falls off the roll, and as they come from more sides the roll gets bumped about until it runs into the giant */
     if(tr==="army"){M.ar=M.ar||[];M.arT=(M.arT||0)+dt;M.arA=(M.arA||0)+dt;var ak=cl(M.arA/45),acap=Math.min(10,2+Math.max(0,Math.floor((M.arA-10)/6))),aiv=2.2-1.6*ak,asp=4.5+4.5*ak;
       if(M.arT>aiv&&M.ar.length<acap&&dg>L*0.5){M.arT=0;var aw=bd.clone().multiplyScalar(bd.dot(G)).sub(G);if(aw.lengthSq()<1e-8)aw.set(bd.y,bd.z,bd.x).cross(bd);aw.normalize();
@@ -1543,15 +1597,15 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
         var cg=buildChopstick(),csz=Math.max(0.8,ballR*0.55);cg.scale.setScalar(csz);scene.add(cg);M.ar.push({g:cg,d:sd,sz:csz,t:0,st:-1})}
       M.ar=M.ar.filter(function(a){a.t+=dt;var u=a.d;
         if(a.st===0){var an2=u.angleTo(bd);if(an2>1e-4){var ax2=new V3().crossVectors(u,bd);if(ax2.lengthSq()>1e-12)u.applyAxisAngle(ax2.normalize(),Math.min(an2,asp*dt/SR)).normalize()}
-          if(a.cd>0)a.cd-=dt;else if(u.angleTo(pPos.clone().normalize())*SR<ballR+a.sz*0.9){a.st=1;a.t=0;a.bk=new V3().crossVectors(bd,u);M.kn={t:0,kf:0.45+0.55*ak,ax:new V3().crossVectors(u,pPos.clone().normalize()).normalize()}}}
-        if(a.st===1&&a.bk&&a.bk.lengthSq()>1e-12)u.applyAxisAngle(a.bk.clone().normalize(),a.sz*9*dt/SR).normalize();
+          if(a.cd>0)a.cd-=dt;else if(u.angleTo(pPos.clone().normalize())*SR<ballR+a.sz*0.9){a.st=1;a.t=0;a.bk=new V3().crossVectors(bd,u);M.kn={t:0,kf:0.7+0.5*ak,ax:twKnAx(u,pPos.clone().normalize(),G)}}}
+        if(a.st===1&&a.bk&&a.bk.lengthSq()>1e-12)u.applyAxisAngle(a.bk.clone().normalize(),a.sz*3*dt/SR).normalize();
         var fz=bd.clone().addScaledVector(u,-bd.dot(u));if(fz.lengthSq()<1e-8)fz.set(u.y,u.z,u.x).cross(u);fz.normalize();var xa=new V3().crossVectors(u,fz).normalize(),fs=a.sz*0.733,
           gy=Math.max(lmGround(u),lmGround(u.clone().multiplyScalar(SR).addScaledVector(xa,fs).normalize()),lmGround(u.clone().multiplyScalar(SR).addScaledVector(xa,-fs).normalize())); /* the ground under both feet, so it never sinks into a slope */
         var up=0;if(a.st===-1){var f0=Math.min(1,a.t/0.35);up=a.sz*7*(1-f0*f0);if(f0>=1){a.st=0;a.t=0}}
-        else if(a.st===0)up=Math.abs(Math.sin(a.t*11))*a.sz*0.25;else up=Math.sin(Math.min(1,a.t/0.5)*Math.PI)*a.sz*2.2;
+        else if(a.st===0)up=Math.abs(Math.sin(a.t*11))*a.sz*0.25;else up=Math.sin(Math.min(1,a.t/0.35)*Math.PI)*a.sz*1.2;
         a.g.position.copy(u).multiplyScalar(gy+up);twSBAdd(a.g.position,a.sz,a.sz*8);a.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xa,u,fz));
-        if(a.st===1&&a.t>=0.5){a.st=0;a.t=0;a.cd=0.8}return true})} /* after the hop away it lands and chases again (it can't knock again for 0.8 s) */
-    /* the knock: the roll slides away from the chopstick that hit it for 0.45 s, fast at first, and stops (no pickups lost) */
+        if(a.st===1&&a.t>=0.35){a.st=0;a.t=0;a.cd=0.45}return true})} /* after the hop away it lands and chases again (it can't knock again for 0.45 s) */
+    /* the knock: the roll slides away from the chopstick that hit it, bent toward the giant, for 0.45 s, fast at first, and stops (no pickups lost) */
     if(M.kn){M.kn.t+=dt;var kf=Math.max(0,1-M.kn.t/0.45);if(kf>0&&M.kn.ax.lengthSq()>0.5){var pd2=pPos.clone().normalize().applyAxisAngle(M.kn.ax,(ballR*7+10)*kf*kf*dt/SR*2.2*(M.kn.kf||1));pPos.copy(pd2.multiplyScalar(pPos.length()));ball.position.copy(pPos);vel=0}else M.kn=null}
     M.pdg=dg;if(M.lp)return;
     M.g.updateMatrixWorld(true);var fr=L*0.058;
@@ -1678,6 +1732,40 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      They are now built in the background (compileAsync) while the still and the GLITCH/MOSAIC hold cover the screen; nothing is drawn and the
      world barely moves until they are ready (or 1.5 s) */
   var twSpecRdy=null,twSpW=0;
+  /* the pause screen in the ending. From the monster's arrival on, it keeps the OMAKASE numbers (saved when the OMAKASE screen was made): they
+     are the round's final numbers. On the final planet it becomes the closing card, a grade above OMAKASE: the CLOSED sign or a medal (turned over, or
+     bitten: test toggle MEDAL), WE'RE CLOSED, YOU ARE OFF THE MENU., the saved numbers, and Keep rolling (the planet can still be rolled) */
+  var twOs=null,_twRep0=twReport;twReport=function(sel){_twRep0(sel);if(!sel&&twOmk){var r=GAME.querySelector(".end .rpt");twOs={c:ballR/R0,t:params.targetMul,n:pips,r:r?r.innerHTML:""}}};
+  /* the CLOSED sign: pink neon, CORE (WINDOW is kept in the code but not used). It hangs from a grey steel nail by a dark cord.
+     CORE: like real neon, each tube has a near-white hot core inside its pink (cyan for the border) glow, and lights the board behind it.
+     WINDOW: no board, just the same tubes on a thin dark frame, like a sign in a shop window. Both flicker off for a moment now and then */
+  function twSignSvg(){var k="core",P="#ff5fd2",PC="#ffe6f6",B="#6ff3ff",BC="#e9feff",F="ui-monospace,Menlo,Consolas,monospace";
+    var s='<svg width="160" height="103" viewBox="0 0 112 72"><defs><filter id="twNg" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+      +'<filter id="twNs" x="-40%" y="-80%" width="180%" height="260%"><feGaussianBlur stdDeviation="1.1"/></filter><radialGradient id="twNr" cx="50%" cy="50%" r="55%"><stop offset="0" stop-color="'+P+'" stop-opacity=".28"/><stop offset="1" stop-color="'+P+'" stop-opacity="0"/></radialGradient>'
+      +'<linearGradient id="twGf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".11"/><stop offset=".5" stop-color="#fff" stop-opacity=".03"/><stop offset="1" stop-color="#fff" stop-opacity=".08"/></linearGradient><linearGradient id="twGe" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+P+'" stop-opacity=".85"/><stop offset=".35" stop-color="#fff" stop-opacity=".35"/><stop offset=".65" stop-color="'+B+'" stop-opacity=".7"/><stop offset="1" stop-color="'+P+'" stop-opacity=".85"/></linearGradient></defs>'
+      +'<style>@keyframes twFl{0%,100%{opacity:1}46%{opacity:1}47%{opacity:.35}48%{opacity:1}74%{opacity:.85}75%{opacity:.25}77%{opacity:1}}.twNe{animation:twFl 3.2s steps(1) infinite}</style>'
+      +'<path d="M56 6 L22 27 M56 6 L90 25" stroke="#7d766f" stroke-width="1.1" fill="none" stroke-linecap="round"/><circle cx="56" cy="5.6" r="1.6" fill="#80868e"/><g transform="rotate(-4 56 44)">';
+    function txt(fill,stroke,w,extra){return '<text x="56" y="51" text-anchor="middle" font-family="'+F+'" font-weight="'+700+'" font-size="15" letter-spacing="2" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+w+'" stroke-linejoin="round"'+(extra||"")+'>CLOSED</text>'}
+    function box(stroke,w){return '<rect x="13.5" y="30.5" width="85" height="29" rx="4" fill="none" stroke="'+stroke+'" stroke-width="'+w+'"/>'}
+    if(k==="window")s+='<rect x="8" y="25" width="96" height="40" rx="5" fill="url(#twGf)"/><rect x="8" y="25" width="96" height="40" rx="5" fill="url(#twNr)" opacity=".6"/><path d="M14 64 L34 25 H44 L24 64 Z M30 64 L50 25 H53 L33 64 Z" fill="#fff" opacity=".06"/><rect x="8.6" y="25.6" width="94.8" height="38.8" rx="4.6" fill="none" stroke="url(#twGe)" stroke-width="1.2"/><path d="M13 26.2 H99" stroke="#fff" stroke-width=".5" opacity=".5" stroke-linecap="round"/>'+[[12,29],[100,29],[12,61],[100,61]].map(function(q){return '<circle cx="'+q[0]+'" cy="'+q[1]+'" r="1.1" fill="#a7adb5"/>'}).join(""); /* WINDOW: a clear acrylic panel: faint fill, two diagonal sheen streaks, the pink glow on the pane, its edge catching pink and cyan, a bright top edge and four steel standoffs */
+    else s+='<rect x="8" y="25" width="96" height="40" rx="9.5" fill="#14151c"/>'+(k==="core"?'<rect x="8" y="25" width="96" height="40" rx="9.5" fill="url(#twNr)"/>':""); /* the board's corners: the border tube's radius (4) plus the 5.5 gap to the edge */
+    s+='<g class="twNe">';
+
+
+    s+='<g filter="url(#twNg)">'+box(B,2.6)+txt("none",P,2.4)+'</g><g filter="url(#twNs)">'+box(BC,0.9)+txt("none",PC,0.8)+'</g>'+box(BC,0.6)+txt("none","#fff",0.45);
+    return s+'</g></g></svg>'}
+  function twMedalX(){var c="#ff8a6a",P="M6 36 L8 14 L17 23 L24 10 L31 23 L40 14 L42 36 Z M6 39 H42 V42 H6 Z";
+    var md="sign";if(md==="sign")return twSignSvg();if(md==="flip")return '<svg width="64" height="64" viewBox="0 0 48 48"><g transform="rotate(172 24 26)"><path d="'+P+'" fill="'+c+'"/></g></svg>';
+    return '<svg width="64" height="64" viewBox="0 0 48 48"><mask id="twBite"><rect width="48" height="48" fill="#fff"/><circle cx="41" cy="12" r="7" fill="#000"/><circle cx="34.5" cy="7.5" r="4.5" fill="#000"/><circle cx="45" cy="20" r="4.5" fill="#000"/></mask><path d="'+P+'" fill="'+c+'" mask="url(#twBite)"/></svg>'}
+  function twClosedUI(on){var pz=HUD.pause,h=pz.querySelector("h2"),cb=pz.querySelector(".cont"),k=pz.querySelector(".twCl");
+    if(on&&!k){k=document.createElement("div");k.className="twCl";k.innerHTML='<div class="medal"></div><div class="grade" style="color:#ff8a6a">WE&#8217;RE CLOSED</div>';pz.insertBefore(k,h)}
+    if(k){k.style.display=on?"":"none";if(on){k.querySelector(".medal").innerHTML=twMedalX();k.querySelector(".grade").style.display=("sign")==="sign"?"none":""}} /* the sign says CLOSED itself, so the label goes */
+    h.textContent=on?"YOU ARE OFF THE MENU.":"PAUSED";if(cb&&cb.firstChild&&cb.firstChild.nodeType===3)cb.firstChild.nodeValue=on?"Keep rolling":"Resume"}
+
+  var _twPause0=pauseGame;pauseGame=function(){_twPause0();if(phase!=="pause")return;var fin=!!(twGi||twSpec||twEnd);
+    if(fin&&twOs){HUD.pstat.textContent="Size "+twOs.c.toFixed(1)+"× / Goal "+twOs.t.toFixed(1)+"× · "+(twSpec?"Final":"!!!")+" · "+twOs.n+" "+(twOs.n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display="";prp.innerHTML=twOs.r}}
+    else if(freeRoll&&!fin&&HUD.timer){var tt=(HUD.timer.textContent||"").trim();if(tt&&tt!=="FREE ROLL")HUD.pstat.textContent=HUD.pstat.textContent.replace("· Free roll ·","· "+(tt.charAt(0)+tt.slice(1).toLowerCase())+" ·")} /* free roll: the pause line says what the timer slot says (3 left, All clear) */
+    twClosedUI(!!twSpec)};
   var twMq=null;function twSpecInit(){twSpec=true;twSpT=0;twSpW=0;twFxHook();twSpecRdy=false;if(keyLight)keyLight.castShadow=false;try{renderer.compileAsync(scene,cam).then(function(){twSpecRdy=true},function(){twSpecRdy=true})}catch(e){twSpecRdy=true}freeRoll=true;if(keyLight)keyLight.castShadow=false;ballR=1e-3;ball.visible=false;if(playerShadow)playerShadow.visible=false;var h=GAME.querySelector(".hud");if(h)h.style.visibility="hidden";
     if(twSC0)twSpecFrom(twSC0.p,twSC0.u);twSC0=null}
   /* the world wakes up: for its first moments everything runs slow and speeds up to normal over about 1.5 s */
@@ -1716,7 +1804,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       var fc=biome(hs/3);for(var k2=0;k2<3;k2++){var r=surfaceFromH(ds[k2][1]);pos.setXYZ(i+k2,ds[k2][0].x*r,ds[k2][0].y*r,ds[k2][0].z*r);ca[(i+k2)*3]=fc.r;ca[(i+k2)*3+1]=fc.g;ca[(i+k2)*3+2]=fc.b}}
     geo.setAttribute("color",new THREE.BufferAttribute(ca,3));geo.computeVertexNormals();
     planet=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,flatShading:true,roughness:.96,metalness:0}));planet.receiveShadow=true;scene.add(planet);
-    var atmo=new THREE.Mesh(new THREE.IcosahedronGeometry(SR+RELIEF+3.2,3),new THREE.MeshBasicMaterial({color:col(p.accent),transparent:true,opacity:.1,side:THREE.BackSide}));scene.add(atmo);
+    var atmo=new THREE.Mesh(new THREE.IcosahedronGeometry(SR+RELIEF+3.2,3),new THREE.MeshBasicMaterial({color:col(p.accent),transparent:true,opacity:.1,side:THREE.BackSide,depthWrite:false}));scene.add(atmo);
     // stars
     var sv=[];for(var s=0;s<700;s++){var sd=fibDir(s,700).multiplyScalar(900+rnd()*600);sv.push(sd.x,sd.y,sd.z)}
     var sg=new THREE.BufferGeometry();sg.setAttribute("position",new THREE.Float32BufferAttribute(sv,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:1.5,sizeAttenuation:false})));
@@ -1921,7 +2009,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
   function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};releaseStick();
     var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
-    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / Goal "+params.targetMul.toFixed(1)+"× · "+(freeRoll?"Free roll":(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display=freeRoll?"":"none";if(freeRoll)twReport(".pause .rpt")}
+    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / Goal "+params.targetMul.toFixed(1)+"× · "+(freeRoll?(twGi?"!!!":"Free roll"):(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display=freeRoll?"":"none";if(freeRoll)twReport(".pause .rpt")}
     overlays(HUD.pause);phase="pause"}
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
@@ -2137,12 +2225,14 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       var g=TH[s],x=c.getContext("2d");for(var k=0;k<169;k++)if(g[k]){x.fillStyle=g[k];x.fillRect(k%13,(k/13)|0,1,1)}}catch(_){}
     requestAnimationFrame(next)})()}
   document.addEventListener("pointerdown",function(e){if(pick&&!pick.contains(e.target))unpick()},true);
-  function share(t,keepArt){try{var q=new URLSearchParams(location.search);q.set("token",t.id+1);q.set("seed",t.seed);if(!keepArt)q.delete("art");history.replaceState(history.state,"","?"+q)}catch(_){}}
+  function share(t,keepArt){try{var q=new URLSearchParams(location.search);q.set("token",t.id+1);q.set("seed",t.seed);if(WL&&WL.key)q.set("wallet",WL.key);if(!keepArt)q.delete("art");history.replaceState(history.state,"","?"+q)}catch(_){}}
   /* after a wallet / .tez lookup, a wallet button (its name) sits before KATAMAKI; it opens a menu listing the wallet's pieces.
      Kept for this tab (also across reloads). Random Seed, or anything other than a wallet typed in the seed field, removes it. Picking a piece keeps it */
   var WL=null,wbtn=null,wmenu=null;try{WL=JSON.parse(sessionStorage.getItem("mkmnWL")||"null")}catch(_){}
   function wlLabel(p){if(p.tez)return p.tez.toLowerCase();var a=p.addr;return a.slice(0,6)+"…"+a.slice(-5)}
-  function wlSet(v){WL=v;try{if(v)sessionStorage.setItem("mkmnWL",JSON.stringify(v));else sessionStorage.removeItem("mkmnWL")}catch(_){}wlShut();wlDraw()}
+  function wlSet(v){WL=v;try{if(v)sessionStorage.setItem("mkmnWL",JSON.stringify(v));else sessionStorage.removeItem("mkmnWL")}catch(_){}wlShut();wlDraw();wlUrl()}
+  /* while a wallet is active the address bar carries ?wallet= (its .tez name or address), so a copied link opens the same wallet */
+  function wlUrl(){try{var q=new URLSearchParams(location.search),k=WL&&WL.key;if(k)q.set("wallet",k);else q.delete("wallet");var s=q.toString();history.replaceState(history.state,"",s?"?"+s:location.pathname)}catch(_){}}
   function wlDraw(){if(!bar)return;if(!WL){if(wbtn){wbtn.remove();wbtn=null}return}
     if(!wbtn){wbtn=document.createElement("a");wbtn.className="button wlb";wbtn.href="#";wbtn.setAttribute("role","button");wbtn.setAttribute("aria-haspopup","menu");wbtn.innerHTML="<span></span>";
       wbtn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(wmenu)wlShut();else wlOpen()});bar.insertBefore(wbtn,bar.firstChild)}
@@ -2156,7 +2246,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   document.addEventListener("pointerdown",function(e){if(wmenu&&!wmenu.contains(e.target)&&!(wbtn&&wbtn.contains(e.target)))wlShut()},true);
   window.addEventListener("keydown",function(e){if(wmenu&&e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();wlShut()}},true);
   document.addEventListener("click",function(e){var t=e.target;if(t&&t.closest){if(t.closest(".export-bar .more"))wlShut();if(t.closest(".export-bar .seedb .rr"))wlSet(null)}},true); // ⋯ closes it; Random Seed removes it
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",wlDraw);else wlDraw(); // after the bar is arranged (the B-SIDE script reads the bar's first button as KATAMAKI)
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){wlDraw();wlUrl()});else{wlDraw();wlUrl()} // after the bar is arranged (the B-SIDE script reads the bar's first button as KATAMAKI)
   /* called by the seed field before it loads what was typed; true = handled here (load(seed,true) is called once found) */
   window.MKMN_FIND=function(v,load,inp,close){var p=parse(v);if(!p||!(p.addr||p.tez))wlSet(null);if(!p)return false; /* anything but a wallet removes the wallet button */
     var ph=inp.getAttribute("data-ph")||inp.placeholder;inp.setAttribute("data-ph",ph);
@@ -2168,13 +2258,19 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     var ids=p.id!=null?Promise.resolve([p.id]):p.num!=null?Promise.resolve([p.num-1]):p.addr?owned(p.addr):domain(p.tez).then(owned);
     Promise.all([ids,list()]).then(function(r){var ts=r[0].map(function(i){return r[1][i]}).filter(Boolean);
       if(!ts.length){say(p.num!=null?"No Makimono #"+p.num+" yet":p.id!=null?"No such Makimono":"No Makimono in this wallet");return}
-      if(p.addr||p.tez){ts.sort(function(a,b){return a.id-b.id});wlSet({label:wlLabel(p),ts:ts.map(function(t){return{id:t.id,seed:t.seed,name:t.name}})});inp.placeholder=ph;close();if(ts.length===1)go(ts[0]);else wlOpen();return} // a wallet: show its button, and open its list
+      if(p.addr||p.tez){ts.sort(function(a,b){return a.id-b.id});wlSet({key:p.tez?p.tez.toLowerCase():p.addr,label:wlLabel(p),ts:ts.map(function(t){return{id:t.id,seed:t.seed,name:t.name}})});inp.placeholder=ph;close();if(ts.length===1)go(ts[0]);else wlOpen();return} // a wallet: show its button, and open its list
       if(ts.length===1){inp.placeholder=ph;go(ts[0]);return}
       inp.placeholder=ph;close();unpick();ts.sort(function(a,b){return a.id-b.id}); // several: a list to pick from, styled like the ⋯ menu
       pick=document.createElement("div");pick.className="mkmenu open";pick.style.maxHeight="60vh";pick.style.overflowY="auto";
       var q=[];ts.forEach(function(t){var a=document.createElement("a");a.className="mi tk";a.href="#";a.innerHTML="<canvas width=13 height=13></canvas><span></span>";a.lastChild.textContent=t.name;q.push([a.firstChild,t.seed]);a.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();go(t)});pick.appendChild(a)});
       bar.appendChild(pick);thumbs(q)},function(e){say(/none/.test(e&&e.message)?"No such .tez name":"Lookup failed. Paste the seed instead")});
     return true};
+  /* ?wallet=name.tez (or an address) in a link: looks the wallet up and shows its button. With a ?seed= or ?token= as well, that piece stays
+     on screen; on its own, the wallet's first piece loads and its list opens. The same wallet already open in this tab is kept as is */
+  try{var q2=new URLSearchParams(location.search),wk=(q2.get("wallet")||"").trim(),pw=wk&&parse(wk);if(pw&&(pw.addr||pw.tez)){var key=pw.tez?pw.tez.toLowerCase():pw.addr,hasP=!!(q2.get("seed")||q2.get("token"));
+    if(!(WL&&WL.key===key)){WL=null;var st2=hasP?null:document.querySelector(".stage");if(st2)st2.style.opacity="0";
+      Promise.all([pw.addr?owned(pw.addr):domain(pw.tez).then(owned),list()]).then(function(r){var ts=r[0].map(function(i){return r[1][i]}).filter(Boolean).sort(function(a,b){return a.id-b.id});if(!ts.length)return;
+        wlSet({key:key,label:wlLabel(pw),ts:ts.map(function(t){return{id:t.id,seed:t.seed,name:t.name}})});if(!hasP&&window.MKMN_RESEED){MKMN_RESEED(ts[0].seed);share(ts[0],true);if(window.MKMN_ARTFROMURL)MKMN_ARTFROMURL();if(ts.length>1)setTimeout(wlOpen,0)}}).catch(function(){}).then(function(){if(st2)st2.style.opacity=""})}}}catch(_){}
   /* ?token=51 on its own: the page drew a random piece first, so swap in the token as soon as it's found */
   try{var q=new URLSearchParams(location.search),tk=q.get("token");if(tk&&/^\d+$/.test(tk)&&!q.get("seed")&&window.MKMN_RESEED){var st=document.querySelector(".stage");if(st)st.style.opacity="0";
     list().then(function(a){var t=a[+tk-1];if(t){MKMN_RESEED(t.seed);share(t,true);if(window.MKMN_ARTFROMURL)MKMN_ARTFROMURL()}}).catch(function(){}).then(function(){if(st)st.style.opacity=""})}}catch(_){}
@@ -2190,7 +2286,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
 (function(){var link=document.getElementById("mkmnIcon");if(!link)return;var last="",tm=0;
   function draw(){var svg=document.querySelector(".art-box svg");if(!svg)return;var cl=svg.cloneNode(true);cl.setAttribute("width",13);cl.setAttribute("height",13);
     if(!cl.getAttribute("xmlns"))cl.setAttribute("xmlns","http://www.w3.org/2000/svg");var str=new XMLSerializer().serializeToString(cl);if(str===last)return;last=str;
-    var img=new Image();img.onload=function(){try{var g=document.createElement("canvas");g.width=g.height=13;var gx=g.getContext("2d");gx.drawImage(img,0,0,13,13);
+    var img=new Image();img.onload=function(){try{var g=document.createElement("canvas");g.width=g.height=13;var gx=g.getContext("2d");gx.fillStyle=window.MKMN_BG||"#0b0b0c";gx.fillRect(0,0,13,13);gx.drawImage(img,0,0,13,13); /* on the piece's background colour first, so pixels the art leaves clear never come out black or see-through */
       var d=gx.getImageData(0,0,13,13).data;
       function px(S){var c=document.createElement("canvas");c.width=c.height=S;var x=c.getContext("2d");
         for(var j=0;j<13;j++)for(var i=0;i<13;i++){var k=(j*13+i)*4,x0=Math.round(i*S/13),y0=Math.round(j*S/13);x.fillStyle="rgb("+d[k]+","+d[k+1]+","+d[k+2]+")";x.fillRect(x0,y0,Math.round((i+1)*S/13)-x0,Math.round((j+1)*S/13)-y0)} // each art pixel is a solid block

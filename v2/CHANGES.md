@@ -76,6 +76,7 @@ The traits use the new wave names (Wave, Short Wave) on both sides.
 - **Katamaki** starts from the v2 edition's game (keys, hints, scoreboard and end-screen lines above) and adds the changes in **Katamaki on this page**, below. The v2 edition (`makimono.html`, the mint build) keeps the game as described above.
 - **Lighter page:** three.js loads after the art is drawn, so the piece never waits for the game's library. Pressing `G` or KATAMAKI before it has arrived marks the button as loading, and the game opens as soon as it's ready. Space Mono comes from Google Fonts instead of being embedded (the mint build still embeds it), and only its regular weight is used.
 - **Find your token without the seed:** the seed field also takes a token number (`51` or `#51`), an Aleatory or objkt link, or a wallet address or `.tez` name, which lists the wallet's pieces with thumbnails. A button with the wallet's name (.tez names in full, addresses shortened in the middle) then sits before KATAMAKI to reopen the list, for this tab; Random Seed or entering anything else removes it. Lookups use TzKT. `?token=51` in the address opens that token.
+- **Share a wallet:** `?wallet=name.tez` (or an address) in a link looks the wallet up and shows its button; on its own it opens the wallet's first piece and its list, and with `&token=` or `&seed=` it keeps that piece. While a wallet is active the address carries `?wallet=` too, so copying it shares the wallet.
 - The SEED pill, the home-screen icon, the background fill and the art at the bottom are as in the player.
 
 ### Katamaki on this page
@@ -113,11 +114,12 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Back to art:** every end screen has a Back to art button.
 
 **The chopsticks monster (after OMAKASE)**
-- **When it comes:** after OMAKASE, if both chopsticks have been rolled up (before or after the OMAKASE screen), Keep rolling, let the confetti settle and the NO MORE ANTS marquee cross once. Then a giant chopsticks monster lands on the far side of the planet with a thump. The timer slot reads !!! and the marquee switches to UH OH...
-- **The chase:** it hop-walks toward the roll, always turning to keep its eyes on it, and sends little chopsticks after it. They start few and slow (2 at a time, slower than the roll) and build up over about 45 s, to 10 at a time, faster than the roll and from every side. Each bump knocks the roll away from the chopstick that hit it, so sooner or later it runs into the giant. They can't be rolled up and nothing falls off.
+- **When it comes:** after OMAKASE, if both chopsticks have been rolled up (before or after the OMAKASE screen), Keep rolling, let the confetti settle and the NO MORE ANTS marquee cross once. Then a giant chopsticks monster lands on the far side of the planet with a thump. The timer slot reads !!! and the marquee switches to UH OH... (the pause screen's free-roll line reads !!! too)
+- **The chase:** it hop-walks toward the roll, always turning to keep its eyes on it, and sends little chopsticks after it. They start few and slow (2 at a time, slower than the roll) and build up over about 45 s, to 10 at a time, faster than the roll and from every side. They hold their ground when they hit, and each bump knocks the roll away from the chopstick and partly toward the giant, so sooner or later it runs into the giant. They can't be rolled up and nothing falls off.
 - **The grab:** touching the giant sets it off. It closes on the maki and everything on it is knocked off and scattered around. Then it lifts the bare maki away out of the sky.
-- **The restore:** the scattered pickups, and everything else that was moved or rolled up, fly back to where they stood at the start of the round. A glitchy pixel transition hands over to the planet running again as it was at the start (ants walking, belt turning), without the maki. The planet turns slowly and the arrow keys, WASD or the stick spin it. NO MORE MAKI scrolls across the sky.
+- **The restore:** the scattered pickups, and everything else that was moved or rolled up, fly back to where they stood at the start of the round. A glitch transition (blocky pixels with torn bands in the planet's own ground colours) hands over to the planet running again as it was at the start (ants walking, belt turning), without the maki. The planet turns slowly and the arrow keys, WASD or the stick spin it. NO MORE MAKI scrolls across the sky.
 - **Shadows:** the giant, the little chopsticks and the scattered pickups cast a soft shadow on the ground that shrinks as they rise.
+- **The pause screen:** from the monster's arrival on, it keeps the OMAKASE numbers, the round's final ones. On the final planet it becomes a closing card: a pink neon CLOSED sign, YOU ARE OFF THE MENU., the final numbers and Keep rolling.
 
 **End, pause and restart screens**
 - **Buttons:** stacked in one column on every screen, all as wide as the widest. Labels are centred; with key hints shown (keyboard), the label sits left and the key on the right. On short screens (landscape phones, 520px tall or less) they sit side by side in one row so everything fits.
@@ -127,6 +129,9 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 
 **Fixes**
 - **W A S D:** a letter key let go while Shift or Caps Lock had changed could stay held, so the roll kept reversing or turning. Letter keys now go by their place on the keyboard (any layout, Shift or Caps Lock), and every key is let go when the window loses focus.
+- **Beacons:** the planet's faint atmosphere no longer cuts off the tops of the beams.
+- **Home-screen icon:** drawn on the piece's background colour, so it's never black or see-through where the art leaves pixels empty.
+- **Free roll after OMAKASE:** the pause screen's line says what the timer slot says (3 left, All clear) instead of Free roll.
 - **Knocked-off pickups:** things knocked off the roll now cast a shadow on the ground while they fly, and keep one once they land.
 
 **Rule changes**
