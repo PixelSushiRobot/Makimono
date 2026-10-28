@@ -1834,6 +1834,41 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       plaza.gone[k]=true;plaza.vis[k]=false;n++;var cc=new THREE.Color();plaza.m.getColorAt(k,cc);var tm=new THREE.Mesh(new THREE.BoxGeometry(plaza.TS*0.94,S.y,plaza.TS*0.94),twM(cc));tm.position.copy(P);tm.quaternion.copy(Q);
       tm.userData.req=params.targetMul*0.5*R0;tm.userData.mkO=plaza.TS*plaza.TS;tm.userData.nm="PLAZA TILE";plaza.gn++;scene.add(tm);twW0(tm);plaza.m.setMatrixAt(k,plaza.Z0);plaza.m.instanceMatrix.needsUpdate=true;
       twMagF.push({m:tm,t:0,done:(function(tm){return function(){stickToRoll(tm);ballR+=0.035;pips++}})(tm)})}}}
+  /* ZOOM (prototype): bring the follow camera closer to the roll. twZ is the zoom (1 = the usual view, 0.45 = closest), easing toward twZT over
+     about a quarter of a second; the camera's distance is multiplied by it and the look-down flattens by up to 10 degrees, so close up you see the
+     side of the maki. Desktop: the mouse wheel or a trackpad pinch, and Z toggles close / normal. Touch: a magnifier button next to pause toggles,
+     and a two-finger pinch zooms (the stick lets go while two fingers are down). Only in play: the ending and the final planet keep their own cameras.
+     Choices (test row): ZOOM · MIX (Z and the button toggle, the wheel and pinch are smooth) / TWO (everything snaps between the two levels);
+     KEEP · SESSION (stays for the next round) / ROUND (back to normal each round); GOLD · CLOSE (it stays close past gold) / PLANET (past gold the zoom gives way to the whole-planet
+     view). Picked: MIX, SESSION, CLOSE */
+  var twZ=1,twZT=1,twZB=1,twZR=null,twZW=0,ZMIN=0.45,twZBt=null;
+  function twZoomEff(dt,cG){if(renderer!==twZR){twZR=renderer;if(false){twZ=twZT=1;twZBtn()}}
+    twZ+=(twZT-twZ)*(1-Math.pow(0.00005,dt));if(Math.abs(twZT-twZ)<1e-3)twZ=twZT;
+    var cb=Math.min(1,Math.max(0,(cG-1)/0.6));cb=cb*cb*(3-2*cb);
+    if(true){twZB=1-(1-twZ)/(1-ZMIN);return twZ}twZB=1;return twZ+(1-twZ)*cb}
+  function twZPlay(){return GAME.classList.contains("on")&&phase==="play"&&!twEnd&&!twSpec}
+  function twZTwo(){return false}
+  function twZBtn(){if(twZBt)twZBt.querySelector(".zv").style.display=twZT<0.8?"none":""}
+  function twZSet(v){twZT=Math.max(ZMIN,Math.min(1,v));twZBtn()}
+  function twZTog(){twZSet(twZT<0.8?1:ZMIN)}
+  GAME.addEventListener("wheel",function(e){if(!twZPlay())return;e.preventDefault();var dy=e.deltaY*(e.deltaMode===1?16:1);
+    if(twZTwo()){if(Math.abs(dy)<4)return;var n=performance.now();if(n<twZW)return;twZW=n+350;twZSet(dy<0?ZMIN:1);return}
+    twZSet(twZT*Math.exp(dy*(e.ctrlKey?0.01:0.0015)))},{passive:false});
+  window.addEventListener("keydown",function(e){if(e.metaKey||e.ctrlKey||e.altKey||e.repeat||!twZPlay())return;if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
+    if(e.key==="z"||e.key==="Z"||e.code==="KeyZ"){e.preventDefault();twZTog()}},true);
+  (function(){var tb=GAME.querySelector(".tbtns");if(!tb)return;var b=document.createElement("button");b.className="tzoom";b.setAttribute("aria-label","Zoom");
+    b.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="6.6" cy="6.6" r="4.4" stroke-width="1.8"/><path d="M10 10l3.6 3.6" stroke-width="2.2"/><path d="M4.4 6.6h4.4" stroke-width="1.6"/><path class="zv" d="M6.6 4.4v4.4" stroke-width="1.6"/></svg>';
+    b.addEventListener("click",function(e){e.stopPropagation();if(twZPlay())twZTog()});tb.insertBefore(b,tb.firstChild);twZBt=b})();
+  /* the pinch: a second finger on the play area lets go of the stick; while two fingers are down their distance sets the zoom, and a finger
+     left behind after the pinch stays ignored till it lifts, so it doesn't grab the stick mid-gesture */
+  (function(){var tp=GAME.querySelector(".tpad");if(!tp)return;var P={},pin=null,dead={};
+    function n(){return Object.keys(P).length}function dist(){var k=Object.keys(P),a=P[k[0]],c=P[k[1]];return Math.hypot(a.x-c.x,a.y-c.y)}
+    tp.addEventListener("pointerdown",function(e){if(e.pointerType!=="touch"||e.target.closest("button"))return;P[e.pointerId]={x:e.clientX,y:e.clientY};
+      if(n()===2&&twZPlay()){e.stopImmediatePropagation();e.preventDefault();Object.keys(P).forEach(function(id){dead[id]=1});
+        if(typeof releaseStick==="function")releaseStick();pin={d:Math.max(20,dist()),z:twZT}}},true);
+    tp.addEventListener("pointermove",function(e){if(!P[e.pointerId])return;P[e.pointerId]={x:e.clientX,y:e.clientY};if(!dead[e.pointerId])return;e.stopImmediatePropagation();
+      if(pin&&n()===2){var r=pin.d/Math.max(20,dist());if(twZTwo()){if(r<0.8)twZSet(ZMIN);else if(r>1.25)twZSet(1)}else twZSet(pin.z*r)}},true);
+    ["pointerup","pointercancel"].forEach(function(t){tp.addEventListener(t,function(e){delete P[e.pointerId];if(n()<2)pin=null;if(dead[e.pointerId]){delete dead[e.pointerId];e.stopImmediatePropagation()}},true)})})();
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -2015,8 +2050,8 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     }
     // follow cam (fixed angle): rides along with the roll over the planet, high and 40° down, but never swings round, so up the screen stays the same way; distance grows with the roll
     twGrowEnd();/* camera as the roll grows (planet view). cG = growth, 0 at the start, 1 at gold. Up to gold the 40 degree look-down steepens to 68, the camera zooms out a quarter slower and aims below the roll, toward the planet's middle, so the roll sits higher on screen and the planet fills the view; past gold it eases into a view of the whole planet with the roll on top */
-    var cG=Math.max(0,(ballR/R0-1)/Math.max(0.5,params.targetMul-1)),cg=Math.min(1,cG),cA=(40+28*cg)*Math.PI/180,cD=ballR*3+13,want=pPos.clone().addScaledVector(up,cD*Math.sin(cA)).addScaledVector(camF,-cD*Math.cos(cA));
-    var cB=Math.min(1,Math.max(0,(cG-1)/0.6));cB=cB*cB*(3-2*cB);if(cB>0)want.lerp(up.clone().multiplyScalar(Math.cos(0.42)).addScaledVector(camF,-Math.sin(0.42)).multiplyScalar((SR+RELIEF)*2.7+ballR*2),cB);
+    var cG=Math.max(0,(ballR/R0-1)/Math.max(0.5,params.targetMul-1)),cg=Math.min(1,cG),zE=twZoomEff(dt,cG),cA=(40+28*cg-10*(1-zE)/0.55)*Math.PI/180,cD=(ballR*3+13)*zE,want=pPos.clone().addScaledVector(up,cD*Math.sin(cA)).addScaledVector(camF,-cD*Math.cos(cA));
+    var cB=Math.min(1,Math.max(0,(cG-1)/0.6));cB=cB*cB*(3-2*cB)*twZB;if(cB>0)want.lerp(up.clone().multiplyScalar(Math.cos(0.42)).addScaledVector(camF,-Math.sin(0.42)).multiplyScalar((SR+RELIEF)*2.7+ballR*2),cB);
     var minH=surfaceR(want.clone().normalize())+ballR*1.2+1.5;if(want.length()<minH)want.setLength(minH); // keep above terrain to avoid clipping
     cam.position.lerp(want,1-Math.pow(0.0016,dt));cam.up.copy(up);
     // aim a little ahead of the roll
@@ -2659,7 +2694,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   menu.addEventListener("click",function(e){e.stopPropagation()});
   document.addEventListener("pointerdown",function(e){if(menu.classList.contains("open")&&!menu.contains(e.target)&&!more.contains(e.target))shut()},true);
   /* shortcuts card (?): a click on it or anywhere else closes it. The click that closes it from outside does nothing else (it doesn't also toggle the traits or press a button) */
-  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["B","B-side"],["V","View seed"],["N","New seed"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W S A D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
+  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["B","B-side"],["V","View seed"],["N","New seed"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W S A D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["Z","Zoom in / out (or scroll, pinch)"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
   var card=document.createElement("div");card.className="mkcard";card.innerHTML='<div class="ttl">Keyboard shortcuts</div>'+rows.map(function(r){return r[1]?'<div class="row"><span class="k">'+caps(r[0])+'</span>'+r[1]+'</div>':'<div class="hd">'+r[0]+'</div>'}).join("");document.body.appendChild(card);
   function cardOn(){return card.classList.contains("open")}
   /* the card takes the piece's colours, and keeps following them while it's open (a new seed or B-SIDE recolours it) */
