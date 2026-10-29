@@ -1558,7 +1558,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* the knock's direction: mostly straight away from the little chopstick that hit (60%), bent toward the giant (40%), so being chased from
      behind still brings the roll nearer the giant. Returns the axis to turn the roll's spot about */
   function twKnAx(u,pd,G){var aw=pd.clone().sub(u);aw.addScaledVector(pd,-aw.dot(pd));var tg=G.clone().addScaledVector(pd,-G.dot(pd));if(aw.lengthSq()>1e-12)aw.normalize();if(tg.lengthSq()>1e-12)tg.normalize();
-    var dr=aw.multiplyScalar(0.6).addScaledVector(tg,0.4);if(dr.lengthSq()<1e-10)dr=tg;var ax=new THREE.Vector3().crossVectors(pd,dr);return ax.lengthSq()>1e-12?ax.normalize():new THREE.Vector3()}
+    var sf=true,dr=aw.multiplyScalar(sf?0.45:0.6).addScaledVector(tg,sf?0.55:0.4);if(dr.lengthSq()<1e-10)dr=tg;var ax=new THREE.Vector3().crossVectors(pd,dr);return ax.lengthSq()>1e-12?ax.normalize():new THREE.Vector3()}
   function twGiStep(dt,t){var M=twGi;if(!M||twEnd||!running)return;M.t+=dt;var L=M.L,aO=0.34,V3=THREE.Vector3,G=M.dir,wk=true,tr="army";
     function cl(x){return Math.max(0,Math.min(1,x))}function ez(x){x=cl(x);return x*x*(3-2*x)}
     var bd=ball.position.clone().normalize();
@@ -1615,8 +1615,8 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
         else if(a.st===0)up=Math.abs(Math.sin(a.t*11))*a.sz*0.25;else up=Math.sin(Math.min(1,a.t/0.35)*Math.PI)*a.sz*1.2;
         a.g.position.copy(u).multiplyScalar(gy+up);twSBAdd(a.g.position,a.sz,a.sz*8);a.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xa,u,fz));
         if(a.st===1&&a.t>=0.35){a.st=0;a.t=0;a.cd=0.45}return true})} /* after the hop away it lands and chases again (it can't knock again for 0.45 s) */
-    /* the knock: the roll slides away from the chopstick that hit it, bent toward the giant, for 0.45 s, fast at first, and stops (no pickups lost) */
-    if(M.kn){M.kn.t+=dt;var kf=Math.max(0,1-M.kn.t/0.45);if(kf>0&&M.kn.ax.lengthSq()>0.5){var pd2=pPos.clone().normalize().applyAxisAngle(M.kn.ax,(ballR*7+10)*kf*kf*dt/SR*2.2*(M.kn.kf||1));pPos.copy(pd2.multiplyScalar(pPos.length()));ball.position.copy(pPos);vel=0}else M.kn=null}
+    /* the knock: the roll slides away from the chopstick that hit it, bent toward the giant, for 0.45 s, fast at first, and stops (no pickups lost). KNOCK (test row): SOFT, a bit under half as far (about 4 to 7 at a 4 roll, was 9 to 15) and bent more toward the giant (55%, was 40%), so it is a jolt rather than a launch and still herds the roll in; you get control back after the same 0.45 s. FULL is the old knock */
+    if(M.kn){M.kn.t+=dt;var kf=Math.max(0,1-M.kn.t/0.45);if(kf>0&&M.kn.ax.lengthSq()>0.5){var pd2=pPos.clone().normalize().applyAxisAngle(M.kn.ax,(true?ballR*3.2+4.5:ballR*7+10)*kf*kf*dt/SR*2.2*(M.kn.kf||1));pPos.copy(pd2.multiplyScalar(pPos.length()));ball.position.copy(pPos);vel=0}else M.kn=null}
     M.pdg=dg;if(M.lp)return;
     M.g.updateMatrixWorld(true);var fr=L*0.058;
     M.arms.forEach(function(m){var sg=m.userData.sg,f=M.g.localToWorld(new V3(sg*L*Math.sin(aO),-L*Math.cos(aO),0)).normalize(),pd=pPos.clone().normalize(),need=(ballR+fr)/SR,a2=pd.angleTo(f);
@@ -1940,6 +1940,16 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   (function(){var tb=GAME.querySelector(".tbtns");if(!tb)return;var b=document.createElement("button");b.className="tphoto";b.setAttribute("aria-label","Take a photo");
     b.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 5.2h2.6l1.2-1.8h4.4l1.2 1.8H14v7.6H2z"/><circle cx="8" cy="8.9" r="2.4"/></svg>';
     b.addEventListener("click",function(e){e.stopPropagation();twPhOpen()});tb.insertBefore(b,tb.firstChild)})();
+  /* the belt carrying the roll into something too big to roll up (an oshibori by the belt, say): the carry used to count as the roll's own move,
+     so the wall undid all of it each frame, the player's move away included, and soaked up the roll's speed, which left it stuck against the
+     thing, unable to roll or hop free. Now a carry that would bring the roll closer to such a thing within its reach is skipped (the roll slips
+     on the belt), and the walls then only judge the player's own move, so backing away or hopping off works. h = the hop's height now, which
+     clears low things as the walls do */
+  function twCarryOK(p,dv,h){var a=p.clone().normalize(),b=p.clone().normalize().add(dv).normalize();
+    function hit(dir,reach,ht){if(h>ht)return false;var da=a.angleTo(dir)*SR,db=b.angleTo(dir)*SR;return db<reach&&db<da}
+    for(var i=0;i<obstacles.length;i++){var o=obstacles[i];if(!o.dead&&ballR<=o.size*0.9&&hit(o.dir,ballR+o.size,o.size*1.4))return false}
+    for(var j=0;j<props.length;j++){var q=props[j];if(!q.dead&&!q.hid&&ballR<q.req&&hit(q.dir,ballR*0.85+q.foot*0.7,q.foot*1.1))return false}
+    return true}
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -2040,7 +2050,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(bumpV.lengthSq()>0.01){var bu=bumpV.clone();bu.addScaledVector(up,-bu.dot(up));var bl=bu.length();if(bl>1e-3)pPos.applyAxisAngle(new THREE.Vector3().crossVectors(up,bu).normalize(),bl/SR*dt);bumpV.multiplyScalar(Math.pow(0.02,dt))}else bumpV.set(0,0,0); // monster knockback, decays fast; walls still stop it
     var hop=0;if(hopT>0){hopT-=dt;hop=Math.sin(Math.min(1,1-hopT/hopD)*Math.PI)*(hopMine?hopH:2.0)}if(hopT<=0)hopMine=false;
     var air=hopMine&&hop>hopH*0.3; // in the air: your own hop, past the first 30% of its height. Low things don't block you (chopsticks and ants still can)
-    if(lmRideP&&lmRideP.dv&&lmRideP.mv)pPos.addScaledVector(lmRideP.dv,pPos.length()); /* a moving platform carries the roll */
+    if(lmRideP&&lmRideP.dv&&lmRideP.mv&&twCarryOK(pPos,lmRideP.dv,hopMine&&hopT>0?hop:0))pPos.addScaledVector(lmRideP.dv,pPos.length()); /* a moving platform carries the roll (but not into something too big to roll up: there the roll slips on the belt, see twCarryOK) */
     var pdir=pPos.clone().normalize();
     // anything too big to collect is a wall: you can't move closer into it, but you can always back away (never stuck)
     var blocked=false;
