@@ -1882,7 +1882,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      (puffs, the glitch), but not the HUD, the buttons or their text. A playing round pauses while the photo is up, and Back carries on.
      The photo copies the art's poster with the traits shown, at the GIF's 1040 square: the shot fills the whole square, as the art fills the poster, and
      the frame (1000 square, its line 2 thick) sits inside it with the poster's 20 padding, in the piece's rice colour; the bottom band inside the line (156 high) is solid rice with the caption on it, with PROJECT
-     MAKIMONO top left and the logo bottom right as on the poster, in rice. The caption is your own (typed on the card, kept for the visit), in
+     MAKIMONO top left and the logo bottom right as on the poster, in rice. The caption is your own (typed on the card, kept for the visit till a photo is saved or shared), in
      the nori colour at the size of a trait value (30), uppercase, centred, shrinking to fit one line. Save downloads a PNG of 1040 square, as the GIF (2080 when the screen is big enough), so every edge lands on a whole pixel and the lines stay sharp;
      Share, where the device can share files, opens the share sheet. DEVELOP (test row) picks how the photo shows up:
      FADE (it develops from dark grey over about two seconds), SLIDE (the print slides up, then develops), FLASH (a white flash, no developing),
@@ -1931,8 +1931,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     g.drawImage(ph,0,0,S,S);
     var t=(P.cap.value||"").trim().toUpperCase();if(t){var f=twPhFit(P.m,t);g.font=twPhFont(30*u*f);g.fillStyle=P.col.nori;g.textAlign="center";g.textBaseline="alphabetic";g.fillText(t,520*u,940*u+twPhCap0(g)/2)} /* the capitals (it is always uppercase) centred in the band: the baseline sits half a cap height below the middle, so the space above and below the letters is the same */
     var nm="makimono-"+String((window.alea||window.$alea||{}).seed||"photo").replace(/^0x/,"").slice(0,8)+"-photo.png";
-    F.toBlob(function(b){if(!b)return;if(share){try{navigator.share({files:[new File([b],nm,{type:"image/png"})],title:"Makimono"}).catch(function(){})}catch(e){}return}
-      var a=document.createElement("a"),url=URL.createObjectURL(b);a.href=url;a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},4000)},"image/png")}
+    F.toBlob(function(b){if(!b)return;if(share){try{navigator.share({files:[new File([b],nm,{type:"image/png"})],title:"Makimono"}).then(twPhClr,function(){})}catch(e){}return}
+      var a=document.createElement("a"),url=URL.createObjectURL(b);a.href=url;a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},4000);twPhClr()},"image/png")}
+  function twPhClr(){twPhCap="";if(twPh){twPh.cap.value="";twPhSize()}} /* a saved or shared photo takes its caption with it: the field starts empty for the next one (a cancelled share keeps it) */
   window.addEventListener("keydown",function(e){var t=e.target;
     if(twPh&&twPh.on){var inp=t===twPh.cap;if(e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();twPhClose();return}if(inp&&e.key==="Enter"){e.preventDefault();t.blur()}e.stopImmediatePropagation();return}
     if(e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;
