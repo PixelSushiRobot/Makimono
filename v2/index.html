@@ -2405,8 +2405,8 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   document.addEventListener("pointerdown",function(e){if(pick&&!pick.contains(e.target))unpick()},true);
   function share(t,keepArt){try{var q=new URLSearchParams(location.search);q.set("token",t.id+1);q.set("seed",t.seed);if(WL&&WL.key)q.set("wallet",WL.key);if(!keepArt)q.delete("art");history.replaceState(history.state,"","?"+q)}catch(_){}}
   /* after a wallet / .tez lookup, a wallet button (its name) sits before KATAMAKI; it opens a menu listing the wallet's pieces.
-     Kept for this tab (also across reloads). Random Seed, or anything other than a wallet typed in the seed field, removes it. Picking a piece keeps it */
-  var WL=null,wbtn=null,wmenu=null;try{WL=JSON.parse(sessionStorage.getItem("mkmnWL")||"null")}catch(_){}
+     Kept for this tab across reloads, as long as the address bar still has its ?wallet= (load the page without it and the wallet is gone). Random Seed, or anything other than a wallet typed in the seed field, removes it. Picking a piece keeps it */
+  var WL=null,wbtn=null,wmenu=null;try{WL=JSON.parse(sessionStorage.getItem("mkmnWL")||"null");if(WL&&!new URLSearchParams(location.search).get("wallet")){WL=null;sessionStorage.removeItem("mkmnWL")}}catch(_){} /* the address bar decides: a reload with its ?wallet= keeps the wallet, but take ?wallet= out (say, to open another token) and the page opens without one */
   function wlLabel(p){if(p.tez)return p.tez.toLowerCase();var a=p.addr;return a.slice(0,6)+"…"+a.slice(-5)}
   function wlSet(v){WL=v;try{if(v)sessionStorage.setItem("mkmnWL",JSON.stringify(v));else sessionStorage.removeItem("mkmnWL")}catch(_){}wlShut();wlDraw();wlUrl()}
   /* while a wallet is active the address bar carries ?wallet= (its .tez name or address), so a copied link opens the same wallet */
@@ -2450,8 +2450,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       Promise.all([pw.addr?owned(pw.addr):domain(pw.tez).then(owned),list()]).then(function(r){var ts=r[0].map(function(i){return r[1][i]}).filter(Boolean).sort(function(a,b){return a.id-b.id});if(!ts.length)return;
         wlSet({key:key,label:wlLabel(pw),ts:ts.map(function(t){return{id:t.id,seed:t.seed,name:t.name}})});if(!hasP&&window.MKMN_RESEED){MKMN_RESEED(ts[0].seed);share(ts[0],true);if(window.MKMN_ARTFROMURL)MKMN_ARTFROMURL();if(ts.length>1)setTimeout(wlOpen,0)}}).catch(function(){}).then(function(){if(st2)st2.style.opacity=""})}}}catch(_){}
   /* ?token=51 on its own: the page drew a random piece first, so swap in the token as soon as it's found */
-  try{var q=new URLSearchParams(location.search),tk=q.get("token");if(tk&&/^\d+$/.test(tk)&&!q.get("seed")&&window.MKMN_RESEED){var st=document.querySelector(".stage");if(st)st.style.opacity="0";
-    list().then(function(a){var t=a[+tk-1];if(t){MKMN_RESEED(t.seed);share(t,true);if(window.MKMN_ARTFROMURL)MKMN_ARTFROMURL()}}).catch(function(){}).then(function(){if(st)st.style.opacity=""})}}catch(_){}
+  /* the token wins over the seed. A link with both (as the page writes them) whose token was changed by hand still carried the old token's seed, which drew first; now the token is looked up and, if its seed differs, its art is swapped in and the seed in the address bar corrected. A link with only a seed is drawn from it as before */
+  try{var q=new URLSearchParams(location.search),tk=q.get("token");if(tk&&/^\d+$/.test(tk)&&window.MKMN_RESEED){var st=document.querySelector(".stage");if(st)st.style.opacity="0";
+    list().then(function(a){var t=a[+tk-1];if(t&&t.seed!==$alea.seed){MKMN_RESEED(t.seed);share(t,true);if(window.MKMN_ARTFROMURL)MKMN_ARTFROMURL()}}).catch(function(){}).then(function(){if(st)st.style.opacity=""})}}catch(_){}
 })();</script>
 <style>/* PLAYER: the wallet list, with a thumbnail before each name */
 .export-bar .mkmenu .mi.tk{justify-content:flex-start;gap:calc(var(--scale-unit)*12)}
