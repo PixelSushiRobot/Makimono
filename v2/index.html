@@ -1878,6 +1878,68 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   var twSZ=1,twSZT=1,twSDm=0;
   function twSZoom(dt){twSZ+=(twSZT-twSZ)*(1-Math.pow(0.00005,dt));if(Math.abs(twSZT-twSZ)<1e-3)twSZ=twSZT;var k=(1-twSZ)/(1-ZMIN);k=Math.max(0,Math.min(1,k));return 1-Math.pow(1-k,2)}
   function twSDist(z,zk){var m=Math.max(SR+RELIEF*0.6+4,surfaceR(z)+6);twSDm=twSDm?twSDm+(m-twSDm)*0.08:m;var d0=twSC.d;return d0+(Math.min(d0,twSDm)-d0)*zk}
+  /* PHOTO: C (or the camera button on touch) takes a polaroid of the world as it is on screen: the game's 3D view and the layers drawn over it
+     (puffs, the glitch), but not the HUD, the buttons or their text. A playing round pauses while the photo is up, and Back carries on.
+     The photo copies the art's poster with the traits shown, at the GIF's 1040 square: the shot fills the whole square, as the art fills the poster, and
+     the frame (1000 square, its line 2 thick) sits inside it with the poster's 20 padding, in the piece's rice colour; the bottom band inside the line (156 high) is solid rice with the caption on it, with PROJECT
+     MAKIMONO top left and the logo bottom right as on the poster, in rice. The caption is your own (typed on the card, kept for the visit), in
+     the nori colour at the size of a trait value (30), uppercase, centred, shrinking to fit one line. Save downloads a PNG of 1040 square, as the GIF (2080 when the screen is big enough), so every edge lands on a whole pixel and the lines stay sharp;
+     Share, where the device can share files, opens the share sheet. DEVELOP (test row) picks how the photo shows up:
+     FADE (it develops from dark grey over about two seconds), SLIDE (the print slides up, then develops), FLASH (a white flash, no developing),
+     NONE (straight away) */
+  var twPh=null,twPhCap="",twPhRes=false;
+  function twPhCols(){var s=(window.alea||window.$alea||{}).seed,r=null,G=window.MKMN_BSIDE&&window.MKMN_ALT?window.MKMN_ALT:window.MKMN_GEN1;try{r=G(s)}catch(e){}
+    var sv=window.MKMN_SRC||r&&r.svg||"",m=/<rect x="2" y="[^"]*" width="1" height="[^"]*" fill="([^"]+)"/.exec(sv),mb=/<path fill="([^"]+)" d="M0 5h11v5h-11z/.exec(sv),body=mb?mb[1]:r&&r.ink||"#14241a",ring=m?m[1]:"#f4ecd8",ura=/uramaki/i.test(r&&r.tr&&r.tr.Form||"");
+    return ura?{rice:body,nori:ring}:{rice:ring,nori:body}} /* read off the art on screen (MKMN_SRC, so B-side and a typed message count): the roll body is nori (rice on an uramaki) and the eyes are the other one. The generator is reached through MKMN_ALT / MKMN_GEN1, as mkGen is private to the art script */
+  function twPhGrab(){var c=renderer.domElement,W=c.width,H=c.height,A=1,cw,ch;if(W/H>A){ch=H;cw=Math.round(H*A)}else{cw=W;ch=Math.round(W/A)}
+    var sx=(W-cw)/2,sy=(H-ch)/2,o=document.createElement("canvas");o.width=cw;o.height=ch;var g=o.getContext("2d");
+    renderer.render(scene,cam);g.drawImage(c,sx,sy,cw,ch,0,0,cw,ch); /* read straight after drawing, before the browser clears it */
+    var R=c.getBoundingClientRect(),k=W/Math.max(1,R.width);
+    [].slice.call(GAME.querySelectorAll("canvas")).forEach(function(x){if(x===c||x.closest(".overlay,.hud,.tpad,.tbtns,.perf")||!x.width)return;var cs=getComputedStyle(x),r=x.getBoundingClientRect();
+      if(cs.display==="none"||cs.visibility==="hidden"||!(+cs.opacity>0)||r.width<2)return;g.globalAlpha=+cs.opacity;g.drawImage(x,0,0,x.width,x.height,(r.left-R.left)*k-sx,(r.top-R.top)*k-sy,r.width*k,r.height*k)});
+    g.globalAlpha=1;return o}
+  function twPhFont(px){return "400 "+px+"px 'Space Mono',ui-monospace,monospace"}
+  function twPhFit(g,t){g.font=twPhFont(30);var w=g.measureText(t).width;return w>956?Math.max(0.5,956/w):1} /* caption scale, in pixels at 1040 (band width 996 less 20 each side) */
+  function twPhPhoto(sc,col){var u=sc.width>=1560?2:1,S=1040*u,P=document.createElement("canvas");P.width=P.height=S;var g=P.getContext("2d");
+    g.imageSmoothingQuality="high";g.drawImage(sc,0,0,S,S);g.fillStyle=col.rice;g.fillRect(20*u,20*u,1000*u,2*u);g.fillRect(20*u,1018*u,1000*u,2*u);g.fillRect(20*u,20*u,2*u,1000*u);g.fillRect(1018*u,20*u,2*u,1000*u);g.fillRect(22*u,862*u,996*u,156*u);g.save();g.translate(22*u,22*u);g.textBaseline="top";if("letterSpacing" in g)g.letterSpacing=(15*u*0.08)+"px";
+    g.globalAlpha=0.9;g.font=twPhFont(15*u);g.fillText("PROJECT",20*u,21.5*u);if("letterSpacing" in g)g.letterSpacing="0px";g.globalAlpha=1;g.font=twPhFont(30*u);g.fillText("MAKIMONO",20*u,38*u);
+    var wm=document.querySelector(".watermark svg");if(wm){g.globalAlpha=0.5;var x0=(996-20-90)*u,y0=(840-20-30)*u;[].forEach.call(wm.querySelectorAll("rect"),function(r){g.fillRect(x0+(+r.getAttribute("x")||0)*u,y0+(+r.getAttribute("y")||0)*u,(+r.getAttribute("width")||0)*u,(+r.getAttribute("height")||0)*u)});g.globalAlpha=1}g.restore();
+    P._S=S;return P}
+  function twPhUI(){if(twPh)return twPh;var st=document.createElement("style");st.textContent="#game .shot{z-index:40;gap:14px}#game .shot.hidden{display:none}#game .pcard{position:relative;--pc:min(86vmin,calc(100vh - 150px),calc(100dvh - 150px));width:var(--pc);height:var(--pc);flex:none;box-shadow:0 12px 44px rgba(0,0,0,.55)}#game .pimg{position:absolute;inset:0;width:100%;height:100%;display:block}#game .pcap{position:absolute;left:4.0385%;width:91.923%;top:82.885%;height:15%;box-sizing:border-box;border:0;outline:0;background:transparent;text-align:center;text-transform:uppercase;font-family:'Space Mono',ui-monospace,monospace;padding:0;margin:0;-webkit-appearance:none;appearance:none;border-radius:0}#game .pcap::placeholder{color:inherit;opacity:.4}#game .pbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}#game .pbtns button{margin-top:0}#game .pflash{position:fixed;inset:0;background:#fff;pointer-events:none;z-index:41;opacity:0}";document.head.appendChild(st);
+    var o=document.createElement("div");o.className="overlay shot hidden";o.innerHTML='<div class="pcard"><canvas class="pimg"></canvas><input class="pcap" maxlength="60" placeholder="Add a caption" spellcheck="false" autocomplete="off" autocapitalize="characters" aria-label="Caption"></div><div class="pbtns"><button class="psave">Save</button><button class="pshare">Share</button><button class="pback">Back <kbd class="w">Esc</kbd></button></div>';
+    GAME.appendChild(o);var fl=document.createElement("div");fl.className="pflash";GAME.appendChild(fl);
+    twPh={o:o,card:o.querySelector(".pcard"),img:o.querySelector(".pimg"),cap:o.querySelector(".pcap"),share:o.querySelector(".pshare"),fl:fl,on:false,m:document.createElement("canvas").getContext("2d")};
+    twPh.cap.addEventListener("input",function(){twPhCap=twPh.cap.value;twPhSize()});
+    o.querySelector(".pback").addEventListener("click",function(e){e.stopPropagation();twPhClose()});
+    o.querySelector(".psave").addEventListener("click",function(e){e.stopPropagation();twPhOut(false)});
+    twPh.share.addEventListener("click",function(e){e.stopPropagation();twPhOut(true)});return twPh}
+  function twPhSize(){var P=twPh,pc=P.card.getBoundingClientRect().width,f=twPhFit(P.m,(P.cap.value||P.cap.placeholder).toUpperCase());var fs=pc*30/1040*f;P.cap.style.fontSize=fs+"px";P.m.font=twPhFont(fs);var mm=P.m.measureText("H"),sh=((mm.fontBoundingBoxAscent||fs*1.12)-(mm.fontBoundingBoxDescent||fs*0.36))/2-twPhCap0(P.m)/2;P.cap.style.paddingTop=(sh<0?-2*sh:0)+"px";P.cap.style.paddingBottom=(sh>0?2*sh:0)+"px"}
+  function twPhCap0(g){var m=g.measureText("H");return m.actualBoundingBoxAscent||parseFloat((/([0-9.]+)px/.exec(g.font)||[0,30])[1])*0.7} /* the cap height in the current font. On the card the caption is a text field, which centres the whole line (room for accents and descenders too), so its padding shifts it up by the difference */
+  function twPhOpen(){if((twPh&&twPh.on)||!GAME.classList.contains("on")||!built||!renderer||!/^(play|pause|end)$/.test(phase))return;
+    var sc=twPhGrab(),col=twPhCols(),P=twPhUI();twPhRes=phase==="play";if(twPhRes)pauseGame();
+    P.col=col;P.sc=sc;P.card.style.background=col.rice;P.cap.style.color=col.nori;P.cap.value=twPhCap;
+    var go=function(){var ph=twPhPhoto(sc,col);P.ph=ph;P.img.width=ph.width;P.img.height=ph.height;P.img.getContext("2d").drawImage(ph,0,0);twPhSize()};
+    if(document.fonts&&document.fonts.load)document.fonts.load(twPhFont(30)).then(go,go);else go();
+    var dv="fade",im=P.img.style,cd=P.card.style;im.transition=cd.transition="none";im.filter="";cd.transform="";P.o.classList.remove("hidden");P.on=true;
+    try{var tf=new File([new Blob([""])],"t.png",{type:"image/png"});P.share.style.display=navigator.canShare&&navigator.canShare({files:[tf]})?"":"none"}catch(e){P.share.style.display="none"}
+    var dev=function(d){im.filter="grayscale(1) sepia(.25) brightness(.32) contrast(.7)";void P.img.offsetWidth;im.transition="filter 2.2s cubic-bezier(.3,.1,.3,1) "+(d||0)+"s";im.filter="grayscale(0) sepia(0) brightness(1) contrast(1)"};
+    if(dv==="fade")dev(0.15);
+    else if(dv==="slide"){cd.transform="translateY(110vh)";void P.card.offsetWidth;cd.transition="transform .65s cubic-bezier(.2,.8,.25,1)";cd.transform="translateY(0)";dev(0.55)}
+    else if(dv==="flash"){var fs=P.fl.style;fs.transition="none";fs.opacity="1";void P.fl.offsetWidth;fs.transition="opacity .45s ease-out";fs.opacity="0"}}
+  function twPhClose(){if(!twPh||!twPh.on)return;twPh.on=false;twPh.o.classList.add("hidden");if(twPh.cap===document.activeElement)twPh.cap.blur();if(twPhRes&&phase==="pause")begin();twPhRes=false}
+  function twPhOut(share){var P=twPh;if(!P||!P.ph)return;var ph=P.ph,S=ph._S,u=S/1040,F=document.createElement("canvas");F.width=F.height=S;var g=F.getContext("2d");
+    g.drawImage(ph,0,0,S,S);
+    var t=(P.cap.value||"").trim().toUpperCase();if(t){var f=twPhFit(P.m,t);g.font=twPhFont(30*u*f);g.fillStyle=P.col.nori;g.textAlign="center";g.textBaseline="alphabetic";g.fillText(t,520*u,940*u+twPhCap0(g)/2)} /* the capitals (it is always uppercase) centred in the band: the baseline sits half a cap height below the middle, so the space above and below the letters is the same */
+    var nm="makimono-"+String((window.alea||window.$alea||{}).seed||"photo").replace(/^0x/,"").slice(0,8)+"-photo.png";
+    F.toBlob(function(b){if(!b)return;if(share){try{navigator.share({files:[new File([b],nm,{type:"image/png"})],title:"Makimono"}).catch(function(){})}catch(e){}return}
+      var a=document.createElement("a"),url=URL.createObjectURL(b);a.href=url;a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},4000)},"image/png")}
+  window.addEventListener("keydown",function(e){var t=e.target;
+    if(twPh&&twPh.on){var inp=t===twPh.cap;if(e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();twPhClose();return}if(inp&&e.key==="Enter"){e.preventDefault();t.blur()}e.stopImmediatePropagation();return}
+    if(e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;
+    if((e.key==="c"||e.key==="C"||e.code==="KeyC")&&GAME.classList.contains("on")){e.preventDefault();e.stopImmediatePropagation();twPhOpen()}},true);
+  (function(){var tb=GAME.querySelector(".tbtns");if(!tb)return;var b=document.createElement("button");b.className="tphoto";b.setAttribute("aria-label","Take a photo");
+    b.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 5.2h2.6l1.2-1.8h4.4l1.2 1.8H14v7.6H2z"/><circle cx="8" cy="8.9" r="2.4"/></svg>';
+    b.addEventListener("click",function(e){e.stopPropagation();twPhOpen()});tb.insertBefore(b,tb.firstChild)})();
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -2703,7 +2765,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   menu.addEventListener("click",function(e){e.stopPropagation()});
   document.addEventListener("pointerdown",function(e){if(menu.classList.contains("open")&&!menu.contains(e.target)&&!more.contains(e.target))shut()},true);
   /* shortcuts card (?): a click on it or anywhere else closes it. The click that closes it from outside does nothing else (it doesn't also toggle the traits or press a button) */
-  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["B","B-side"],["V","View seed"],["N","New seed"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W S A D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["Z","Zoom in / out (or scroll, pinch)"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
+  var rows=[["ART"],["I","Traits"],["M","Hop on / off"],["B","B-side"],["V","View seed"],["N","New seed"],["E","Download SVG"],["Shift E","Download GIF"],["GAME"],["W S A D / ↑ ↓ ← →","Roll and steer"],["Space","Hop"],["Z","Zoom in / out (or scroll, pinch)"],["C","Take a photo"],["P","Pause / resume"],["R","Restart"],["Enter","Start / keep rolling"],["BOTH"],["G","Art / Game"],["Esc","Back / cancel"],["?","This card"]];
   var card=document.createElement("div");card.className="mkcard";card.innerHTML='<div class="ttl">Keyboard shortcuts</div>'+rows.map(function(r){return r[1]?'<div class="row"><span class="k">'+caps(r[0])+'</span>'+r[1]+'</div>':'<div class="hd">'+r[0]+'</div>'}).join("");document.body.appendChild(card);
   function cardOn(){return card.classList.contains("open")}
   /* the card takes the piece's colours, and keeps following them while it's open (a new seed or B-SIDE recolours it) */
