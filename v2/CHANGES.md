@@ -47,7 +47,7 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 ### Keys and the end screen
 
 - **One meaning per key.** `P` only pauses and resumes. `Enter` is the go key: start, keep rolling, confirm restart. `R` restarts. `Esc` cancels the restart question, otherwise goes back to the art. The buttons show these keys as keycaps (hidden on touch, and so are the key caps in the More menu). In v1, `P` also meant Continue rolling and Cancel, and on the end screen it did nothing: Keep rolling is now on every end screen.
-- **New art keys:** `E` saves the SVG, `Shift`+`E` the GIF. `?` shows a card with every shortcut, in the piece's colours; a click on it or anywhere else closes it.
+- **New art keys:** `E` saves the SVG, `Shift`+`E` the GIF. `?` shows a card with every shortcut, in the piece's colours; a click on it or anywhere else closes it. The More menu also opens it, from its last item, Keyboard Shortcuts (not shown on touch). The menu is as wide as its longest label, so no label wraps.
 - **Game hints** show the keys as keycaps in groups, at the bottom (roll, steer, hop, pause, restart) and at the top (`G` / `Esc` art). Both fade out after 8 seconds of play and come back on any pause or end screen. Touch keeps its text hint.
 - **Size and goal** show as a scoreboard row over the bar, in the same style as OBJECTS and the timer. The timer no longer adds a ★ once the goal is reached.
 - **New end-screen lines.** Gold, silver and bronze each have 4 or 5 titles, time's up has 6, and ants show up in at most one line per screen. Sizes read `1.2×` everywhere, like the scoreboard.

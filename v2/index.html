@@ -2491,7 +2491,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
 .export-bar .button.seedb{display:none}
 .export-bar.seeding .button.seedb{display:flex}
 /* the menu: the piece's ink at 90% with the canvas colour as text, padded like the card, thin dividers in the text colour at 10% */
-.export-bar .mkmenu{position:absolute;top:calc(100% + var(--scale-unit)*8);right:0;display:none;flex-direction:column;min-width:calc(var(--scale-unit)*200);padding:calc(var(--scale-unit)*6) calc(var(--scale-unit)*20);border-radius:calc(var(--scale-unit)*14);background:rgba(var(--ink-rgb),.9);color:var(--bg,#0b0b0c);z-index:20}
+.export-bar .mkmenu{position:absolute;top:calc(100% + var(--scale-unit)*8);right:0;display:none;flex-direction:column;width:max-content;max-width:calc(100vw - var(--scale-unit)*16);white-space:nowrap;padding:calc(var(--scale-unit)*6) calc(var(--scale-unit)*20);border-radius:calc(var(--scale-unit)*14);background:rgba(var(--ink-rgb),.9);color:var(--bg,#0b0b0c);z-index:20}
 .export-bar .mkmenu.open{display:flex}
 .export-bar.seeding .mkmenu{display:none}
 .export-bar .mkmenu>*+*{border-top:max(1px,var(--scale-unit)*1) solid color-mix(in srgb,currentColor 10%,transparent)}
@@ -2500,7 +2500,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
 .export-bar .mkmenu .icon{display:none}
 .export-bar .mkmenu .gif-busy .icon{display:block;width:calc(var(--scale-unit)*16);height:calc(var(--scale-unit)*16);fill:currentColor;flex-shrink:0}/* the GIF spinner still shows while it renders */
 .export-bar .mkmenu .keys{display:flex;align-items:center;gap:calc(var(--scale-unit)*4);font-style:normal}
-@media (hover:none) and (pointer:coarse){.export-bar .mkmenu .keys{display:none}} /* phones and tablets: no keyboard, so the More menu drops its key caps */
+@media (hover:none) and (pointer:coarse){.export-bar .mkmenu .keys,.export-bar .mkmenu .kci{display:none}} /* phones and tablets: no keyboard, so the More menu drops its key caps and its Keyboard Shortcuts item */
 /* keycaps: square, except Enter, Space and Esc (.w), which are spelled out on a wider cap. The menu's scale with the piece; the card's and the game's are px */
 .export-bar .mkmenu kbd,.mkcard kbd{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0;border:1px solid currentColor;font-family:'Space Mono',ui-monospace,monospace;font-weight:400;letter-spacing:0;text-transform:uppercase}
 .export-bar .mkmenu kbd{width:calc(var(--scale-unit)*20);height:calc(var(--scale-unit)*20);border-width:max(1px,var(--scale-unit)*1.2);border-radius:calc(var(--scale-unit)*6);font-size:calc(var(--scale-unit)*11.5);opacity:.85}
@@ -2775,7 +2775,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
   lab(dl,"Download SVG","E");lab(gl,"Download GIF","Shift+E");lab(seedIt,"View Seed","V");lab(newIt,"Random Seed","N");
   [kb,dl,gl].forEach(function(n){if(n.parentNode)n.parentNode.removeChild(n)});
   bar.insertBefore(kb,pill);bar.insertBefore(bs,pill);bar.insertBefore(more,pill);
-  menu.appendChild(dl);menu.appendChild(gl);menu.appendChild(seedIt);menu.appendChild(newIt);bar.appendChild(menu);
+  menu.appendChild(dl);menu.appendChild(gl);menu.appendChild(seedIt);menu.appendChild(newIt);var kcIt=mi(function(){cardShow(true)});kcIt.classList.add("kci");lab(kcIt,"Keyboard Shortcuts","?");menu.appendChild(kcIt);bar.appendChild(menu); /* the last item opens the shortcuts card, the same as ? */
   /* the menu closes on a pick, a tap outside or Esc. While a GIF renders it stays open (the spinner shows) and closes once it's done */
   function shut(){if(menu._hold)return;menu.classList.remove("open");more.classList.remove("on")}
   more.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();var o=!menu.classList.contains("open");shut();if(o){menu.classList.add("open");more.classList.add("on")}});
