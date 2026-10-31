@@ -998,6 +998,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       ing.scale.setScalar(s);scene.add(ing);var ib=makeBlob(0.7);ing.add(ib);ing.userData.blob=ib;
       props.push({g:ing,dir:pd,foot:s*0.9,req:s*0.5,gain:0.07+s*0.11,spin:rnd()*6.28,dead:false});
     }
+    if(p.paul){var gR=mulberry(hash(String((window.$alea&&$alea.seed)||p.pattern||"makimono")+"|ghosts")),gh=props.filter(function(o){return o.g.userData.roam}); /* PAUL MODE: at least 13 ghosts on the planet, and at least one bigger than the maki at the start. Uses its own random numbers, so the rest of the planet is laid out the same */
+      while(gh.length<13){var gd=new THREE.Vector3(gR()*2-1,gR()*2-1,gR()*2-1);if(gd.lengthSq()<0.01)continue;gd.normalize();var gs=0.6+gR()*0.8,gi=buildIngredient(gR()<0.5?"ghost":"ghostg");gi.scale.setScalar(gs);scene.add(gi);var gbl=makeBlob(0.7);gi.add(gbl);gi.userData.blob=gbl;var go={g:gi,dir:gd,foot:gs*0.9,req:gs*0.5,gain:0.07+gs*0.11,spin:gR()*6.28,dead:false};props.push(go);gh.push(go)} /* ghosts go anywhere, so any spot on the planet will do */
+      var bigS=2.6*R0/1.47;if(!gh.some(function(o){return o.g.scale.x>=bigS})){var bo=gh[(gR()*gh.length)|0],bs=bigS*(1+gR()*0.4);bo.g.scale.setScalar(bs);bo.foot=bs*0.9;bo.req=bs*0.5;bo.gain=0.07+bs*0.11}} /* a ghost 1.47 tall per unit of size: bigS makes it taller than the maki is wide (2 x R0) by about a third */
     for(var k=0;k<12;k++){ // clouds
       var cd=fibDir(k,12).applyAxisAngle(YUP,rnd()*6.28).normalize(),cl=buildCloud();cl.scale.setScalar(1.1+rnd()*0.9);
       clouds.push({g:cl,dir:cd,rad:SR+RELIEF+2.4+rnd()*2.5,spd:0.03+rnd()*0.05});scene.add(cl);

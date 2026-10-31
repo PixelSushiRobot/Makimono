@@ -147,6 +147,7 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **The ground:** about 4 in 10 ingredients are swapped for red glasses (thick, near-square frames) and blue Tezos logos (the ꜩ mark, low-poly), with a ghost in about one in four of those spots. Half the ghosts start wearing glasses.
 - **The belts:** about 4 in 10 plates carry glasses, a Tezos logo or a small ant instead of food. Ants only ride plates; the ants on the ground are as before.
 - **Ghosts:** see-through sheets with Hype eyes that float up and down. They walk anywhere, over water and sometimes under the ground, popping back up when they stop. They can't be rolled up and don't count toward clearing. When they walk into ants or chopsticks they shove them aside.
+- **How many ghosts:** at least 13 on every Paul mode planet (more if they land there by chance), and at least one of them taller than the maki is wide at the start of the round. These extras are picked from their own random numbers, so the rest of the planet comes out the same.
 - **Glasses and ghosts:** a ghost without glasses heads for the nearest pair on the ground (including pairs knocked off the roll) and puts them on. A pair a ghost takes comes off the round's total. Roll into a ghost's face to take its glasses; they go on the roll but never count toward clearing. The end card shows **GLASSES SNATCHED** when you took any.
 
 **Rule changes**
