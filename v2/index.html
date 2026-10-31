@@ -641,12 +641,12 @@ html.mkgame,html.mkgame body{overflow:hidden;overscroll-behavior:none;background
 #game .tpad button{display:grid;place-items:center;padding:0;color:#fff;touch-action:none;-webkit-tap-highlight-color:transparent}
 #game .tpad button svg{display:block;fill:currentColor}
 #game .hopb{position:absolute;right:calc(26px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom));width:84px;height:84px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.12)}
-#game .hopb svg{width:38px;height:38px}
+#game .hopb svg{width:36px;height:36px} /* touch icons: Phosphor bold, filled in (phosphoricons.com, MIT) */
 #game .hopb.on{background:#fff;color:#05060a}
 /* pause: one round icon button under the timer, top-right, styled like the hop button. Back to art is on the pause screen, so it's never one stray tap away */
 #game .tbtns{position:absolute;top:calc(50px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));display:flex;gap:8px}
 #game .tbtns button{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(255,255,255,.12)}
-#game .tbtns button svg{width:18px;height:18px}
+#game .tbtns button svg{width:19px;height:19px}
 #game .tbtns button:active{background:#fff;color:#05060a}
 #game.touch .exit,#game.touch .overlay button kbd{display:none}
 #game.touch .traits{top:calc(14px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left))}
@@ -669,7 +669,7 @@ html.mkgame,html.mkgame body{overflow:hidden;overscroll-behavior:none;background
     <div class="sizebar"><i></i></div>
     <div class="hint">W / S roll &middot; A / D steer &middot; Space hop &middot; P pause &middot; R restart</div>
   </div>
-  <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 8h-4.5v5h-5v-5H5z"/><rect x="5" y="18.5" width="14" height="2.2" rx="1.1"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg></button></div></div>
+  <div class="tpad"><div class="stick"><i></i></div><button class="hopb" aria-label="Hop"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M232.48,111.51l-96-96a12,12,0,0,0-17,0l-96,96A12,12,0,0,0,32,132H68v44a12,12,0,0,0,12,12h96a12,12,0,0,0,12-12V132h36a12,12,0,0,0,8.48-20.49ZM188,216a12,12,0,0,1-12,12H80a12,12,0,0,1,0-24h96A12,12,0,0,1,188,216Z"/></svg></button><div class="tbtns"><button class="tpause" aria-label="Pause"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M200,28H160a20,20,0,0,0-20,20V208a20,20,0,0,0,20,20h40a20,20,0,0,0,20-20V48A20,20,0,0,0,200,28ZM96,28H56A20,20,0,0,0,36,48V208a20,20,0,0,0,20,20H96a20,20,0,0,0,20-20V48A20,20,0,0,0,96,28Z"/></svg></button></div></div>
   <div class="overlay start"><p class="wel">Welcome to</p><h2 class="logo"><span class="sr">Katamaki</span></h2><p class="desc"></p><button class="go">Start Rolling<kbd class="w">Enter</kbd></button></div>
   <div class="overlay end hidden"><div class="medal"></div><div class="grade"></div><h2 class="et"></h2><p class="em"></p><div class="rpt"></div><div class="btns"><button class="keep">Keep rolling<kbd class="w">Enter</kbd></button><button class="again"><span class="al">Try again</span><kbd>R</kbd></button><button class="omart">Back to art<kbd>G</kbd></button></div></div>
   <div class="overlay pause hidden"><h2>PAUSED</h2><p class="pstat"></p><div class="rpt"></div><div class="btns"><button class="cont">Resume<kbd>P</kbd></button><button class="rst">Restart<kbd>R</kbd></button><button class="toart">Back to art<kbd>G</kbd></button></div></div>
@@ -1848,7 +1848,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(true){twZB=1-(1-twZ)/(1-ZMIN);return twZ}twZB=1;return twZ+(1-twZ)*cb}
   function twZPlay(){return GAME.classList.contains("on")&&phase==="play"&&!twEnd}
   function twZTwo(){return false}
-  function twZBtn(){if(twZBt)twZBt.querySelector(".zv").style.display=twZGet()<0.8?"none":""}
+  function twZBtn(){if(!twZBt)return;var z=twZGet()<0.8,a=twZBt.querySelector(".zv"),m=twZBt.querySelector(".zm");if(a)a.style.display=z?"none":"";if(m)m.style.display=z?"":"none"} /* zoomed in shows the minus glass (zoom back out), otherwise the plus */
   function twZGet(){return twSpec?twSZT:twZT}
   function twZSet(v){v=Math.max(ZMIN,Math.min(1,v));if(twSpec)twSZT=v;else twZT=v;twZBtn()}
   function twZTog(){twZSet(twZGet()<0.8?1:ZMIN)}
@@ -1858,7 +1858,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   window.addEventListener("keydown",function(e){if(e.metaKey||e.ctrlKey||e.altKey||e.repeat||!twZPlay())return;if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
     if(e.key==="z"||e.key==="Z"||e.code==="KeyZ"){e.preventDefault();twZTog()}},true);
   (function(){var tb=GAME.querySelector(".tbtns");if(!tb)return;var b=document.createElement("button");b.className="tzoom";b.setAttribute("aria-label","Zoom");
-    b.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="6.6" cy="6.6" r="4.4" stroke-width="1.8"/><path d="M10 10l3.6 3.6" stroke-width="2.2"/><path d="M4.4 6.6h4.4" stroke-width="1.6"/><path class="zv" d="M6.6 4.4v4.4" stroke-width="1.6"/></svg>';
+    b.innerHTML='<svg viewBox="0 0 256 256" aria-hidden="true"><path class="zv" fill-rule="evenodd" d="M232.49,232.49a12,12,0,0,1-17,0L168,185a92.12,92.12,0,1,1,17-17l47.54,47.53A12,12,0,0,1,232.49,232.49ZM156,112a12,12,0,0,1-12,12H124v20a12,12,0,0,1-24,0V124H80a12,12,0,0,1,0-24h20V80a12,12,0,0,1,24,0v20h20A12,12,0,0,1,156,112Z"/><path class="zm" style="display:none" fill-rule="evenodd" d="M232.49,232.49a12,12,0,0,1-17,0L168,185a92.12,92.12,0,1,1,17-17l47.54,47.53A12,12,0,0,1,232.49,232.49ZM156,112a12,12,0,0,1-12,12H80a12,12,0,0,1,0-24h64A12,12,0,0,1,156,112Z"/></svg>';
     b.addEventListener("click",function(e){e.stopPropagation();if(twZPlay())twZTog()});tb.insertBefore(b,tb.firstChild);twZBt=b})();
   /* the pinch: a second finger on the play area lets go of the stick; while two fingers are down their distance sets the zoom, and a finger
      left behind after the pinch stays ignored till it lifts, so it doesn't grab the stick mid-gesture */
@@ -1945,7 +1945,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;
     if((e.key==="c"||e.key==="C"||e.code==="KeyC")&&GAME.classList.contains("on")){e.preventDefault();e.stopImmediatePropagation();twPhOpen()}},true);
   (function(){var tb=GAME.querySelector(".tbtns");if(!tb)return;var b=document.createElement("button");b.className="tphoto";b.setAttribute("aria-label","Take a photo");
-    b.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 5.2h2.6l1.2-1.8h4.4l1.2 1.8H14v7.6H2z"/><circle cx="8" cy="8.9" r="2.4"/></svg>';
+    b.innerHTML='<svg viewBox="0 0 256 256" aria-hidden="true"><path fill-rule="evenodd" d="M208,52H182.42L170,33.34A12,12,0,0,0,160,28H96a12,12,0,0,0-10,5.34L73.57,52H48A28,28,0,0,0,20,80V192a28,28,0,0,0,28,28H208a28,28,0,0,0,28-28V80A28,28,0,0,0,208,52ZM128,84a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,84Zm0,72a24,24,0,1,1,24-24A24,24,0,0,1,128,156Z"/></svg>';
     b.addEventListener("click",function(e){e.stopPropagation();twPhOpen()});tb.insertBefore(b,tb.firstChild)})();
   /* the belt carrying the roll into something too big to roll up (an oshibori by the belt, say): the carry used to count as the roll's own move,
      so the wall undid all of it each frame, the player's move away included, and soaked up the roll's speed, which left it stuck against the
