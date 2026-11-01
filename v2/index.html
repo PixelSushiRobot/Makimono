@@ -769,7 +769,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   }
   // ---- raw ingredients + sushi-bar objects (collectibles), recognizable low-poly ----
   var INGK=["fish","fish2","shrimp","avocado","cucumber","eggplant","carrot","edamame","onigiri","soy","teacup","oshibori"];
-  var twGkT=-1,twSnatch=0; /* twSnatch: glasses rolled off ghosts this round, a stat on the end card only (they never count toward clearing) */
+  var twGkT=-1,twSnatch=0,twGV=new THREE.Vector3(),twGM=new THREE.Matrix4(); /* twSnatch: glasses rolled off ghosts this round, a stat on the end card only (they never count toward clearing) */
   function twIsGl(q){var k=q.g.children[0];return q.g.userData.nm==="GLASSES"||!!(k&&k.userData&&k.userData.nm==="GLASSES")} /* PAUL MODE: A pair of glasses on the ground: one placed there, or one knocked off the roll (those land wrapped in a holder) */
   function twGhostRoam(o,t,dt){var u=o.g.userData,d=o.dir,s=o.g.scale.x; /* PAUL MODE: A ghost goes anywhere: it walks where it faces, curving a little, and now and then stops still for a moment. Some walks it sinks into the ground and travels underneath, then pops back up when it stops. It steers with its own heading along the ground (not an angle), so nothing makes it spin on the spot, and it floats up and down the whole time */
     if(u.st==null){u.st="walk";u.tt=1+Math.random()*3;u.sp=0.9+Math.random()*0.6;u.ph=Math.random()*6.28;u.tr=0;u.dp=0;u.dv=0;var a=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5);a.addScaledVector(d,-a.dot(d));if(a.lengthSq()<1e-6)a.set(d.y,-d.x,0).addScaledVector(d,-a.dot(d));u.hd=a.normalize()}
@@ -777,11 +777,11 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(params.paul&&!u.gg){u.sk=(u.sk||0)-dt;if(u.sk<=0){u.sk=0.5;u.tg=null;var bd=40;for(var sj=0;sj<props.length;sj++){var sq=props[sj];if(sq.dead||sq.hid||sq.g.userData.belt||!twIsGl(sq))continue;var sdd=o.g.position.distanceTo(sq.g.position);if(sdd<bd){bd=sdd;u.tg=sq}}}if(u.tg&&u.tg.dead)u.tg=null;if(u.tg){u.dv=0;if(u.st==="stop"){u.st="walk";u.tt=2}var tp=u.tg.g.position.clone().normalize().sub(d);tp.addScaledVector(d,-tp.dot(d));if(tp.lengthSq()>1e-10)u.hd.lerp(tp.normalize(),Math.min(1,dt*2.5))}}else u.tg=null; /* a ghost without glasses heads for the nearest pair on the ground within reach, staying above ground and not stopping until it gets them */
     if(u.st==="walk"){u.hd.applyAxisAngle(d,(u.tr*0.4+Math.sin(t/900+u.ph)*0.5)*dt);d.addScaledVector(u.hd,u.sp*dt/SR).normalize();u.hd.addScaledVector(d,-u.hd.dot(d)).normalize()}
     u.dp+=(u.dv-u.dp)*Math.min(1,dt*1.2);o.g.position.copy(d).multiplyScalar((o.tw?lmGround(d):surfaceR(d))+u.dp*1.7*s); /* dp 0 is on the ground, -1 is fully under it */
-    var rt=new THREE.Vector3().crossVectors(d,u.hd).normalize();o.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(rt,d,u.hd));
+    var rt=twGV.crossVectors(d,u.hd).normalize();o.g.quaternion.setFromRotationMatrix(twGM.makeBasis(rt,d,u.hd));
     if(u.bob)u.bob.position.y=0.14+0.1*Math.sin(t/380+u.ph);
     if(u.dp>-0.3){var gw=o.g.position,gr=0.6*s;[ants,enemies].forEach(function(L){for(var ci=0;ci<L.length;ci++){var c=L[ci];if(c.dead||!c.pos||(c.gkc||0)>t)continue;var cr=(L===ants?0.55:0.8)*(c.sz||1);if(gw.distanceTo(c.pos)<gr+cr){var cu=c.pos.clone().normalize(),pw=c.pos.clone().sub(gw);pw.addScaledVector(cu,-pw.dot(cu));if(pw.lengthSq()<1e-8)pw.copy(u.hd);c.gk=pw.normalize().multiplyScalar(9+3*s/(c.sz||1));c.gkc=t+500;if(L===ants&&c.head)c.head.copy(c.gk).normalize()}}})} /* a ghost above ground shoves any ant or chopstick it walks into, away from its middle (bigger ghosts and smaller critters go further); it never stops for them */
     if(twGkT!==t){twGkT=t;[ants,enemies].forEach(function(L){L.forEach(function(c){if(c.dead||!c.gk)return;var k=c.gk.length();if(k<0.05){c.gk=null;return}var cu=c.pos.clone().normalize(),ax=new THREE.Vector3().crossVectors(cu,c.gk);if(ax.lengthSq()>1e-10)c.pos.applyAxisAngle(ax.normalize(),k/SR*dt);var nu=c.pos.clone().normalize();c.pos.copy(nu).multiplyScalar(lmGround(nu));c.gk.addScaledVector(nu,-c.gk.dot(nu)).multiplyScalar(Math.exp(-dt*3))})})} /* once a frame, every shoved critter slides along the ground, slowing to a stop over about a second */
-    if(!u.gg&&u.dp>-0.3){var gw2=o.g.position;for(var pj=0;pj<props.length;pj++){var q=props[pj];if(q.dead||q.hid||q.g.userData.belt||!twIsGl(q))continue;if(gw2.distanceTo(q.g.position)<0.7*s+q.foot){q.dead=true;scene.remove(q.g);twTot=Math.max(0,twTot-(q.g.userData.mkO||0));q.g.userData.mkO=0;var src=buildIngredient("ghostg"),ng=src.userData.gg;u.bob.add(ng);u.gg=ng;break}}} /* a ghost without glasses that walks over a pair on the ground (lying there from the start, or knocked off the roll by an ant or chopstick) picks them up and puts them on (they leave the round's total, like the ones ghosts start with) */
+    if(!u.gg&&u.dp>-0.3&&(u.pk=(u.pk||0)-dt)<=0){u.pk=0.15;var gw2=o.g.position;for(var pj=0;pj<props.length;pj++){var q=props[pj];if(q.dead||q.hid||q.g.userData.belt||!twIsGl(q))continue;if(gw2.distanceTo(q.g.position)<0.7*s+q.foot){q.dead=true;scene.remove(q.g);twTot=Math.max(0,twTot-(q.g.userData.mkO||0));q.g.userData.mkO=0;var src=buildIngredient("ghostg"),ng=src.userData.gg;u.bob.add(ng);u.gg=ng;break}}} /* a ghost without glasses that walks over a pair on the ground (lying there from the start, or knocked off the roll by an ant or chopstick) picks them up and puts them on (they leave the round's total, like the ones ghosts start with) */
     var gg=u.gg;if(gg&&u.dp>-0.3&&ballR>=o.req*0.5){o.g.updateMatrixWorld(true);var gp=gg.getWorldPosition(new THREE.Vector3());if(ball.position.angleTo(gp)*SR<ballR+o.foot*0.45){u.gg=null;scene.attach(gg);gg.userData.req=o.req*0.5;gg.userData.nm="GLASSES";stickToRoll(gg);ballR+=o.gain*0.4;pips++;twSnatch++}}} /* the glasses on a ghost's face roll up when you brush its face (not while it's underground), leaving a plain ghost */
   function buildIngredient(kind){
     var g=new THREE.Group(),C=THREE.Color;g.userData.nm=({fish:"SALMON",fish2:"MACKEREL",shrimp:"SHRIMP",avocado:"AVOCADO",cucumber:"CUCUMBER",eggplant:"EGGPLANT",carrot:"CARROT",edamame:"EDAMAME",onigiri:"ONIGIRI",soy:"SOY SAUCE",teacup:"TEACUP",oshibori:"OSHIBORI"})[kind]||"";
@@ -968,12 +968,13 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       for(var r=0;r<3;r++)for(var c=0;c<3;c++)if(gl[r*3+c]==="1"){var b=new THREE.Mesh(box,mat(i));b.position.set((c-1)*s,(1-r)*s,0);lg.add(b)} // one cube per lit pixel
       g.add(lg);letters.push({g:lg,x0:(cx+1)*s,i:i});cx+=4});
     return {g:g,letters:letters,W:cx*s,dir:p.dir||1,o:0}}
+  function twRM(){return !!(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)} /* REDUCED MOTION: follows the device's Reduce Motion setting. No camera or planet shakes, no glitch in the mosaic hand-over, a third of the confetti, and the sky letters cross slower and barely bob */
   function stepBanner(dt,t){if(!banner)return;var D=30,hh=Math.tan(THREE.MathUtils.degToRad(cam.fov/2))*D,hw=hh*cam.aspect;
     var cf=new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion),cu=new THREE.Vector3(0,1,0).applyQuaternion(cam.quaternion);
-    banner.g.position.copy(cam.position).addScaledVector(cf,D).addScaledVector(cu,hh*0.7+Math.sin(t/900)*0.4);banner.g.quaternion.copy(cam.quaternion); // same sky spot as the old banner
-    var span=hw*2+banner.W+4;banner.o=(banner.o+dt*4.5)%span;                                   // marquee: enters one side, exits the other, loops
+    banner.g.position.copy(cam.position).addScaledVector(cf,D).addScaledVector(cu,hh*0.7+Math.sin(t/900)*0.4*(banner.q==null?1:banner.q));banner.g.quaternion.copy(cam.quaternion); // same sky spot as the old banner
+    var span=hw*2+banner.W+4;banner.q=twRM()?0.2:1;banner.o=(banner.o+dt*(twRM()?2.5:4.5))%span;                                   // marquee: enters one side, exits the other, loops
     for(var i=0;i<banner.letters.length;i++){var L=banner.letters[i],x=banner.dir>0?(hw+2-banner.o+L.x0):(-hw-2-banner.W+banner.o+L.x0);
-      L.g.position.set(x,Math.sin(t/420+L.i*0.7)*0.45,0);L.g.rotation.y=Math.sin(t/700+L.i*0.9)*0.45;L.g.rotation.x=Math.sin(t/900+L.i)*0.15}} // bob + turn so the depth shows
+      L.g.position.set(x,Math.sin(t/420+L.i*0.7)*0.45*banner.q,0);L.g.rotation.y=Math.sin(t/700+L.i*0.9)*0.45*banner.q;L.g.rotation.x=Math.sin(t/900+L.i)*0.15*banner.q}} // bob + turn so the depth shows
   // ---- scatter the world: static biome planet, a FEW animated filling-features, ingredients, clouds ----
   var blocks=[],plaza=null,rideB=0,fallV=0,hpB=-1,onBlk=false;
   function spawnWorld(p){
@@ -1381,7 +1382,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   var TW_OMK=["THE CHEF HAS LEFT THE BUILDING."];
   function twFinale(t){if(twOmk){if(twFin)twConfStep(t);return}
     if(!twFin){if(!running||!twTot||!twBkL||twBkL.length||twFall.length)return;twFin={t0:t,lt:t};var cs=(params.pip&&params.pip.length?params.pip:[params.light||[255,255,255]]).concat([params.light||[255,255,255]]),g=new THREE.BoxGeometry(1,1,1),M=cs.map(function(c){return new THREE.MeshBasicMaterial({color:col(c)})}),s=0.14+ballR*0.045,up=ball.position.clone().normalize();
-      for(var i=0;i<170;i++){var m=new THREE.Mesh(g,M[i%M.length]);m.scale.set(s,s,s*0.35);var r=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5);r.addScaledVector(up,-r.dot(up));
+      for(var i=0,nC=twRM()?56:170;i<nC;i++){var m=new THREE.Mesh(g,M[i%M.length]);m.scale.set(s,s,s*0.35);var r=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5);r.addScaledVector(up,-r.dot(up));
         m.position.copy(ball.position).addScaledVector(up,ballR*(0.5+Math.random()*0.6)).addScaledVector(r,ballR*0.8);scene.add(m);var k=Math.sqrt(ballR);
         twConf.push({m:m,v:up.clone().multiplyScalar((9+Math.random()*9)*k).addScaledVector(r.normalize(),(3+Math.random()*7)*k),ax:new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),sp:(Math.random()-0.5)*14,land:false})}}
     twConfStep(t);if(t-twFin.t0>2800){twOmk=true;end(true)}}
@@ -1471,7 +1472,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* MOSAIC timing, stepped: straight into 16 px blocks, held through the hand-over and until the rebuilt world has drawn 4 smooth frames in a
      row (or 0.8 s), so the rebuild's first slow frames stay hidden; then 16, 12, 9, 7, 5, 4, 3, 2 and sharp, one step every 0.09 s. A slow
      frame only counts as 1/30 s and every step is drawn at least once, so the steps stay even and none is skipped */
-  function twMzGo(hold){twFxOn();twMz={a:0,rel:hold?null:0.22,k:-1,kt:0,ok:0,dr:false,gl:("glitch")==="glitch"}}
+  function twMzGo(hold){twFxOn();twMz={a:0,rel:hold?null:0.22,k:-1,kt:0,ok:0,dr:false,gl:!twRM()&&("glitch")==="glitch"}}
   var TW_MZ=[16,12,9,7,5,4,3,2];
   function twMzTick(dt){var M=twMz;M.a+=dt;if(M.rel==null&&M.a>1.6)M.rel=M.a;if(M.rel==null||M.a<M.rel)return;
     if(M.k<0){M.ok=dt<0.034?M.ok+1:0;if(M.ok>=4||M.a-M.rel>0.8){M.k=0;M.kt=0;M.dr=false}return}
@@ -1619,7 +1620,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
        it is taken off before it shows); UH OH... comes in from the edge once the thump has happened and the sky is clear */
     if(banner&&banner.ants){if(M.bo!=null&&banner.o<M.bo){if(banner.g.parent)banner.g.parent.remove(banner.g);banner=null}else M.bo=banner.o}
     if(M.uh===1&&twP&&!(banner&&banner.g.parent)){M.uh=2;banner=buildBanner("UH OH...",twP);banner.stay=true;scene.add(banner.g)} /* at the thump the sky marquee switches from NO MORE ANTS to UH OH..., entering fresh from the edge */
-    if(M.th&&M.shT!=null&&M.t-M.shT<0.9){var s=SR*0.035*Math.pow(1-(M.t-M.shT)/0.9,1.5);cam.position.add(new V3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).multiplyScalar(s))}
+    if(M.th&&M.shT!=null&&M.t-M.shT<0.9){var s=twRM()?0:SR*0.035*Math.pow(1-(M.t-M.shT)/0.9,1.5);cam.position.add(new V3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).multiplyScalar(s))}
     if(M.th&&HUD.timer&&HUD.timer.textContent!=="!!!")HUD.timer.textContent="!!!";
     if(M.t<1.2)return;
     /* TRAP · BARS: on landing it plants a ring of tall chopstick bars around where it landed, with the roll inside; the ring slowly closes in,
@@ -1729,7 +1730,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function twEndDrop(E){E.it=[];var R=E.mode==="restore";E.dm=E.dm0;E.dt0=E.t;var NC=Math.max(1,clump.children.length-2);
     function back(c,o){if(!c._w0)return false;o.T=new THREE.Vector3();o.Q=new THREE.Quaternion();o.S=new THREE.Vector3();c._w0.decompose(o.T,o.Q,o.S);o.st=E.t+0.2+Math.random()*1.2;return true}
     if(R)twBeltHome(E);if(R){E.Wd.updateMatrixWorld(true);E.Wd.children.slice().forEach(function(c){if(!c._w0){if(c._lv)twLvBack(c);return}var P=new THREE.Vector3().setFromMatrixPosition(c.matrixWorld),P0=new THREE.Vector3().setFromMatrixPosition(c._w0);
-        if(!c._lv&&P.distanceToSquared(P0)<1e-4)return;if(c._lv){c.visible=true;c._lv=false}var o={m:c};back(c,o);E.it.push(o)});
+        if(!c._lv&&P.distanceToSquared(P0)<1e-4)return;if(c._lv){c.visible=true;c._lv=false}var o={m:c};back(c,o);if(PQ.tier>=2&&(E.nb=(E.nb||0)+1)>60){c.position.copy(o.T);c.quaternion.copy(o.Q);c.scale.copy(o.S)}else E.it.push(o)});
       if(plaza&&plaza.lv){plaza.lv.forEach(function(k){plaza.gone[k]=false;var hid=plaza.ix&&plaza.out&&plaza.out[plaza.k]?plaza.out[plaza.k][plaza.ix[k]]:false;plaza.vis[k]=!hid;plaza.m.setMatrixAt(k,hid?plaza.Z0:plaza.base[k])});plaza.lv=[];plaza.m.instanceMatrix.needsUpdate=true}}
     clump.updateMatrixWorld(true);clump.children.slice().forEach(function(c,ci){if(c===core)return;E.Wd.attach(c);var bx=new THREE.Box3().setFromObject(c),sz=bx.getSize(new THREE.Vector3());
       var d=c.position.clone().normalize(),tg=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5);tg.addScaledVector(d,-tg.dot(d)).normalize();
@@ -1744,13 +1745,13 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      if(!E.lk)E.lk="mid";var LH=E.lk==="low"?ballR*1.2+1.5:E.lk==="high"?ballR*4+6:ballR*2.5+3,LD=E.lk==="low"?0.6:E.lk==="high"?1.1:0.9,TU=TL+LD+0.3; /* LIFT test: how high the roll is raised, everything still on it, before it lets go: LOW the first try, MID, HIGH */
      var lf=t<TU?0:cl((t-TU)/2.6),bc=b0.clone().addScaledVector(U,LH*ez((t-TL)/LD)+SR*7*lf*lf*lf); /* lifts the roll with everything on it, a beat, then shoots up and leaves the pickups behind */
     if(t<1.5){var kf=cl((t-0.3)/1.2);ph=E.hs+SR*2.6*(1-kf*kf)}
-    else if(t<3){ph=E.hs-Math.sin(cl((t-1.5)/0.35)*Math.PI)*L*0.05;if(t<2.1)sh=SR*0.02*(1-(t-1.5)/0.6)}
+    else if(t<3){ph=E.hs-Math.sin(cl((t-1.5)/0.35)*Math.PI)*L*0.05;if(t<2.1&&!twRM())sh=SR*0.02*(1-(t-1.5)/0.6)}
     else ph=E.hs+(E.hp-E.hs)*ez((t-3)/0.8);
     if(t>=TL)ph=bc.length()+L*Math.cos(E.aC);
     E.CS.visible=!E.rp&&t>=0.3&&t<TU+2.6;ball.visible=!E.rp&&t<TU+2.6;ball.position.copy(bc);
     var md=U;if(E.gd0){var kg=ez((t-2.2)/0.7);md=E.gd0.clone().lerp(U,kg).normalize();E.CS.quaternion.slerpQuaternions(E.gq0,E.gtq,kg)}E.CS.position.copy(md).multiplyScalar(ph);twShadeGi(E.M,E.CS.visible);
     if(!E.dm0)E.dm0="catch";E.TU=TU;if(t>=(E.mode!=="restore"?TU:E.dm0==="catch"?3.55:E.dm0==="peel"?TL:TU)&&!E.it)twEndDrop(E); /* CATCH lets go as the arms close, PEEL as the lift starts */
-    if(E.it)E.it.forEach(function(o){if(o.fr&&!o.p0&&!o.land)twSBAdd(o.m.position,o.sr*1.1,o.sr*1.1+10);if(o.land){if(o.bt!=null&&o.bt<0.45)twBounce(o,dt);return}var c=o.m; /* the pickups from the roll have no blob of their own any more: a ground shadow while it falls and lies scattered, none on the flight home */
+    if(E.it&&!(E.sbn=0))E.it.forEach(function(o){if(o.fr&&!o.p0&&!o.land&&(PQ.tier<2||++E.sbn<=40))twSBAdd(o.m.position,o.sr*1.1,o.sr*1.1+10);if(o.land){if(o.bt!=null&&o.bt<0.45)twBounce(o,dt);return}var c=o.m; /* the pickups from the roll have no blob of their own any more: a ground shadow while it falls and lies scattered, none on the flight home */
       if(o.T){if(t<o.st)return;if(o.fall&&!o.p0&&!o.fly){if(twDropStep(o,c,t,dt,E))return;o.st=t;o.fly=true}
         if(!o.p0){o.p0=c.position.clone();o.q0=c.quaternion.clone();o.s0=c.scale.clone();o.ft=t}var x=cl((t-o.st)/(o.fd||1.8)),k=o.fall&&(E.dm==="bend"||E.dm==="hang")?1-(1-x)*(1-x):ez(x); /* a dropped pickup is already moving, so it sets off fast and slows into place */
         c.position.copy(o.p0).lerp(o.T,k).addScaledVector(o.T.clone().normalize(),Math.sin(Math.PI*k)*SR*0.35*Math.min(1,o.p0.distanceTo(o.T)/SR));c.quaternion.copy(o.q0).slerp(o.Q,k);c.scale.copy(o.s0).lerp(o.S,k);if(k>=1){o.land=true;twLandFx(o)}return}
@@ -2070,10 +2071,11 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     g.quaternion.setFromUnitVectors(YUP,rd).multiply(tilt).multiply(new THREE.Quaternion().setFromAxisAngle(YUP,Math.random()*6.283)); // base against the roll, random lean + spin
     clump.add(g);placeStuck(g,s)}
   function placeStuck(g,s){var k=g.userData.stick;if(k.gs)twHillEase(g,k);g.position.set(k.xf*R0*0.85*s,0,0).addScaledVector(k.rd,R0*0.98*s-k.sink)} // on the current (scaled) roll surface
-  function step(t){
+  var twSub=0;function step(t){if(!running)return;perfSample(t,t-lastT);var T=Math.min(200,t-lastT),n=twEnd||!(T>50)?1:Math.ceil(T/50-1e-6);if(n>1){var t0=t-T;lastT=t0;twSub=1;for(var si=1;si<n&&running;si++)stepOne(t0+T*si/n);twSub=0;if(!running)return}stepOne(t)} /* on a slow frame (under 20 fps) the game runs a few shorter steps and draws only the last, so it keeps real speed instead of going slow motion; each step is still at most 0.05 s, so nothing is skipped through. A wait of more than 0.2 s (a stall) only moves the game on by 0.2 s */
+  function stepOne(t){
     if(!running)return;
-    raf=requestAnimationFrame(step);
-    perfSample(t,t-lastT);var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;if(twEnd){twEndStep(dt);return}if(twSpec)dt*=twSpecPre(dt);
+    if(!twSub)raf=requestAnimationFrame(step);
+    var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;if(twEnd){twEndStep(dt);return}if(twSpec)dt*=twSpecPre(dt);
     up.copy(pPos).normalize();
     fwd.addScaledVector(up,-fwd.dot(up));if(fwd.lengthSq()<1e-6)fwd.set(up.z,up.x,up.y);fwd.normalize();
     var turn=2.2,mv=0,SPEED=7.5,heavy=1-0.25*Math.abs(vel); // turning is a quarter heavier at full speed
@@ -2189,7 +2191,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     twHud(t);if(HUD.traits._n!==pips){HUD.traits._n=pips;HUD.traits.innerHTML="<b>OBJECTS</b>"+pips}
     HUD.timer.textContent=freeRoll?(twBkL&&twBkOn(twBkL.length)?(twBkL.length?twBkL.length+" LEFT":"ALL CLEAR"):"FREE ROLL"):Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2);
     twGiStep(dt,t);stepBanner(dt,t);if(twSpec){twSpecCam(dt);stepBanner(0,t)}
-    renderer.render(scene,cam);
+    if(!twSub)renderer.render(scene,cam);
     if(!freeRoll&&timeLeft<=0){end(hit);return}
   }
 
@@ -2251,7 +2253,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   var welG=null,wel=null;
   function welStart(){if(wel||!welG||phase!=="welcome"||HUD.start.classList.contains("hidden"))return;
     var el=HUD.start.querySelector(".logo");if(!el||!el.clientWidth)return;
-    var r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setClearColor(0,0);r.outputColorSpace=THREE.SRGBColorSpace;r.setPixelRatio(Math.min(devicePixelRatio||1,2));
+    var r=new THREE.WebGLRenderer({antialias:PQ.tier<2,alpha:true});r.setClearColor(0,0);r.outputColorSpace=THREE.SRGBColorSpace;r.setPixelRatio(perfPR()); /* the welcome screen draws at the game's quality level too */
     var s=new THREE.Scene(),c=new THREE.PerspectiveCamera(30,2,0.1,80),tilt=new THREE.Group();
     s.add(new THREE.HemisphereLight(0xdfe8ff,0x1a2130,0.72));var k=new THREE.DirectionalLight(0xffffff,1.45);k.position.set(10,20,10);s.add(k);var rl=new THREE.DirectionalLight(0x9fb6ff,0.45);rl.position.set(-9,5,-11);s.add(rl); // the game's lights
     tilt.rotation.x=0.42;tilt.add(welG);s.add(tilt);welG.position.set(0,0,0);welG.rotation.set(0,0,0);
@@ -2334,13 +2336,16 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   // a step that doesn't raise the frame rate by 10% is undone and the tier locks (e.g. iOS Low Power Mode caps every page at 30fps, lowering quality can't help).
   // timing uses the rAF timestamp (the game's own clock), never Date.now (frozen on Aleatory). ?perf=1 shows fps + tier (tap it to force a tier), ?tier=0..3 forces a tier.
   var PQ={tier:0,lock:false,forced:undefined,skip:-1,ws:0,n:0,big:0,last:-1,prev:0},obsSingle0=1e9,perfEl=null;
+  function twDPR(){return devicePixelRatio||1}
+  (function(){try{var c=document.createElement("canvas").getContext("webgl");if(!c)return;var e=c.getExtension("WEBGL_debug_renderer_info"),r=String(e?c.getParameter(e.UNMASKED_RENDERER_WEBGL):c.getParameter(c.RENDERER)||"");PQ.gpu=r;
+    if(/swiftshader|llvmpipe|softpipe|basic render|software/i.test(r))PQ.tier=3;else if(/intel/i.test(r)&&!/iris\s*xe|\barc\b|apple/i.test(r))PQ.tier=twDPR()>1.5?1:2;var lc=c.getExtension("WEBGL_lose_context");if(lc)lc.loseContext()}catch(x){}PQ.t0=PQ.tier})(); /* where quality starts: drawing without a graphics chip (no acceleration) starts at the lowest level, older Intel graphics (as in most 2019 laptops) a level or two down; everything else starts full and steps down if it struggles */
   (function(){var m=location.search.match(/[?&]tier=([0-3])/);if(m){PQ.tier=+m[1];PQ.lock=true;PQ.forced=PQ.tier}
     if(!/[?&]perf=1/.test(location.search))return; // readout (top centre) for checking a device: tap it to force tier 0, 1, 2, 3, then back to auto
     perfEl=document.createElement("button");perfEl.className="perf";perfEl.style.cssText="position:absolute;left:50%;top:calc(52px + env(safe-area-inset-top));transform:translateX(-50%);z-index:3;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(5,6,10,.45);color:#fff;font:700 11px ui-monospace,monospace;letter-spacing:.04em;touch-action:manipulation";GAME.appendChild(perfEl);
     perfEl.addEventListener("click",function(e){e.stopPropagation();PQ.forced=PQ.forced===undefined?0:PQ.forced+1;
       if(PQ.forced>3){PQ.forced=undefined;PQ.lock=false;PQ.tier=0}else{PQ.tier=PQ.forced;PQ.lock=true}PQ.last=-1;PQ.skip=-1;PQ.ws=0;perfApply()});
     perfShow()})();
-  function perfPR(){return Math.min(devicePixelRatio||1,[2,1.5,1,.75][PQ.tier])}
+  function perfPR(){return Math.min(twDPR(),[2,1.5,1,.75][PQ.tier])}
   function perfApply(){if(!renderer)return;renderer.setPixelRatio(perfPR());renderer.setSize(innerWidth,innerHeight);
     terrain.forEach(function(c,i){c.g.visible=PQ.tier<2||i%2===0});
     clouds.forEach(function(c,i){if(!c.dead)c.g.visible=PQ.tier<2||i%2===0});
@@ -2352,10 +2357,10 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function perfSample(t,ft){if(PQ.skip<0)PQ.skip=t+1000;if(t<PQ.skip){PQ.ws=0;return} // settle for 1s after (re)starting or a step
     if(!PQ.ws){PQ.ws=t;PQ.n=0;PQ.big=0;return}
     PQ.n++;if(ft>250)PQ.big++;var el=t-PQ.ws;if(el<2000)return;
-    var fps=PQ.n*1000/el;PQ.ws=0;perfShow(fps);
+    var fps=PQ.n*1000/el;PQ.ws=0;PQ.fps=fps;perfShow(fps);
     if(PQ.lock||PQ.big)return; // a long stall (app switch, garbage collection) spoils the window
     if(PQ.last>=0){if(fps<PQ.prev*1.1){PQ.tier=PQ.last;PQ.lock=true;PQ.last=-1;perfApply();return}PQ.last=-1} // the last step didn't help: undo it and stop
-    if(fps<48&&PQ.tier<3){PQ.last=PQ.tier;PQ.prev=fps;PQ.tier++;perfApply();PQ.skip=t+1000}}
+    if(fps<48&&PQ.tier<3){PQ.last=PQ.tier;PQ.prev=fps;PQ.tier++;if(PQ.tier===1&&twDPR()<=1.5)PQ.tier=2;perfApply();PQ.skip=t+1000}} /* on a screen already at 1.5x sharpness or less (most PC monitors) the first level changes nothing, so it goes straight to the second: before, that empty step "didn't help" and locked quality at full */
   window.addEventListener("keyup",function(e){var k=e.key.length===1?e.key.toLowerCase():e.key;keys[{KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d"}[e.code]||k]=false});window.addEventListener("blur",function(){keys={}}); /* a key let go with Shift or Caps Lock in a different state no longer stays held; leaving the window lets go of everything */
 }
 </script>

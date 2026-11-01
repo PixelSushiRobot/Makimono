@@ -141,6 +141,12 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Lighter on slow phones:** typing a message redraws the art 150 ms after the last key instead of on every key, only the last 6 drawn versions of the art are kept in memory (typing used to keep one per key), and the game's hint timer no longer runs while the game is closed.
 - **A secret magnet** for playing through quickly: while the game is on, `M` pulls in everything the roll can already pick up, from a range that grows with the roll (as Chase's magnet did), and `Shift`+`M` is SUPER, which pulls from anywhere on the planet. Belt sushi flies in on its plate; once the first belt slat or plaza tile has been rolled up, the rest fly in too; the anthill and the sky letters come once the roll is big enough. While it's on, a small yellow line at the top says MAGNET MODE or SUPER MAGNET MODE. It isn't listed on the shortcuts card.
 - **Chopsticks on the restored planet:** they no longer twitch back and forth. The hidden maki still sat where the round ended, and chopsticks kept turning to face that spot and circling it, flipping round every frame when they walked over it. On the restored planet they now face the way they walk and turn smoothly.
+- **No slow motion on slow computers:** below 20 fps the game used to run slower than real time (each frame moved it on by at most 0.05 s). Now a slow frame runs a few short steps and draws only the last, so the game keeps real speed; it is choppier, but nothing is skipped through.
+- **Quality steps down where it helps:** on screens at 1.5× sharpness or less (most PC monitors, like a 1080p laptop) the first quality level changed nothing, so the check saw no gain and locked quality at full. It now skips that level and goes straight to 1× sharpness with half the decor.
+- **Starting quality from the graphics chip:** drawing without graphics acceleration starts at the lowest level, and older Intel graphics (most 2019 laptops) start a level or two down. Other chips start at full as before.
+- **The welcome screen** draws at the game's quality level instead of always at full.
+- **A lighter giant-chopsticks ending at low quality:** at the two lowest levels, only the first 60 things that moved fly home in the restore (the rest are simply back in place), and at most 40 falling pickups cast a shadow at once.
+- **Reduced motion:** with the device's Reduce Motion setting on, there are no camera or planet shakes, no glitch in the mosaic hand-over, a third of the confetti, and the sky letters cross slower and barely bob.
 
 **Paul mode (Text PAUL HBD)**
 - **When:** art with the Text PAUL HBD pattern plays in Paul mode. Every other pattern plays as before.
@@ -149,6 +155,7 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Ghosts:** see-through sheets with Hype eyes that float up and down. They walk anywhere, over water and sometimes under the ground, popping back up when they stop. They can't be rolled up and don't count toward clearing. When they walk into ants or chopsticks they shove them aside.
 - **How many ghosts:** at least 13 on every Paul mode planet (more if they land there by chance), and at least one of them taller than the maki is wide at the start of the round. These extras are picked from their own random numbers, so the rest of the planet comes out the same.
 - **Glasses and ghosts:** a ghost without glasses heads for the nearest pair on the ground (including pairs knocked off the roll) and puts them on. A pair a ghost takes comes off the round's total. Roll into a ghost's face to take its glasses; they go on the roll but never count toward clearing. The end card shows **GLASSES SNATCHED** when you took any.
+- **Lighter ghosts:** a ghost without glasses looks for a pair to pick up about 7 times a second instead of every frame.
 
 **Rule changes**
 - **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.
