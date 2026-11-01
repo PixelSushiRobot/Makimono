@@ -2135,10 +2135,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     for(var sc=0,sS=ballR/R0;sc<clump.children.length;sc++){var sk=clump.children[sc];if(sk.userData.stick)placeStuck(sk,sS)} // push stuck objects out with the growing (or shrinking) roll
     // animate ONLY the sparse filling features (grow up/down); the planet surface is static
     for(var ti=0;ti<terrain.length;ti++){var c=terrain[ti];var sy=Math.max(0.12,c.h0*(0.55+0.45*wave(c,params,t)));c.g.scale.set(c.foot,sy,c.foot);var fr=surfaceR(c.dir);c.g.position.copy(c.dir.clone().multiplyScalar(fr));c.g.quaternion.copy(QT.setFromUnitVectors(YUP,c.dir))}
-    /* the plaza shows the art's frame for this 70ms slot, as on the art page (the background tiles are left out, so only the maki shows), turned to face the camera once it has settled, 1.5 s into the round (then it stays put):
-       the art's top is the far side and its left is the screen's left, whichever way you come at it */
-    if(plaza){var pk=Math.floor(t/MKFLAT.SLOT)%plaza.G.length,cF=new THREE.Vector3(),cR=new THREE.Vector3();cam.getWorldDirection(cF);cR.setFromMatrixColumn(cam.matrixWorld,0);
-      var fe=cF.dot(plaza.ef),fr=cF.dot(plaza.er),FA,RA;if(Math.abs(fe)>=Math.abs(fr)){FA=[0,fe>0?1:-1];RA=[cR.dot(plaza.er)>0?1:-1,0]}else{FA=[fr>0?1:-1,0];RA=[0,cR.dot(plaza.ef)>0?1:-1]}if(!plaza.t0)plaza.t0=t;if(plaza.FA){FA=plaza.FA;RA=plaza.RA}else if(t-plaza.t0>1500){plaza.FA=FA;plaza.RA=RA}
+    /* the plaza shows the art's frame for this 70ms slot, as on the art page (the background tiles are left out, so only the maki shows).
+       It is laid out one fixed way, the same in the round and on the restored planet: seen from above, the art's top is toward plaza.ef and its right toward plaza.er, never mirrored */
+    if(plaza){var pk=Math.floor(t/MKFLAT.SLOT)%plaza.G.length,FA=[0,1],RA=[1,0];
       var po=FA.join()+"|"+RA.join();
       if(pk!==plaza.k||po!==plaza.o){plaza.k=pk;plaza.o=po;var pg=plaza.G[pk];for(var pq=0;pq<169;pq++){var gx=pq%13-6,gy=6-(pq-pq%13)/13,ix=gx*RA[0]+gy*RA[1]+6,iy=6-(gx*FA[0]+gy*FA[1]);(plaza.ix||(plaza.ix=[]))[pq]=iy*13+ix;var pkey=pg[iy*13+ix],phid=plaza.out[pk][iy*13+ix]||!!(plaza.gone&&plaza.gone[pq]);plaza.vis[pq]=!phid;plaza.m.setMatrixAt(pq,phid?plaza.Z0:plaza.base[pq]);plaza.m.setColorAt(pq,plaza.C[pkey])}plaza.m.instanceColor.needsUpdate=true;plaza.m.instanceMatrix.needsUpdate=true}}
     if(lms.length)lmAct(dt,t,pdir);
