@@ -150,13 +150,27 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Reduced motion:** with the device's Reduce Motion setting on, there are no camera or planet shakes, no glitch in the mosaic hand-over, a third of the confetti, and the sky letters cross slower and barely bob.
 
 **Paul mode (Text PAUL HBD)**
-- **When:** art with the Text PAUL HBD pattern plays in Paul mode. Every other pattern plays as before.
-- **The ground:** about 4 in 10 ingredients are swapped for red glasses (thick, near-square frames) and blue Tezos logos (the ꜩ mark, low-poly), with a ghost in about one in four of those spots. Half the ghosts start wearing glasses.
-- **The belts:** about 4 in 10 plates carry glasses, a Tezos logo or a small ant instead of food. Ants only ride plates; the ants on the ground are as before.
+- **When:** art with the Text PAUL HBD pattern plays in Paul mode. It takes priority over Tezos mode; the other modes can combine with it.
+- **The ground:** about 4 in 10 ingredients are swapped for birthday things: mostly red glasses (thick, near-square frames), plus birthday cakes (two tiers, three lit candles), gifts, party hats and ghosts. Half the ghosts start wearing glasses.
+- **The belts:** about 4 in 10 plates carry glasses, a cake, a gift or a party hat instead of food. Ghosts never ride the belts.
+- **Gifts:** 6 in 10 are wrapped in a colour from the art's own palette, the rest in red. The ribbon is yellow, or red on a light box so it still shows.
 - **Ghosts:** see-through sheets with Hype eyes that float up and down. They walk anywhere, over water and sometimes under the ground, popping back up when they stop. They can't be rolled up and don't count toward clearing. When they walk into ants or chopsticks they shove them aside.
 - **How many ghosts:** at least 13 on every Paul mode planet (more if they land there by chance), and at least one of them taller than the maki is wide at the start of the round. These extras are picked from their own random numbers, so the rest of the planet comes out the same.
-- **Glasses and ghosts:** a ghost without glasses heads for the nearest pair on the ground (including pairs knocked off the roll) and puts them on. A pair a ghost takes comes off the round's total. Roll into a ghost's face to take its glasses; they go on the roll but never count toward clearing. The end card shows **GLASSES SNATCHED** when you took any.
-- **Lighter ghosts:** a ghost without glasses looks for a pair to pick up about 7 times a second instead of every frame.
+- **Glasses, hats and ghosts:** every ghost wants glasses, and about half also want a party hat. A ghost heads for the nearest one it wants on the ground (including ones knocked off the roll) and puts it on; the hat sits on top of its head, tipped to one side. Anything a ghost takes comes off the round's total.
+- **Rolling into a ghost's face:** its glasses go on the roll (they never count toward clearing), and its party hat is bumped off and thrown clear, like a piece knocked off the roll. The hat lands on the ground, where you can roll it up or a ghost can put it back on; it doesn't count as lost to hits. The end card shows **GLASSES SNATCHED** when you took any.
+- **Lighter ghosts:** a ghost looks for something to pick up about 7 times a second instead of every frame.
+
+**Tezos mode (Text TEZOS)**
+- **When:** art whose Message or Pattern contains "tezos" (and isn't Paul mode).
+- **Tezos coins:** about 1 in 4 ingredients, on the ground and on the belts, is swapped for a Tezos coin: a chunky 12-sided toy coin in Tezos blue, with a raised plateau on each face and the real ꜩ logo (traced from the Tezos mark) raised in white on both sides. Each coin is two meshes, so it costs about the same to draw as a piece of food.
+- **One giant coin:** every Tezos planet also has a single coin 6.5 to 8 times the size, placed from its own random numbers so the rest of the planet comes out the same.
+
+**Ants mode (Text ANTS)**
+- On top of the ant planet above (the 21 extra small ants): **3 giant ants**, about twice the size of the biggest normal ants, and **ants on the belts**, where about 3 in 10 plates carry a small ant instead of food.
+
+**YOLO mode (Text YOLO)**
+- **When:** art whose Message or Pattern contains "yolo".
+- **Giant food and low gravity:** about half the ingredients on the ground grow by one size picked for the planet (1.6 to 3.2 times), and gravity drops to 0.25 to 0.65 of normal, so the maki falls more slowly and hops higher and farther. Both are picked at random each time the planet is built, so every YOLO planet feels different.
 
 **Rule changes**
 - **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.
