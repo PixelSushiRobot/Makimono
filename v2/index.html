@@ -2976,6 +2976,33 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 .export-bar.seeding .wlb{display:none}
 .export-bar .mkmenu .mi.tk.cur::after{content:"";width:calc(var(--scale-unit)*6);height:calc(var(--scale-unit)*6);border-radius:50%;background:currentColor;margin-left:auto;flex-shrink:0}
 </style>
+<!-- GAME UPDATE CHECK (the hosted player only: the root and /v2/ on the site; never the mint, which is a separate file). The page carries the game's version stamp
+     (MKMN_GV below); version.json next to the page carries the newest one. The page asks for version.json with the cache turned off when it loads, when you come
+     back to the tab, and every 30 minutes while it stays open; if the file has a newer stamp, a toast along the top says THE CHEF UPDATED THE MENU with REFRESH.
+     It stays until you refresh (on the art and on the game's start, pause and end screens) and hides while a round is played. REFRESH loads the page again with the new
+     stamp in the address (?v=...), so no cache can hand back the old copy, and keeps everything else in the address; from the game it opens the game again.
+     Opened from a file, or offline, there is nothing to ask, so it stays quiet. Only the game is versioned: the art never changes -->
+<style>
+#mkUp{position:fixed;left:50%;top:max(12px,calc(env(safe-area-inset-top) + 8px));transform:translateX(-50%);z-index:2147483600;display:none;align-items:center;gap:12px;padding:7px 7px 7px 16px;border-radius:999px;background:rgba(5,6,10,.9);color:#fff;box-shadow:0 6px 24px rgba(0,0,0,.35);white-space:nowrap;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase}
+#mkUp.in{display:flex;animation:mkUpI .35s ease-out both}#mkUp.seen{animation:none}
+#mkUp button{font:inherit;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;border-radius:999px;padding:6px 14px;border:0;background:#fff;color:#05060a}
+@keyframes mkUpI{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
+</style>
+<div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
+<script>(function(){var MKMN_GV="2026-11-02a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
+var live=/^https?:$/.test(location.protocol);
+function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
+  fetch("version.json?r="+Math.random().toString(36).slice(2),{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){busy=false;if(j&&typeof j.game==="string"&&j.game>MKMN_GV)nv=j.game}).catch(function(){busy=false})} /* a newer stamp only: a file that lags behind the page (the site's cache) says nothing */
+ask();document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")ask()});setInterval(ask,30*60*1000);
+function go(){var g=document.getElementById("game");if(SS&&g&&g.classList.contains("on"))SS.setItem("mkUpGo","1");try{var u=new URL(location.href);u.searchParams.set("v",nv||Math.random().toString(36).slice(2,8));location.replace(u.toString())}catch(e){location.reload()}}
+["pointerdown","mousedown","touchstart","click"].forEach(function(e){T.addEventListener(e,function(ev){ev.stopPropagation()})});
+B.addEventListener("pointerup",function(e){if(e.pointerType!=="mouse"){lastU=e.timeStamp;go()}});B.addEventListener("click",function(ev){ev.stopPropagation();if(ev.timeStamp-lastU>=700)go()}); /* on a touch screen it reacts to the finger lifting, not only to the click the browser may or may not send after it */
+(function tick(){requestAnimationFrame(tick);var g=document.getElementById("game"),gon=g&&g.classList.contains("on"),ov=gon&&g.querySelector(".overlay:not(.hidden)"),where=!gon?"art":!ov?"play":"menu",on=!!nv;
+  if(SS&&SS.getItem("mkUpGo")==="1"){var kb=document.querySelector('.export-bar a[aria-label="Play Katamaki"]');if(kb&&!kb.classList.contains("loading")&&!kb.getAttribute("aria-busy")){SS.removeItem("mkUpGo");setTimeout(function(){kb.click()},300)}} /* refreshed from the game: open it again once the KATAMAKI button is ready */
+  var k=on+"|"+where;if(k===key)return;key=k;if(!on||where==="play"){T.classList.remove("in");return} /* hidden while a round is played; back as soon as any screen is up, or on the art */
+  if(!T.classList.contains("in")){T.classList.add("in");if(T._seen)T.classList.add("seen");T._seen=1}})()})();</script>
 <!-- the secret magnet (a tool for playing through quickly): while the game is on, M toggles it and Shift+M toggles SUPER (pulls from anywhere on the planet). While it is on, a small yellow line at the top says MAGNET MODE or SUPER MAGNET MODE. It is redrawn only when the magnet or the game is switched, no loop -->
 <div id="ptT" style="position:fixed;left:50%;top:max(96px,calc(env(safe-area-inset-top) + 96px));transform:translateX(-50%);z-index:2147483647;display:none;max-width:calc(100vw - 16px);padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#ffd84a;font:700 10px ui-monospace,monospace;letter-spacing:.04em;text-align:center;pointer-events:none"></div>
 <script>(function(){var bar=document.getElementById("ptT"),g=document.getElementById("game");
