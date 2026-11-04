@@ -184,6 +184,14 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 - **Floating food:** loose food on the ground slowly floats up, about 1 to 4 units (higher for bigger pieces and lighter gravity), and bobs there. Its shadow stays on the ground and shrinks the higher it goes. Food on plates, belts and tiles, pieces knocked off the roll and ghosts stay down. A floating piece is as easy to roll up: reach is checked where it would sit on the ground, and it drops back as it sticks.
 - **Floaty hops:** your hops go higher and stay up much longer (up to about 3.7 times as long at 0.25 gravity), and the fall takes longer than the rise, so the maki eases off the top and drifts down instead of dropping. Knock-back hops keep the normal arc.
 
+**Planet conditions (Scroll, Diagonal, Ripple)**
+- **When:** art whose Pattern is Scroll, Diagonal or Ripple. The planet gets one condition of its own, taken from how that pattern moves in the art. The terrain is the same as before; only how things move on it changes. The restored planet has no condition.
+- **LANDSLIDE (Scroll):** the ground is split into 8 bands round a tilted axis; the 6 middle bands slide in alternating directions, each at its own speed (the two at the poles stay still), and carry you and everything loose on them along. Faint slats on the ground show the flow, clear for the first 3 seconds, then fading out; they come back briefly when you cross into a new band.
+- **WINDY (Diagonal):** a steady wind with gusts pushes you and loose things across the planet (big things hardly move). Trees nearby lean with it, clouds drift, and faint streaks show the wind at the start and when a gust picks up.
+- **TREMORS (Ripple):** every 4 to 6 seconds a faint spot warns where a shock will start, then a thin ring spreads out from it. Pickups it passes hop once; when it reaches you, you get bumped and pushed and the camera shakes (no shake with Reduce Motion).
+- **The condition label:** top right, under the timer, an icon and a name (LANDSLIDE, WINDY, TREMORS) at 75% white, shown only during a round. Text modes get one too: COIN RUSH (Tezos), PARTY TIME (Paul), ANT APOCALYPSE (Ants), THIS IS FINE (YOLO); with both, the text mode comes first. The icons are from Phosphor (regular weight, MIT).
+- All marks and cues are kept subtle, never bright white. If anything in a condition goes wrong, it switches off for that round and the game carries on.
+
 **Rule changes**
 - **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.
 - **Chopstick counts:** every pattern gets 2 chopsticks. Before, Sparkle, Checker and Ripple had 2 and the rest had 1.
