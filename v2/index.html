@@ -691,7 +691,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   var ballR,timeLeft,pips=0,up,fwd,pPos,hopT=0,vel=0,camF=null,hopDur=0.42,lastT=0,params={};
   var hopD=0.42,hopH=2.0,hopMine=false; // this hop's length and height; hopMine = a hop you made (Space or the button), not the bounce from a hit
   // a hop grows with the roll, so it still feels like a jump at gold size: about 4x higher and 0.75s long by then (0.42s and 2 at the start)
-  function startHop(){if(!running||hopT>0)return;var s=ballR/R0;hopH=2.0*Math.pow(s,0.75);hopD=0.42*Math.pow(s,0.3);if(params.yolo){hopH*=Math.pow(1/params.yg,0.7);hopD*=Math.pow(1/params.yg,0.6)} /* YOLO: low gravity, so hops go higher and hang longer */hopMine=true;hopT=hopD;hpB=onBlk?rideB:-1}
+  function startHop(){if(!running||hopT>0)return;var s=ballR/R0;hopH=2.0*Math.pow(s,0.75);hopD=0.42*Math.pow(s,0.3);if(params.yolo){hopH*=Math.pow(1/params.yg,0.7);hopD*=Math.pow(1/params.yg,0.95)} /* YOLO: low gravity, so hops go higher and hang much longer (the time grows faster than the height, so the roll drifts down instead of dropping) */hopMine=true;hopT=hopD;hpB=onBlk?rideB:-1}
 
   function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   function hash(s){var h=2166136261;s=String(s||"makimono");for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -708,7 +708,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     var p={};
     p.form=(tr.Form||"").toLowerCase();
     p.pattern=(tr.Pattern||"").toLowerCase();var tx0=(tr.Message||"")+" "+(tr.Pattern||"");p.paul=/paul\s*hbd/i.test(tx0);p.tezos=!p.paul&&/tezos/i.test(tx0);p.yolo=/yolo/i.test(tx0);p.antsM=/ants/i.test(tx0); /* TEXT MODES, from the text: PAUL HBD (glasses, birthday things, ghosts), TEZOS (some Tezos logos and one giant one), YOLO (giant food and low gravity, rolled fresh each round), ANTS (more ants, a few of them giant, and ants on some plates) */
-    if(p.yolo){p.ys=1.6+Math.random()*1.6;p.yg=0.25+Math.random()*0.4} /* YOLO: how giant (half the food on the ground grows 1.6x to 3.2x) and how light (gravity 0.25x to 0.65x) */
+    if(p.yolo){p.ys=2.5+Math.random()*1.5;p.yg=0.25+Math.random()*0.2} /* YOLO: how giant (half the food on the ground grows 2.5x to 4x) and how light (gravity 0.25x to 0.45x): rolled strong every time, so no round looks ordinary */
     p.speed=(tr.Speed||"").toLowerCase();
     var fast=/fast/.test(p.speed),slow=/slow/.test(p.speed);
     p.time=fast?30:slow?50:40;
@@ -1026,7 +1026,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       clouds.push({g:cl,dir:cd,rad:SR+RELIEF+2.4+rnd()*2.5,spd:0.03+rnd()*0.05});scene.add(cl);
     }
     // blocking scenery: dense forest/garden clusters + scattered singles (Katamari messiness)
-    function placeObstacle(dir,sc){dir.normalize();if(relief01(dir)<WATER+0.04)return;var k=rnd(),oc=col(p.uniq[(rnd()*p.uniq.length)|0]),g;
+    function placeObstacle(dir,sc){dir.normalize();if(p.yolo&&Math.random()<0.5)sc*=p.ys; /* YOLO: half the scenery grows giant too, by the same roll as the food (Math.random, so the planet is laid out the same) */if(relief01(dir)<WATER+0.04)return;var k=rnd(),oc=col(p.uniq[(rnd()*p.uniq.length)|0]),g;
       if(k<0.42)g=buildTree(oc);else if(k<0.64)g=buildBush(oc);else if(k<0.8)g=buildRock(oc);else if(k<0.92)g=buildFlower(col((p.pip&&p.pip.length?p.pip:p.uniq)[(rnd()*(p.pip&&p.pip.length?p.pip.length:p.uniq.length))|0]));else g=buildMushroom();
       g.userData.nm=k<0.42?"TREE":k<0.64?"BIG ROCK":k<0.8?"ROCK":k<0.92?"FLOWER":"MUSHROOM";g.scale.multiplyScalar(sc);g.position.copy(dir.clone().multiplyScalar(surfaceR(dir)));g.quaternion.copy(QT.setFromUnitVectors(YUP,dir));scene.add(g);var gb=makeBlob(g.userData.size||0.7);g.add(gb);g.userData.blob=gb;
       obstacles.push({g:g,dir:dir.clone(),size:(g.userData.size||0.7)*sc,dead:false,cl:curCl});}
@@ -2080,6 +2080,36 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     return true}
   function twPick(r,belt){var p=params;if(p.paul&&r()<0.4){if(belt){var x=r();return x<0.35?"glasses":x<0.55?"cake":x<0.8?"gift":"phat"}return ["glasses","glasses","glasses","cake","gift","phat","ghost","ghostg"][(r()*8)|0]}if(p.tezos&&r()<0.25)return "tezos";if(belt&&p.antsM&&r()<0.3)return "pant";return INGK[(r()*INGK.length)|0]} /* TEXT MODES: what goes on a spot on the ground (or a belt plate). PAUL HBD: about 4 in 10 become glasses, birthday cakes, gifts and party hats, with ghosts on the ground. TEZOS: about 1 in 4 become Tezos logos. ANTS: about 3 in 10 belt plates carry an ant. Every other pattern draws exactly as before */
 
+  /* SECRET KEY T (not listed anywhere): throws away everything the roll has collected, all at once, the same throw a chopstick hit uses, and the roll goes back to its starting size.
+     The pieces land around you and can be rolled up again. Only during a round; it never runs when you are typing in a box */
+  function twThrowAll(){if(phase!=="play"||twSpec)return;var kids=clump.children.filter(function(c){return c!==core}),g=0;while(kids.length&&g++<200)twShed(kids,1e9);
+    ballR=R0;pips=0;wobT=0.4;if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.6}}
+  /* EDGES: two changes to how things too big to roll up stop you.
+     TIGHT: scenery (trees, rocks, buildings) stops you at the same reach as oversized food does, 0.85 of the roll's radius plus 0.7 of its size, not the full roll plus the full size, so you get closer before it stops you.
+     SLIDE: running into something too big no longer stops you dead: the part of the move that goes into it is taken out and the rest is kept, so the roll slides round its edge, a little slowed.
+     Heading straight into it still stops you. A slide is only taken if it doesn't run into another wall, a landmark or the belt's side; otherwise you stop as before */
+  var twWl=[];
+  function twEdg(k){return true}
+  function twLmBlk(nd,pd){if(!lms.length)return false;for(var kb=0;kb<lms.length;kb++){var KS=lms[kb];if(nd.angleTo(KS.c)*SR>KS.R+ballR+1)continue;var KL=lmLocal(KS,nd),KP=lmLocal(KS,pd);
+    for(var kq=0;kq<KS.parts.length;kq++){var KC=KS.parts[kq];if(!KC.solid)continue;var kd=lmDist(KC,KL[0],KL[1]);if(kd<ballR*0.85&&KC.top>rideB+ballR*0.6&&KC.bot<rideB+ballR*1.8&&kd<lmDist(KC,KP[0],KP[1]))return true}}return false} /* the same test the landmarks use to stop you */
+  function twSlide(pdir,prevDir){if(!twWl.length||!twEdg("slide"))return false;var m=pdir.clone().sub(prevDir),m0=m.length(),n=new THREE.Vector3();if(m0<1e-9)return false;
+    for(var i=0;i<twWl.length;i++){n.copy(prevDir).sub(twWl[i].d);n.addScaledVector(prevDir,-n.dot(prevDir));if(n.lengthSq()<1e-12)return false;n.normalize();var k=m.dot(n);if(k<0)m.addScaledVector(n,-k)} /* n points away from the thing: keep only the part of the move along its edge */
+    if(m.length()<m0*0.2)return false;var nd=prevDir.clone().add(m).normalize(); /* almost straight into it: stop */
+    for(var j=0;j<twWl.length;j++){var a=nd.angleTo(twWl[j].d);if(a*SR<twWl[j].r&&a<prevDir.angleTo(twWl[j].d)-1e-9)return false}
+    if(twLmBlk(nd,prevDir)||(typeof twRoadWall==="function"&&twR&&twRoadWall(nd,prevDir)))return false;pdir.copy(nd);return true}
+  /* YOLO (THIS IS FINE): in the low gravity, loose food on the ground slowly floats up off it and bobs there, each piece at its own pace, so the light gravity shows even if you never hop.
+     How high goes with the piece's size and with how light the round rolled (gravity 0.25x floats the most): from about 1 to 4 units up, clearly off the ground. Only plain food on the ground floats: nothing on a plate, a belt or a tile,
+     nothing that fell off the roll, and no ghosts. Reaching a piece is still checked where it sits on the ground, and it comes back down as it sticks, so a floating piece is as easy to roll up.
+     Its shadow stays on the ground under it and shrinks the higher it goes (the shadow is the piece's own flat disc, held down, so it costs nothing) */
+  var twYoV=null;
+  function twYoFloat(o,dt,t){if(!params.yolo||!params.yg||o.abs||o.tw||o.still||o.tops||o.g.userData.belt||o.g.userData.roam)return;
+    if(o.yoP==null){o.yoP=Math.random()*6.28;o.yoS=0.4+Math.random()*0.5}var top=Math.min(1.2+o.foot*0.8,4)*(1.6-params.yg*2);
+    o.fy=(o.fy||0)+(top-(o.fy||0))*Math.min(1,dt*o.yoS);o.yoY=o.fy*(0.7+0.3*Math.sin(t/1000*1.6+o.yoP));o.g.position.addScaledVector(o.dir,o.yoY);
+    var b=o.g.userData.blob,sc=o.g.scale.y||1;if(b){b.position.y=0.03-o.yoY/sc;b.scale.setScalar(1/(1+o.yoY*0.35))}}
+  function twYoG(o){if(!o.yoY)return o.g.position;twYoV=twYoV||new THREE.Vector3();return twYoV.copy(o.g.position).addScaledVector(o.dir,-o.yoY)}
+  function twYoDrop(o){var b=o.g.userData.blob;if(b&&o.yoY){b.position.y=0.03;b.scale.setScalar(1)}if(o.yoY){o.g.position.addScaledVector(o.dir,-o.yoY);o.yoY=0}}
+  /* YOLO hops: the rise takes 40% of the hop and the fall the other 60%, easing out of the top, so the roll comes down slowly the way it would in light gravity. Other hops (a bump, a shock) keep the plain arc */
+  function twYoArc(x,m){if(!params.yolo||!m)return Math.sin(x*Math.PI);return x<0.4?Math.sin(x/0.4*Math.PI/2):Math.cos((x-0.4)/0.6*Math.PI/2)}
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -2181,17 +2211,17 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     var prevDir=pPos.clone().normalize();
     if(mv&&!twSpec){var axis=new THREE.Vector3().crossVectors(up,fwd).normalize();pPos.applyAxisAngle(axis,(SPEED/SR)*dt*mv)} // W: travel +fwd (forward), matches the forward roll below
     if(bumpV.lengthSq()>0.01){var bu=bumpV.clone();bu.addScaledVector(up,-bu.dot(up));var bl=bu.length();if(bl>1e-3)pPos.applyAxisAngle(new THREE.Vector3().crossVectors(up,bu).normalize(),bl/SR*dt);bumpV.multiplyScalar(Math.pow(0.02,dt))}else bumpV.set(0,0,0); // monster knockback, decays fast; walls still stop it
-    var hop=0;if(hopT>0){hopT-=dt;hop=Math.sin(Math.min(1,1-hopT/hopD)*Math.PI)*(hopMine?hopH:2.0)}if(hopT<=0)hopMine=false;
+    var hop=0;if(hopT>0){hopT-=dt;hop=twYoArc(Math.min(1,1-hopT/hopD),hopMine)*(hopMine?hopH:2.0)}if(hopT<=0)hopMine=false;
     var air=hopMine&&hop>hopH*0.3; // in the air: your own hop, past the first 30% of its height. Low things don't block you (chopsticks and ants still can)
     if(lmRideP&&lmRideP.dv&&lmRideP.mv&&twCarryOK(pPos,lmRideP.dv,hopMine&&hopT>0?hop:0))pPos.addScaledVector(lmRideP.dv,pPos.length()); /* a moving platform carries the roll (but not into something too big to roll up: there the roll slips on the belt, see twCarryOK) */
     var pdir=pPos.clone().normalize();
     // anything too big to collect is a wall: you can't move closer into it, but you can always back away (never stuck)
-    var blocked=false;
-    function wall(dir,reach,h){if(air&&hop>h)return;var dn=pdir.angleTo(dir)*SR;if(dn<reach&&dn<prevDir.angleTo(dir)*SR)blocked=true}
+    var blocked=false;twWl.length=0;
+    function wall(dir,reach,h){if(air&&hop>h)return;var dn=pdir.angleTo(dir)*SR;if(dn<reach&&dn<prevDir.angleTo(dir)*SR){blocked=true;twWl.push({d:dir,r:reach})}}
     for(var oi=0;oi<obstacles.length;oi++){var ob=obstacles[oi];if(ob.dead)continue;
       if(pdir.angleTo(ob.dir)*SR<ballR+ob.size&&(ballR<=ob.size*0.9||twTouch(ob.g.position,ob.dir,ob.size))){ /* scenery too is only taken when the roll really touches it (see twTouch); too big, it blocks as before */
         if(ballR>ob.size*0.9){ob.dead=true;ob.g.scale.multiplyScalar(0.75);stickToRoll(ob.g);ballR+=Math.min(0.18,ob.size*0.12)}
-        else{wall(ob.dir,ballR+ob.size,ob.size*1.4);twNear(ob,ballR/(ob.size*0.9),t)} // h: about how tall it is, to hop over
+        else{wall(ob.dir,twEdg("tight")?ballR*0.85+ob.size*0.7:ballR+ob.size,ob.size*1.4);twNear(ob,ballR/(ob.size*0.9),t)} // h: about how tall it is, to hop over
       }
     }
     for(var bi=0;bi<props.length;bi++){var bo=props[bi];if(!bo.dead&&ballR<bo.req&&!bo.mine&&twNearP(bo,pdir,t))wall(bo.dir,ballR*0.85+bo.foot*0.7,bo.foot*1.1)} // oversized ingredients block too
@@ -2199,7 +2229,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
        bottom is below the roll's top (so the roll can pass under floating parts). Hopping above it clears it. Only moving closer is stopped */
     if(typeof twRoadWall==="function"&&twR&&twRoadWall(pdir,prevDir))blocked=true; /* the belt's sides */
     if(lms.length){for(var kb=0;kb<lms.length;kb++){var KS=lms[kb];if(pdir.angleTo(KS.c)*SR>KS.R+ballR+1)continue;var KL=lmLocal(KS,pdir),KP=lmLocal(KS,prevDir);for(var kq=0;kq<KS.parts.length;kq++){var KC=KS.parts[kq];if(!KC.solid)continue;var kd=lmDist(KC,KL[0],KL[1]);if(kd<ballR*0.85&&KC.top>rideB+ballR*0.6&&KC.bot<rideB+ballR*1.8&&kd<lmDist(KC,KP[0],KP[1]))blocked=true}}}
-    if(blocked){pdir.copy(prevDir);vel*=Math.pow(0.001,dt)} // a wall soaks up the momentum
+    if(blocked){if(twSlide(pdir,prevDir))vel*=Math.pow(0.35,dt);else{pdir.copy(prevDir);vel*=Math.pow(0.001,dt)}} // a wall soaks up the momentum
     up.copy(pdir);
     /* the roll stands on the plaza and on landmark parts. rT = the highest top under it that it could get onto (a step, or one
        it came down on from a hop); a grounded part rising underneath lifts it. A hop that starts up there is measured from there (hpB); stepping
@@ -2237,8 +2267,8 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       if(o.dead)continue;
       if(params.chase){var dA=pdir.angleTo(o.dir)*SR;if(ballR>=o.req&&dA<magR()){var tp=pdir.clone().sub(o.dir);tp.addScaledVector(o.dir,-tp.dot(o.dir));
         if(tp.lengthSq()>1e-5){tp.normalize();o.dir.applyAxisAngle(new THREE.Vector3().crossVectors(o.dir,tp).normalize(),magPull(dA)/SR*dt)}}} // magnet (see magR)
-      o.dir.normalize();o.g.position.copy(o.dir.clone().multiplyScalar(o.abs||(o.tw?lmGround(o.dir):surfaceR(o.dir))));if(!o.keepQ){o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir));o.g.rotateY(o.still?o.spin:o.spin+t/900)}
-      if(!(o.tops&&o.tops.some(twAlive))&&!(o.cool>twClock)&&(ballR>=o.req||o.mine)&&(o.abs||ball.position.angleTo(o.dir)*SR<ballR+o.foot)&&twTouch(o.g.position,o.dir,o.foot)){o.dead=true;o.g.userData.req=o.req;stickToRoll(o.g);ballR+=o.gain;pips++}}
+      o.dir.normalize();o.g.position.copy(o.dir.clone().multiplyScalar(o.abs||(o.tw?lmGround(o.dir):surfaceR(o.dir))));twYoFloat(o,dt,t);if(!o.keepQ){o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir));o.g.rotateY(o.still?o.spin:o.spin+t/900)}
+      if(!(o.tops&&o.tops.some(twAlive))&&!(o.cool>twClock)&&(ballR>=o.req||o.mine)&&(o.abs||ball.position.angleTo(o.dir)*SR<ballR+o.foot)&&twTouch(twYoG(o),o.dir,o.foot)){o.dead=true;twYoDrop(o);o.g.userData.req=o.req;stickToRoll(o.g);ballR+=o.gain;pips++}}
     // chopstick monsters roam and snatch stuck sushi off the clump
     for(var e=0;e<enemies.length;e++){var en=enemies[e];if(en.dead)continue;en.cd=Math.max(0,en.cd-dt);var eu=en.pos.clone().normalize();var toB=(twSpec?twSpecT(en,t):ball.position).clone().sub(en.pos);toB.addScaledVector(eu,-toB.dot(eu));if(toB.lengthSq()>1e-5)toB.normalize();var dist=en.pos.angleTo(ball.position)*SR;var tang=new THREE.Vector3().crossVectors(eu,toB).multiplyScalar(en.sign);var orbit=twSpec?0:dist<(ballR+5)?0.85:0.25;var edir=toB.multiplyScalar(1-orbit).addScaledVector(tang,orbit);if(edir.lengthSq()>1e-5)edir.normalize();en.pos.applyAxisAngle(new THREE.Vector3().crossVectors(eu,edir).normalize(),2.4*(params.espeed||1)/SR*dt);var endir=en.pos.clone().normalize();en.pos.copy(endir).multiplyScalar(lmGround(endir));en.g.position.copy(en.pos);var ef=twSpec?(en.fw=(en.fw||edir.clone()).lerp(edir,Math.min(1,dt*4))).clone():ball.position.clone().sub(en.pos); /* on the restored planet the roll is hidden but still sits where it stopped: the chopsticks no longer circle that spot or turn to watch it (passing over it flipped them round every frame); they face the way they walk, turning smoothly */ef.addScaledVector(endir,-ef.dot(endir));if(ef.lengthSq()<1e-6)ef.set(endir.z,endir.x,endir.y);ef.normalize();var es=new THREE.Vector3().crossVectors(endir,ef).normalize();en.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(es,endir,ef));en.g.rotateZ(Math.sin(t/150+e)*0.16); // always faces the roll (eyes on you), waddling side to side
       if(twChopEat(en))continue;if(en.cd<=0&&ball.position.distanceTo(en.pos)<ballR+0.8*(en.sz||1)){en.cd=1.8;var kids=clump.children.filter(function(c){return c!==core});twShed(kids,0.34);ballR=Math.max(R0,ballR-0.34);pips=Math.max(0,pips-1);
@@ -2375,6 +2405,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   window.addEventListener("keydown",function(e){
     var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;
     var on=GAME.classList.contains("on"),k=e.key.length===1?e.key.toLowerCase():e.key;
+    if(k==="t"&&on&&phase==="play"){e.preventDefault();twThrowAll();return} /* T: secret, throws away everything collected */
     if(k==="g"){e.preventDefault();if(on)exit();else launch();return}                 // G: art <-> game (pauses a live round)
     if(!on)return;                                                                   // everything below is game-only; Esc on the art does nothing
     if(k==="Escape"){e.preventDefault();if(phase==="confirm")cancelRestart();else exit();return} /* on the restart question, Esc cancels */                              // Esc: back to the art (pauses)
@@ -2990,7 +3021,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-02c",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-03a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */

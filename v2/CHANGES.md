@@ -54,6 +54,8 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 - **New end-screen lines.** Gold, silver and bronze each have 4 or 5 titles, time's up has 6, and ants show up in at most one line per screen. Sizes read `1.2×` everywhere, like the scoreboard.
 - **A useful hop.** While you're in the air, low things (small rocks, bushes, ingredients too big to roll up) don't block you. Chopsticks and ants can still hit you. The hop grows with the roll, so at gold size it's about 4× higher and lasts about 0.75 s (0.42 s at the start). The shadow shrinks while you're up, so you can judge the height. There's no cooldown. Before, the hop was only a fixed bounce, and a wall still stopped you mid-air.
 - **Clouds can be rolled up.** Once the top of the roll reaches a cloud, it sticks like anything else and adds a little size. Over the sea that's around the goal size with a hop; from high ground, sooner.
+- **Edges.** Things too big to roll up stop you closer to them: scenery stops you at the same reach as oversized food (0.85 of the roll plus 0.7 of the thing, instead of the whole roll plus the whole thing). And brushing past one no longer stops you dead: the roll slides round its edge, a little slowed. Heading straight into it, or sliding into something else, still stops you.
+- **Secret `T`:** throws away everything the roll has collected, all at once, the same throw a chopstick hit uses, and the roll goes back to its starting size. The pieces land around you and can be rolled up again. Not listed in the shortcuts card.
 - Opening the game drops keyboard focus from the Message cell, so the game's keys always work.
 
 ## The preview page: B-SIDE
@@ -178,7 +180,9 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 
 **YOLO mode (Text YOLO)**
 - **When:** art whose Message or Pattern contains "yolo".
-- **Giant food and low gravity:** about half the ingredients on the ground grow by one size picked for the planet (1.6 to 3.2 times), and gravity drops to 0.25 to 0.65 of normal, so the maki falls more slowly and hops higher and farther. Both are picked at random each time the planet is built, so every YOLO planet feels different.
+- **Giant food and scenery, low gravity:** about half the ingredients on the ground, and about half the trees, bushes, rocks, flowers and mushrooms, grow by one size picked for the planet (2.5 to 4 times), and gravity drops to 0.25 to 0.45 of normal. Both are picked at random each time the planet is built and are always strong, so no YOLO planet looks ordinary. The planet is laid out the same; only the sizes change.
+- **Floating food:** loose food on the ground slowly floats up, about 1 to 4 units (higher for bigger pieces and lighter gravity), and bobs there. Its shadow stays on the ground and shrinks the higher it goes. Food on plates, belts and tiles, pieces knocked off the roll and ghosts stay down. A floating piece is as easy to roll up: reach is checked where it would sit on the ground, and it drops back as it sticks.
+- **Floaty hops:** your hops go higher and stay up much longer (up to about 3.7 times as long at 0.25 gravity), and the fall takes longer than the rise, so the maki eases off the top and drifts down instead of dropping. Knock-back hops keep the normal arc.
 
 **Rule changes**
 - **Chase:** the magnet and its 9 chopsticks are off. Chase plays like the other patterns, with 2 chopsticks.
