@@ -2095,10 +2095,11 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
        Pickups it passes hop; if it reaches you, you're bumped up and pushed away, and the view shakes a little (not with Reduce Motion).
      All three are seeded from the token (the axis, the band speeds, the wind); where the shocks start is not. None runs on the restored planet */
   var twRuSpd=7.5,twRu=null,twSl={v:null,lean:0,pk:0},twShk=0,twRuFx=null;
+  var twRuX={}; /* more conditions add themselves here under their pattern's name, each with init, move and, if it needs them, prop (moves a pickup) and lift (raises it); sh: it uses the tremors' shocks list */
   function twRC(k){return k!=="slip"} /* the cue switches: FADE, SKID and LEAN on, SLIPPERY off */
-  function twRuleKind(p){var q=p.pattern||"";return q==="scroll"||q==="diagonal"||q==="ripple"?q:""}
+  function twRuleKind(p){var q=p.pattern||"";return q==="scroll"||q==="diagonal"||q==="ripple"||twRuX[q]?q:""}
 
-  function twRuleClear(){twRuLabK="-";if(twRuLab)twRuLab.style.opacity="0";if(!twRu)return;(twRu.ms||[]).forEach(function(m){if(m.parent)m.parent.remove(m);if(m.geometry)m.geometry.dispose();if(m.material)m.material.dispose()});twRu=null}
+  function twRuleClear(){twRuLabK="-";if(twRuLab)twRuLab.style.opacity="0";if(!twRu)return;var Xc=twRuX[twRu.k];if(Xc&&Xc.clear)try{Xc.clear()}catch(e){} /* a condition can tidy up what it changed */(twRu.ms||[]).forEach(function(m){if(m.parent)m.parent.remove(m);if(m.geometry)m.geometry.dispose();if(m.material)m.material.dispose()});twRu=null}
   function twRuleBasis(A){var e1=Math.abs(A.y)<0.9?new THREE.Vector3(0,1,0).cross(A).normalize():new THREE.Vector3(1,0,0).cross(A).normalize();return [e1,new THREE.Vector3().crossVectors(A,e1)]}
   function twRuleAxis(R,tilt){var a=R()*6.283,el=(R()*2-1)*tilt;return new THREE.Vector3(Math.cos(a)*Math.cos(el),Math.sin(el),Math.sin(a)*Math.cos(el)).normalize()}
   function twRuleMat(op){var m=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:op,depthWrite:false,side:THREE.DoubleSide});m.userData.op=op;twRu.mats.push(m);return m}
@@ -2116,6 +2117,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     else if(k==="diagonal"){twRu.W=twRuleAxis(R,0.35);twRu.gp=R()*6.283;twRu.burst=3;twRu.g0=0; /* the wind turns round W, so it crosses the planet on a slant to its spin */
       var sg=new THREE.PlaneGeometry(0.08,2.4);sg.rotateX(-Math.PI/2);var si=new THREE.InstancedMesh(sg,twRuleMat(0.3),14);si.frustumCulled=false;scene.add(si);twRu.ms.push(si);twRu.im=si;twRu.st=[];
       twRu.trees=obstacles.filter(function(ob){return ob.g.userData.nm==="TREE"});twRu.trees.forEach(function(ob){ob.q0=ob.g.quaternion.clone()})}
+    else if(twRuX[k])twRuX[k].init(R);
     else{twRu.shocks=[];twRu.next=2;twRu.id=0}}
   function twRuleName(){var u=twRu;return twRuNm[u.k||"slip"]}
   function twRuleAnn(){var u=twRu,a=u.t<3?1:u.t<4.2?1-(u.t-3)/1.2:0;if(u.flash>0)a=Math.max(a,Math.min(1,u.flash/0.4));return twRC("fade")?a:1} /* the cue strength: clear for 3 s, then down to a tenth; a flash brings it back for a moment */
@@ -2133,20 +2135,22 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       var an=twRuleAnn();if(an>0.004&&(PQ.tier<2||u.fc%2))twRuleMarks();twRuleOp(an)} /* carried by the band you're on (not while you're up in your own hop); on a slower device (quality tier 2 or 3) the marks move every other frame */
     else if(u.k==="diagonal"){var g=twRuleGust(),wv=g*5.5*0.4/SR*dt;twRuleTurn(pPos,u.W,wv);twRuleTurn(fwd,u.W,wv);if(g>0.75&&u.g0<=0.75)u.burst=1.6;u.g0=g;u.burst=Math.max(0,u.burst-dt);pull.crossVectors(u.W,pd).multiplyScalar(g*2.2);twRuleTrees(g);twRuleClouds(g,dt);twRuleStreaks(dt,g)} /* the wind pushes you at 0.4 of what it does to a small pickup (up to 2.2 a second in a gust, against 7.5 for your top speed) */
     else if(u.k==="ripple")twRuleRipple(dt,pd);
+    else if(twRuX[u.k])twRuX[u.k].move(dt,pd,pull);
     if(twRC("slip")){var tg=fwd.clone().multiplyScalar(vel*twRuSpd);if(!twSl.v)twSl.v=tg.clone();twSl.v.addScaledVector(up,-twSl.v.dot(up));twSl.v.lerp(tg,1-Math.exp(-dt*1.3));var ex=twSl.v.clone().sub(tg);twRuleAlong(pd,ex);pull.add(ex.clone().multiplyScalar(0.6));if(ex.length()>2.5)skid=true} /* SLIPPERY: the roll's real movement catches up with where you steer at about 1.3 a second, so the gap (ex) carries it wide or on after you let go */
     if(twRC("skid")&&skid)twRulePuff(dt);twRuleLeanAim(pull)}
   function twRuleLeanAim(pull){var sd=new THREE.Vector3().crossVectors(up,fwd).normalize(),k=twRC("lean")&&twRC("slip")?Math.max(-0.22,Math.min(0.22,pull.dot(sd)*0.05)):0;twSl.lean+=(k-twSl.lean)*0.12} /* how far the roll tips sideways, eased; only on slippery ground (the wind alone does not tip it) */
   function twRuleLean(){if(twRu&&!twSpec&&Math.abs(twSl.lean)>1e-3)ball.rotateZ(-twSl.lean)} /* LEAN: the roll tips the way it's pulled (applied after the roll is turned to face its way) */
-  function twRuleCam(){if(twShk<=0||twRM())return;var a=twShk*0.5;cam.position.x+=(Math.random()-0.5)*a;cam.position.y+=(Math.random()-0.5)*a;cam.position.z+=(Math.random()-0.5)*a;twShk=Math.max(0,twShk-0.016)} /* the aftershock's small shake */
+  function twRuleCam(){var X=twRu&&!twSpec&&twRuX[twRu.k];if(X&&X.late)X.late(); /* a condition can draw last thing in the frame, once the roll is where it is drawn */if(twShk<=0||twRM())return;var a=twShk*0.5;cam.position.x+=(Math.random()-0.5)*a;cam.position.y+=(Math.random()-0.5)*a;cam.position.z+=(Math.random()-0.5)*a;twShk=Math.max(0,twShk-0.016)} /* the aftershock's small shake */
   function twRulePuff(dt){if(!twRuFx){var g=new THREE.BoxGeometry(0.22,0.22,0.22);twRuFx={m:new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.4,depthWrite:false}),24),p:[],k:0};twRuFx.m.frustumCulled=false;scene.add(twRuFx.m);for(var i=0;i<24;i++)twRuFx.p.push({a:9})}
     if(twRuFx.m.parent!==scene)scene.add(twRuFx.m);twSl.pk-=dt;if(twSl.pk>0)return;twSl.pk=0.06;var P=twRuFx.p[twRuFx.k=(twRuFx.k+1)%24],pd=pPos.clone().normalize(),sd=new THREE.Vector3().crossVectors(up,fwd).normalize();
     P.a=0;P.pos=pd.clone().multiplyScalar(surfaceR(pd)+0.15).addScaledVector(sd,(Math.random()-0.5)*ballR*1.2).addScaledVector(fwd,-ballR*0.5);P.v=pd.clone().multiplyScalar(1.2+Math.random()).addScaledVector(fwd,-1-Math.random()).addScaledVector(sd,(Math.random()-0.5)*1.5)} /* SKID: little white dust cubes kicked up behind the roll's foot */
   function twRuleFx(dt){if(!twRuFx)return;var M=new THREE.Matrix4();for(var i=0;i<24;i++){var P=twRuFx.p[i];P.a+=dt;if(P.a>=0.5||!P.pos){M.makeScale(0,0,0);twRuFx.m.setMatrixAt(i,M);continue}P.pos.addScaledVector(P.v,dt);var s=(1-P.a/0.5)*(0.6+ballR*0.25);M.makeScale(s,s,s);M.setPosition(P.pos.x,P.pos.y,P.pos.z);twRuFx.m.setMatrixAt(i,M)}twRuFx.m.instanceMatrix.needsUpdate=true}
   function twRuleProp(o,dt){var u=twRu;if(!u||!u.k||twSpec||o.abs||o.g.userData.belt||u.k==="ripple")return;var a=0,ax=null,T=PQ.tier||0;
     if(T>=1&&o.dir.angleTo(pPos)*SR>40)return;if(T>=2){var N=T>=3?3:2;if(o.rpK==null)o.rpK=Math.floor(Math.random()*N);o.rpA=(o.rpA||0)+dt;if((u.fc+o.rpK)%N)return;dt=o.rpA;o.rpA=0} /* on a slower device only pickups within 40 of you drift; at tier 2 each moves every other frame and at tier 3 every third (taking the frames it missed), spread so they don't all move on the same frame */
+    if(twRuX[u.k]){if(twRuX[u.k].prop)twRuX[u.k].prop(o,dt);return}
     if(u.k==="scroll"){a=u.b[twRuleBand(o.dir)]*1.6/SR*dt;ax=u.A}else{a=twRuleGust()*5.5/(1+o.foot*1.5)/SR*dt;ax=u.W} /* big things hardly move in the wind */
     if(!a)return;var nd=u.q.copy(o.dir).applyAxisAngle(ax,a);if(twRuleFree(o,nd))o.dir.copy(nd)}
-  function twRuleLift(o){var u=twRu;if(!u||u.k!=="ripple"||o.abs)return;for(var i=0;i<u.shocks.length;i++){var S=u.shocks[i];if(S.st!=="go"||o.rhId===S.id)continue;if(o.dir.angleTo(S.c)*SR<S.r){o.rhId=S.id;o.rhT=u.t}}
+  function twRuleLift(o){var u=twRu;if(!u||o.abs)return;var X=twRuX[u.k];if(X&&X.lift)X.lift(o);if(u.k!=="ripple"&&!(X&&X.sh))return;for(var i=0;i<u.shocks.length;i++){var S=u.shocks[i];if(S.st!=="go"||o.rhId===S.id)continue;if(o.dir.angleTo(S.c)*SR<S.r){o.rhId=S.id;o.rhT=u.t}}
     if(o.rhT!=null){var x=(u.t-o.rhT)/0.35;if(x>=1)o.rhT=null;else o.g.position.addScaledVector(o.dir,Math.sin(x*Math.PI)*(0.5+o.foot*0.3))}} /* RIPPLE: a pickup the ring passes hops once */
   function twRuleMarks(){var u=twRu;if(!u.im)return;var M=new THREE.Matrix4(),d=new THREE.Vector3(),tg=new THREE.Vector3(),sd=new THREE.Vector3(),E=u.E,SC=new THREE.Vector3(),T3=PQ.tier>=3,k=0;
     for(var n=0;n<u.pts.length;n++){if(T3&&n%3===2)continue;var q=u.pts[n],cl=Math.cos(q.la),sl=Math.sin(q.la),th=q.th+q.s*1.6/SR*u.t;d.copy(E[0]).multiplyScalar(Math.cos(th)*cl).addScaledVector(E[1],Math.sin(th)*cl).addScaledVector(u.A,sl);
@@ -2189,7 +2193,8 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     twRuLab.innerHTML=parts.map(function(p){return '<span style="display:inline-flex;align-items:center;gap:5px"><svg width="15" height="15" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">'+twRuIco[p[0]]+'</svg>'+p[1]+'</span>'}).join('<span style="opacity:.5">·</span>');twRuLab.style.opacity=".75"} /* fades in when the round starts and out when it stops; the icons are from Phosphor (see above) */
   /* SECRET KEY T (not listed anywhere): throws away everything the roll has collected, all at once, the same throw a chopstick hit uses, and the roll goes back to its starting size.
      The pieces land around you and can be rolled up again. Only during a round; it never runs when you are typing in a box */
-  function twThrowAll(){if(phase!=="play"||twSpec)return;var kids=clump.children.filter(function(c){return c!==core}),g=0;while(kids.length&&g++<200)twShed(kids,1e9);
+  function twThrowAll(){if(phase!=="play"||twSpec)return;var kids=clump.children.filter(function(c){return c!==core}),K=kids.length,G=Math.max(0,ballR-R0),f0=twFall.length,g=0;while(kids.length&&g++<200)twShed(kids,1e9);
+    for(var i=f0;i<twFall.length;i++)twFall[i].g0=K?G/K*0.8:0; /* each thrown piece is worth its share of what the roll had grown, as after a chopstick hit (without this it took a share of the huge throw, so rolling them back up gave a giant size) */
     ballR=R0;pips=0;wobT=0.4;if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.6}}
   /* EDGES: two changes to how things too big to roll up stop you.
      TIGHT: scenery (trees, rocks, buildings) stops you at the same reach as oversized food does, 0.85 of the roll's radius plus 0.7 of its size, not the full roll plus the full size, so you get closer before it stops you.
@@ -2245,7 +2250,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      moves, once per shock, and it's only how they look: what blocks you and what you can roll up don't change. */
   var twQkA=[],twQkV=null,twQkQ=null,twQkW=null;
   function twQkOn(){return true}
-  function twQkU(){var u=twRu;return u&&u.k==="ripple"&&u.shocks&&!twSpec&&twQkOn()&&PQ.tier<3?u:null} /* at quality tier 3 only the pickups hop */
+  function twQkU(){var u=twRu;return u&&(u.k==="ripple"||twRuX[u.k]&&twRuX[u.k].sh)&&u.shocks&&!twSpec&&twQkOn()&&PQ.tier<3?u:null} /* at quality tier 3 only the pickups hop */
   function twQkNear(d){return PQ.tier<2||d.angleTo(pPos)*SR<40} /* at quality tier 2 only things within 40 of you react */
   function twQkHit(o,d,u){if(!twQkNear(d))return false;for(var i=0;i<u.shocks.length;i++){var S=u.shocks[i];if(S.st!=="go"||o.qkId===S.id)continue;if(d.angleTo(S.c)*SR<S.r){o.qkId=S.id;o.qkT=u.t;o.qkC=S.c.clone();return true}}return false}
   function twQkAway(d,c){twQkW=twQkW||new THREE.Vector3();twQkW.copy(d).sub(c);twQkW.addScaledVector(d,-twQkW.dot(d));if(twQkW.lengthSq()<1e-10)return null;return twQkW.normalize()} /* along the ground, away from where the shock started */
@@ -2261,6 +2266,124 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(x<1.5&&an.head){var aw=twQkAway(nu,an.qkC);if(aw)an.head.lerp(aw,0.25).addScaledVector(nu,-an.head.dot(nu)).normalize()}else if(x>=1.5)an.qkT=null} /* hops, then runs away from the shock for a moment */
   function twQkEn(en,d){var u=twQkU();if(!u)return;twQkHit(en,d,u);if(en.qkT==null)return;var x=(u.t-en.qkT)/0.45;if(x>=1){en.qkT=null;return}
     en.g.position.addScaledVector(d,Math.sin(x*Math.PI)*0.4*(en.sz||1));en.g.rotateZ(Math.sin(x*Math.PI*4)*(1-x)*0.25)} /* a hop and a wobble */
+  /* MORE PLANET CONDITIONS: three more patterns get a condition of their own, each taken from how the pattern moves in the art.
+     METEOR SHOWER (Sparkle): every 5 to 7.5 s a burst of 5 to 8 meteors comes down near you over 1.6 s, all slanting in from the same side of the sky, with now and then a lone one between bursts.
+       Each glints on the ground first, then hits with a quick ring: everything within 5 reacts like a tremor, and you get bumped if you are close. On land it leaves a scorch mark and breaks into 3 or 4 little heaps of METEOR crumbs, flat sharp black flakes like soot (the meteor is the same black), with a faint glow that goes out over 4 s, together worth about one normal piece (30 at most lying about).
+     STAMPEDE (Chase): food you are big enough to roll up runs away when you come near, zigzagging and hopping, a bit slower than you, and jinks to one side when you are about to catch it.
+       Each piece runs for 2.6 s and then stops for a breather; it won't run into the sea, and scenery stops it, so you corner it */
+  function twCxAt(c,r,a,E){var s=Math.sin(r/SR);return c.clone().multiplyScalar(Math.cos(r/SR)).addScaledVector(E[0],Math.cos(a)*s).addScaledVector(E[1],Math.sin(a)*s).normalize()} /* the point r away from c, a round the compass */
+  function twCxTan(from,to){var v=to.clone().sub(from);v.addScaledVector(from,-v.dot(from));return v.lengthSq()<1e-12?null:v.normalize()} /* along the ground at from, the way to to */
+  function twCxUp(o,L){if(params.yolo)return;var b=o.g.userData.blob,sc=o.g.scale.y||1;if(L>0.001){o.g.position.addScaledVector(o.dir,L);o.yoY=L;o.cxU=1;if(b){b.position.y=0.03-L/sc;b.scale.setScalar(1/(1+L*0.35))}}
+    else if(o.cxU){o.cxU=0;o.yoY=0;if(b){b.position.y=0.03;b.scale.setScalar(1)}}} /* lifts a pickup with its shadow left on the ground (reach is still checked on the ground, as in YOLO) */
+  function twCxDrop(m){var u=twRu;if(m.parent)m.parent.remove(m);if(m.geometry)m.geometry.dispose();if(m.material)m.material.dispose();if(!u)return;var i=u.ms.indexOf(m);if(i>=0)u.ms.splice(i,1);i=u.mats.indexOf(m.material);if(i>=0)u.mats.splice(i,1)}
+
+  /* METEOR SHOWER (the meteors' rings go in the same list as the tremors' shocks, so pickups, scenery, ants and chopsticks react to them the same way) */
+  twRuX.sparkle={sh:true,
+    init:function(R){var u=twRu;u.shocks=[];u.next=1.5;u.id=0;u.mL=[];u.sc=[];u.q=[];u.lk=0},
+    prop:function(o,dt){var F=o.cxF;if(!F)return;var f=Math.min(1,(twRu.t-F.t0)/0.55);o.dir.copy(F.a).lerp(F.b,f).normalize();if(f>=1)o.cxF=null}, /* a crumb flies out from the impact to its spot over 0.55 s */
+    lift:function(o){var F=o.cxF;if(!F){if(o.cxU)twCxUp(o,0);return}twCxUp(o,Math.sin(Math.min(1,(twRu.t-F.t0)/0.55)*Math.PI)*1.3)}, /* in an arc up to 1.3, its shadow on the ground */
+    burst:function(pd){var u=twRu,n=PQ.tier>=2?3+(Math.random()*2|0):5+(Math.random()*4|0),E=twRuleBasis(pd),sa=Math.random()*6.283,sd=E[0].clone().multiplyScalar(Math.cos(sa)).addScaledVector(E[1],Math.sin(sa));
+      for(var i=0;i<n;i++)u.q.push({at:u.t+i*1.6/n+Math.random()*0.15,sd:sd})}, /* a burst: 5 to 8 meteors over 1.6 s (3 or 4 on the slowest two quality tiers), all from the same side of the sky */
+    drop:function(pd,sd){var u=twRu,c=null,E=twRuleBasis(pd);for(var tr=0;tr<4&&!c;tr++){var d;if(Math.random()<1/3){var fw=fwd.clone().addScaledVector(pd,-fwd.dot(pd)).normalize(),r0=(4+Math.random()*6)/SR;d=pd.clone().multiplyScalar(Math.cos(r0)).addScaledVector(fw,Math.sin(r0)).normalize()}
+        else d=twCxAt(pd,4+Math.random()*13,Math.random()*6.283,E);if(relief01(d)>=WATER||tr===3)c=d} /* a third of them just ahead of you; tries for land */
+      var S=twRuleShock(c);S.mt=1;S.land=relief01(c)>=WATER;var rk=new THREE.Mesh(new THREE.IcosahedronGeometry(0.45,0),new THREE.MeshStandardMaterial({color:0x0c0c0e,emissive:0x8a8a8a,emissiveIntensity:0.15,flatShading:true,roughness:1})); /* the falling meteor is the same near-black as its crumbs; its white trail is what you see coming */
+      var tl=new THREE.Mesh(new THREE.ConeGeometry(0.2,4.5,6),twRuleMat(0.32));rk.visible=tl.visible=false;scene.add(rk);scene.add(tl);u.ms.push(rk,tl);S.rk=rk;S.tl=tl;
+      var g=surfaceR(c),t0=sd.clone().addScaledVector(c,-sd.dot(c)).normalize();S.p0=c.clone().multiplyScalar(g+34).addScaledVector(t0,18);S.p1=c.clone().multiplyScalar(g+0.3);u.shocks.push(S)}, /* every trail in a burst slants the same way, like a real shower */
+    move:function(dt,pd,pull){var u=twRu,X=twRuX.sparkle;u.next-=dt;
+      if(u.next<=0){u.next=5+Math.random()*2.5;X.burst(pd)}else if(u.next>2&&u.next<2+dt&&Math.random()<0.4)u.q.push({at:u.t,sd:twRuleBasis(pd)[1]}); /* a burst every 5 to 7.5 s, and now and then a lone one in between */
+      for(var qi=u.q.length-1;qi>=0;qi--)if(u.t>=u.q[qi].at){X.drop(pd,u.q[qi].sd);u.q.splice(qi,1)}
+      var v=new THREE.Vector3(),Y=new THREE.Vector3(0,1,0);
+      for(var i=u.shocks.length-1;i>=0;i--){var S=u.shocks[i];
+        if(S.st==="warn"){S.w+=dt;var fl=0.75+0.25*Math.sin(S.w*30);twRuleRingAt(S,0,0.5+S.w*0.7,0.12);S.m.material.opacity=0.24*Math.min(1,S.w/0.3)*fl; /* the glint: a soft white spot for 1 s */
+          if(S.w>0.35){var x=Math.min(1,(S.w-0.35)/0.65),e=Math.pow(x,1.6);S.rk.visible=S.tl.visible=true;S.rk.position.lerpVectors(S.p0,S.p1,e);S.rk.rotation.x+=dt*7;S.rk.rotation.y+=dt*5;
+            v.copy(S.p0).sub(S.p1).normalize();S.tl.quaternion.setFromUnitVectors(Y,v);S.tl.position.copy(S.rk.position).addScaledVector(v,2.25)} /* the meteor streaks down over 0.65 s, a white trail behind it */
+          if(S.w>=1){S.st="go";S.r=0;twCxDrop(S.rk);twCxDrop(S.tl);var D0=pd.angleTo(S.c)*SR;if(D0<12)twShk=Math.max(twShk,0.1*(1-D0/12));
+            if(S.land){u.sc.push(twCxScorch(S.c));var al=u.mL.filter(function(m){return !m.dead}),ov=al.length+4-30;for(var kk=0;kk<ov;kk++)if(al[kk].cxGo==null)al[kk].cxGo=u.t;u.mL=al.concat(twCxRock(S.c,S.id))}}continue} /* impact: a small shake if you are near, a scorch mark on land, and crumbs of the meteor round it (30 at most lying about: the oldest shrink away to make room) */
+        S.r+=20*dt;if(S.r>=5){twCxDrop(S.m);u.shocks.splice(i,1);continue}
+        twRuleRingAt(S,S.r-0.25,S.r+0.25,0.15);S.m.material.opacity=0.38*(1-S.r/5); /* the ring: out to 5 in a quarter of a second */
+        if(!S.hit&&pd.angleTo(S.c)*SR<S.r+ballR*0.6){S.hit=true;if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.75}v.copy(pd).sub(S.c);v.addScaledVector(pd,-v.dot(pd));if(v.lengthSq()>1e-8)bumpV.addScaledVector(v.normalize(),7);twShk=Math.max(twShk,0.25)}}
+      for(var j=0;j<u.mL.length;j++){var m=u.mL[j];if(m.dead)continue;if(m.cxM&&u.t-m.cxT<4.2)twCxGlow(m,u.t);if(m.cxGo!=null){var ga=(u.t-m.cxGo)/0.6;if(ga>=1){m.dead=true;m.hid=true;if(m.g.parent)m.g.parent.remove(m.g)}else m.g.scale.setScalar(m.cxS0*(1-ga))}} /* with 30 crumbs lying about, every new meteor makes the oldest ones shrink away over 0.6 s, so the newest always leave crumbs */
+      for(var k=u.sc.length-1;k>=0;k--){var sc=u.sc[k],a=(u.t-sc.userData.t)/12;if(a>=1){twCxDrop(sc);u.sc.splice(k,1)}else sc.material.opacity=0.32*(1-a*a)}}}; /* the scorch mark fades over 12 s */
+  function twCxScorch(c){var pg=new THREE.PlaneGeometry(3.2,3.2);pg.rotateX(-Math.PI/2);var m=new THREE.Mesh(pg,new THREE.MeshBasicMaterial({map:twRadTex(),color:0x000000,transparent:true,opacity:0.32,depthWrite:false}));
+    m.position.copy(c).multiplyScalar(surfaceR(c)+0.05);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),c);m.renderOrder=2;m.userData.t=twRu.t;scene.add(m);twRu.ms.push(m);return m} /* a soft dark patch on the ground where it hit */
+  function twCxRock(c,sid){var E=twRuleBasis(c),L=[],n=3+(Math.random()*2|0),a0=Math.random()*6.283; /* METEOR CRUMBS: the meteor breaks into 3 or 4 little piles of black crumbs, scattered round the scorch mark, each pile its own tiny pickup */
+    for(var i=0;i<n;i++){var s=0.5+Math.random()*0.15,g=new THREE.Group(),mt=new THREE.MeshStandardMaterial({color:0x0c0c0e,emissive:0x8a8a8a,emissiveIntensity:0.2,flatShading:true,roughness:1}),k=5+(Math.random()*3|0); /* nearly black, like soot, with only a faint glow just after landing */
+      for(var j=0;j<k;j++){var f=new THREE.Mesh(j%3?new THREE.TetrahedronGeometry(0.22,0):new THREE.BoxGeometry(0.26,0.26,0.26),mt),r=j?0.15+Math.random()*0.4:0,a=Math.random()*6.283,sz=j?0.5+Math.random()*0.6:1.1;
+        f.scale.set(sz,sz*(0.3+Math.random()*0.3),sz*(0.6+Math.random()*0.6));f.rotation.set((Math.random()-0.5)*0.6,Math.random()*6.283,(Math.random()-0.5)*0.6);f.position.set(Math.cos(a)*r,0.05*sz,Math.sin(a)*r);g.add(f)} /* 5 to 7 flat, sharp-edged flakes of different sizes lying in a loose heap, the biggest in the middle */
+      var d=twCxAt(c,0.5+Math.random()*1.2,a0+i*6.283/n+(Math.random()-0.5)*0.8,E);g.userData.nm="METEOR";g.scale.setScalar(s);scene.add(g);var bl=makeBlob(0.55);g.add(bl);g.userData.blob=bl;
+      var o={g:g,dir:c.clone(),foot:s*0.9,req:s*0.5,gain:0.06,spin:Math.random()*6.28,still:true,dead:false,cxS0:s,cxM:mt,cxT:twRu.t,cxF:{a:c.clone(),b:d,t0:twRu.t},rhId:sid};props.push(o);L.push(o)}return L} /* they burst out of the impact and arc to where they land (see sparkle.prop), and the meteor's own ring doesn't bounce them; each pile worth 0.06, about one normal piece for the lot; they don't spin */
+  function twCxGlow(m,t){m.cxM.emissiveIntensity=0.2*Math.max(0,1-(t-m.cxT)/4)} /* the faint glow goes out over 4 s, leaving them black */
+
+  /* STAMPEDE */
+  twRuX.chase={
+    init:function(R){},
+    move:function(dt,pd,pull){},
+    prop:function(o,dt){var u=twRu;o.smH=0;if(o.tw||o.mine||o.still||o.tops||o.g.userData.roam||ballR<o.req)return;if(o.smR>u.t)return; /* resting */
+      var D=o.dir.angleTo(pPos)*SR;if(D>=9+ballR*1.2){o.smF=null;return}if(o.smF==null)o.smF=u.t;if(u.t-o.smF>2.6){o.smR=u.t+0.9;o.smF=null;return} /* spots you from 9 away (more as you grow), runs for 2.6 s, then a 0.9 s breather */
+      var aw=twCxTan(o.dir,o.dir.clone().multiplyScalar(2).sub(pPos.clone().normalize()));if(!aw)return;var j=1;
+      if(D<2.2+ballR&&!(o.smJc>u.t)){o.smJ=u.t+0.35;o.smJc=u.t+1.2;o.smS=Math.random()<0.5?-1:1} /* you're nearly on it: it jinks to one side */
+      if(o.smJ>u.t){aw.applyAxisAngle(o.dir,1.4*o.smS);j=1.7}else aw.applyAxisAngle(o.dir,Math.sin(u.t*6+o.spin)*0.5); /* otherwise away from you, zigzagging */
+      var sp=6.2*j/(1+o.foot*0.4)/SR*dt,tries=[0,1.1,-1.1];for(var i=0;i<3;i++){var a2=aw.clone().applyAxisAngle(o.dir,tries[i]),nd=o.dir.clone().applyAxisAngle(new THREE.Vector3().crossVectors(o.dir,a2).normalize(),sp);
+        if(relief01(nd)>=WATER&&twRuleFree(o,nd)){o.dir.copy(nd);o.smH=1;return}}}, /* about 5 a second for a small piece, 9 in a jink (you top out at 7.5); won't run into the sea; if scenery is in the way on all sides, it's cornered */
+    lift:function(o){var u=twRu;twCxUp(o,o.smH?Math.abs(Math.sin(u.t*14+o.spin))*0.3:0)}}; /* little hops as it runs */
+  twRuIco.sparkle='<path fill="currentColor" d="M239.35 70.08a13.41 13.41 0 0 0-11.77-9.28l-36.94-2.92l-14.21-33.66a13.51 13.51 0 0 0-24.86 0l-14.21 33.66l-36.94 2.92a13.39 13.39 0 0 0-7.66 23.58l28.06 23.68l-8.56 35.39a13.32 13.32 0 0 0 5.1 13.91a13.51 13.51 0 0 0 15 .69L164 139l31.65 19.06a13.54 13.54 0 0 0 15-.69a13.34 13.34 0 0 0 5.09-13.91l-8.56-35.39l28.06-23.68a13.32 13.32 0 0 0 4.11-14.31M193.08 99a8 8 0 0 0-2.61 8l8.28 34.21l-30.62-18.41a8 8 0 0 0-8.25 0l-30.62 18.43l8.28-34.23a8 8 0 0 0-2.62-8L108 76.26l35.52-2.81a8 8 0 0 0 6.74-4.87L164 35.91l13.79 32.67a8 8 0 0 0 6.74 4.87l35.53 2.81Zm-105 24.18l-58.42 58.48a8 8 0 0 1-11.32-11.32l58.45-58.45a8 8 0 0 1 11.32 11.32Zm10.81 49.87a8 8 0 0 1 0 11.31l-53.23 53.3a8 8 0 0 1-11.32-11.32l53.27-53.26a8 8 0 0 1 11.31 0Zm73-1a8 8 0 0 1 0 11.32l-54.28 54.28a8 8 0 0 1-11.32-11.32l54.29-54.28a8 8 0 0 1 11.36.01Z"/>';
+  twRuIco.chase='<path fill="currentColor" d="m231.16 166.63l-28.63-14.31A47.74 47.74 0 0 1 176 109.39V80a8 8 0 0 0-8-8a48.05 48.05 0 0 1-48-48a8 8 0 0 0-12.83-6.37L30.13 76l-.2.16a16 16 0 0 0-1.24 23.75L142.4 213.66a8 8 0 0 0 5.66 2.34H224a16 16 0 0 0 16-16v-19.06a15.92 15.92 0 0 0-8.84-14.31M224 200h-72.63L40 88.63l12.87-9.76l38.79 38.79A8 8 0 0 0 103 106.34L65.74 69.11l40-30.31A64.15 64.15 0 0 0 160 87.5v21.89a63.65 63.65 0 0 0 35.38 57.24L224 180.94ZM70.8 184H32a8 8 0 0 1 0-16h38.8a8 8 0 1 1 0 16m40 24a8 8 0 0 1-8 8H48a8 8 0 0 1 0-16h54.8a8 8 0 0 1 8 8"/>';
+  twRuNm.squiggle="RAINBOW TRAIL";twRuNm.sparkle="METEOR SHOWER";twRuNm.chase="STAMPEDE"; /* labels; icons from Phosphor (regular, MIT): tornado, shooting star, sneaker in motion */
+  twRuIco.squiggle='<path fill="currentColor" d="M184 168v16a8 8 0 0 1-16 0v-16a40 40 0 0 0-80 0v16a8 8 0 0 1-16 0v-16a56 56 0 0 1 112 0m-56-88a88.1 88.1 0 0 0-88 88v16a8 8 0 0 0 16 0v-16a72 72 0 0 1 144 0v16a8 8 0 0 0 16 0v-16a88.1 88.1 0 0 0-88-88m0-32A120.13 120.13 0 0 0 8 168v16a8 8 0 0 0 16 0v-16a104 104 0 0 1 208 0v16a8 8 0 0 0 16 0v-16A120.13 120.13 0 0 0 128 48"/>'; /* Phosphor rainbow (regular, MIT) */
+
+  /* RAINBOW TRAIL (Squiggle), after Chromie Squiggle, the generative art the pattern is named for: the maki draws a thick rainbow line on the ground as it rolls, its colour running round the wheel as it goes.
+     The line is a flat band, wider as the maki grows, round at both ends and in the bends, and lasts 30 s: its tail shortens smoothly as it goes. Where it crosses itself the newer part lies on top.
+     Cross your own line (any part more than 2.5 s old) and you close a loop: a wave of colour runs through the whole line once, spreading both ways from where you crossed, and magnet mode comes on for 5 s.
+     Each crossing is its own loop (a figure 8 makes two), and each new loop starts the 5 s again. Turning on the spot, tiny circles, hops and being knocked about by a chopstick, an ant or a bump don't count */
+  function twSqT(k){return k==="loop"} /* only the trail is in play */
+  var twSqP={vivid:[0.95,0.55]}; /* the colours: saturation and lightness */
+  function twSqTop(d,sd,w){var tg=new THREE.Vector3().crossVectors(sd,d).normalize(),p=new THREE.Vector3(),h=0;for(var e=-1;e<=1;e++)for(var k=0;k<7;k++){var a=k*1.0472,r=k?0.95:0;p.copy(d).addScaledVector(sd,(e*w+Math.cos(a)*r)/SR).addScaledVector(tg,Math.sin(a)*r/SR).normalize();h=Math.max(h,lmGround(p))}return h} /* the highest ground at its middle and both edges, and 0.95 round each: the planet is drawn as flat faces about 0.9 across, so a face can stand higher than the ground height right at the point; plaza tiles count too */
+  function twSqBand(g,ro){var m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:1,depthWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.frustumCulled=false;m.renderOrder=ro;scene.add(m);twRu.ms.push(m);return m} /* the track is drawn without writing depth, tail, then band, then head, in the order it was laid, so where it crosses itself the later part is always on top; hills and things still hide it */
+  function twSqColTo(c,h){var p=twSqP.vivid;return c.setHSL(((h%1)+1)%1,p[0],p[1])} /* the same, into a colour you already have */
+  function twSqCol(h){var p=twSqP.vivid;return new THREE.Color().setHSL(((h%1)+1)%1,p[0],p[1])}
+  function twSqStrip(n){var g=new THREE.BufferGeometry(),I=[];for(var i=0;i<n-1;i++){var a=i*2;I.push(a,a+1,a+2,a+1,a+3,a+2)}g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(n*6),3));g.setAttribute("color",new THREE.BufferAttribute(new Float32Array(n*6),3));g.setIndex(I);return g}
+  function twSqV(g,i,e,p,c,k){var a=g.attributes.position.array,b=g.attributes.color.array,q=(i*2+e)*3;a[q]=p.x;a[q+1]=p.y;a[q+2]=p.z;b[q]=Math.min(1,c.r*k);b[q+1]=Math.min(1,c.g*k);b[q+2]=Math.min(1,c.b*k)}
+  function twSqMesh(g,op){var m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:op<1,opacity:op,depthWrite:op>=1,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.frustumCulled=false;scene.add(m);twRu.ms.push(m);return m}
+  function twSqUpd(g){g.attributes.position.needsUpdate=true;g.attributes.color.needsUpdate=true}
+  twRuX.squiggle={sh:true,
+    init:function(R){var u=twRu,F=u.sqF={loop:true},i,e;u.shocks=[];u.id=0;
+      if(F.loop){var mx=PQ.tier>=2?500:900,C=mx+8,tg=new THREE.BufferGeometry(),I=[];for(var k=0;k<2*C;k++){var a=2*(k%C),b=2*((k+1)%C);I.push(a,a+1,b,a+1,b+1,b)}tg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(C*6),3));tg.setAttribute("color",new THREE.BufferAttribute(new Float32Array(C*6),3));tg.setIndex(I);tg.setDrawRange(0,0); /* a ring of places, joined twice round, so the band from oldest to newest is always one unbroken run */
+        var gt=twSqStrip(6),gh=twSqStrip(6);u.tl={p:[],mx:mx,C:C,life:30,h0:R(),ds:0,g:tg,gt:gt,gh:gh,pl:[],id:0,wv:[],dirty:false};twSqBand(gt,-3);twSqBand(tg,-2);twSqBand(gh,-1)} /* a flat band, up to 900 points long (500 on the slowest two quality tiers) */
+      },
+    rings:function(dt){var u=twRu;for(var i=u.shocks.length-1;i>=0;i--){var S=u.shocks[i];S.r+=20*dt;if(S.r>=6){twCxDrop(S.m);u.shocks.splice(i,1);continue}twRuleRingAt(S,S.r-0.25,S.r+0.25,0.15);S.m.material.opacity=0.38*(1-S.r/6)}},
+    late:function(){var u=twRu;if(u&&u.sqF&&u.sqF.loop&&u.tl)twRuX.squiggle.draw()},
+    move:function(dt,pd,pull){var X=twRuX.squiggle;X.rings(dt);X.trail(dt,pd,pull)},
+    trail:function(dt,pd,pull){var u=twRu,T=u.tl,L=T.p,last=L[L.length-1],i,X=twRuX.squiggle;
+      if(hopT<=0){var mv=last?last.d.angleTo(pd)*SR:1;if(mv>0.6){if(last)T.ds+=mv;var w0=0.45+ballR*0.25,q0={d:pd.clone(),id:T.id++,t:u.t,hu:T.h0+T.ds/50,w:w0},sd0=last?new THREE.Vector3().crossVectors(pd,pd.clone().sub(last.d)):null;
+          if(sd0&&sd0.lengthSq()>1e-14)sd0.normalize();else sd0=twRuleBasis(pd)[0];q0.h=twSqTop(pd,sd0,w0); /* sits on the highest ground under it, so the ground never covers it */
+          L.push(q0);if(L.length>T.mx)L.shift();X.settle(L);for(var k=Math.max(0,L.length-6);k<L.length;k++)X.slot(L[k],true);T.pu=true}} /* a new point every 0.6 you roll; 1.4 wide at the start, wider as the maki grows; the colour goes round the wheel every 50 */
+      while(L.length>1&&u.t-L[1].t>T.life)L.shift();if(L.length===1&&u.t-L[0].t>T.life)L.shift(); /* after 30 s the tail goes, sliding smoothly from one point to the next (see draw) */
+      var rch=0.5+ballR*0.4,cT=Math.cos(rch/SR),cA=Math.cos((rch+1)/SR),mD=2+ballR*0.3,cM=Math.cos(mD/SR);if(bumpV.lengthSq()>1||wobT>0)T.kn=u.t+0.5; /* knocked about by a chopstick, an ant or a bump: no loop until it has settled */
+      for(i=L.length-1;i>=Math.max(0,L.length-30);i--)if(!L[i].aw&&L[i].d.dot(pd)<cA)L[i].aw=true; /* a point only counts once the maki has moved 1 beyond reach of it, so turning on the spot never makes a loop */
+      if(!(T.cd>u.t)&&!(T.kn>u.t)&&hopT<=0)for(i=L.length-1;i>=0;i--){var q=L[i];if(u.t-q.t<=2.5||!q.aw||L.length-1-i<6||q.d.dot(pd)<=cT)continue;var big=false;for(var j=i+1;j<L.length&&!big;j++)if(L[j].d.dot(q.d)<cM)big=true;if(!big)continue; /* and the loop has to be a real one, at least 2 across (a little more as the maki grows, so a big maki turning hard still makes one), not a tiny circle */
+        T.cd=u.t+0.6;T.wv.push({t0:u.t,id:q.id});X.magOn();break} /* crossing your own track (any part more than 2.5 s old) closes a loop: the newest part you cross, so it is the loop you just drew, not one reaching back to an old crossing. Each crossing is its own loop, so a figure 8 makes two, and they all work. Its colours flow and magnet mode comes on for 5 s (another loop starts the 5 s again) */
+      X.magTick()},
+    magOn:function(){var u=twRu,T=u.tl;if(T.mgE!=null){T.mgE=u.t+5;return}if(window.MKPT_MAG)return;T.mgE=u.t+5;window.MKPT_MAG=true;twLast="MAGNET";twLastT=twNow}, /* turns the magnet on, unless you already had it on (with the M key), and says so on the GOT line */
+    magTick:function(){var u=twRu,T=u.tl;if(T.mgE==null)return;if(window.MKPT_MAG!==true){T.mgE=null;return}if(u.t>=T.mgE){window.MKPT_MAG=false;T.mgE=null}}, /* off again after 5 s; if you change the magnet yourself in the meantime, yours wins */
+    clear:function(){var T=twRu&&twRu.tl;if(T&&T.mgE!=null&&window.MKPT_MAG===true)window.MKPT_MAG=false}, /* the round ends: a magnet the loop turned on goes off */
+    settle:function(L){var n=L.length,W=[1,6,15,20,15,6,1],k,j,s=new THREE.Vector3();for(k=Math.max(0,n-5);k<n;k++){s.set(0,0,0);for(j=-3;j<=3;j++)s.addScaledVector(L[Math.min(n-1,Math.max(0,k+j))].d,W[j+3]);L[k].s=s.clone().normalize()} /* the path smoothed, worked out once as each point is laid (only the newest few change), so a tight corner turns as a round bend */
+      for(k=Math.max(0,n-6);k<n;k++){var q=L[k],a=L[Math.max(0,k-2)].s||q.s,b=L[Math.min(n-1,k+2)].s||q.s,tg=b.clone().sub(a);tg.addScaledVector(q.s,-tg.dot(q.s));if(tg.lengthSq()<1e-14)tg.copy(twRuleBasis(q.s)[0]);q.tg=tg.normalize();q.sd=new THREE.Vector3().crossVectors(q.s,q.tg).normalize();
+        q.hh=Math.max(L[Math.max(0,k-1)].h,q.h,L[Math.min(n-1,k+1)].h)}},
+    hue:function(q){var X=twRuX.squiggle,u=twRu,wv=u.tl.wv,hs=0;for(var i=0;i<wv.length;i++){var x=Math.min(1,Math.max(0,(u.t-wv[i].t0-Math.abs(q.id-wv[i].id)*0.02)/2.5));hs+=x*x*(3-2*x)}return twSqColTo(X.c||(X.c=new THREE.Color()),q.hu+hs)}, /* every loop you close sends the whole spectrum through the entire track once, spreading both ways from where you crossed, and through what you draw after it too, so it never breaks off */
+    slot:function(q,pos){var T=twRu.tl,X=twRuX.squiggle,k=q.id%T.C,c=X.hue(q),V=X.v||(X.v=new THREE.Vector3());if(!q.s)return;
+      if(pos){for(var e=0;e<2;e++){V.copy(q.s).multiplyScalar(q.hh+0.12).addScaledVector(q.sd,e?q.w:-q.w);twSqV(T.g,k,e,V,c,1)}return}
+      var b=T.g.attributes.color.array;for(var e2=0;e2<2;e2++){var o=(k*2+e2)*3;b[o]=c.r;b[o+1]=c.g;b[o+2]=c.b}}, /* each point keeps its own place in the band's buffer, written once when laid; after that only its colour changes, and only while a colour wave runs */
+    draw:function(){var u=twRu,T=u.tl,L=T.p,X=twRuX.squiggle,N=L.length,pd=ball.position.clone().normalize(),i,CP=[1.5708,1.1781,0.7854,0.3927],P=new THREE.Vector3(),V=new THREE.Vector3();
+      T.wv=T.wv.filter(function(w){return u.t-w.t0<2.6+T.mx*0.02});var rc=T.wv.length>0||T.dirty;T.dirty=T.wv.length>0;
+      if(N<2||!L[0].s||!L[N-1].s||!L[1].s){T.g.setDrawRange(0,0);T.gt.setDrawRange(0,0);T.gh.setDrawRange(0,0);return}
+      if(rc){for(i=0;i<N;i++)X.slot(L[i],false);T.g.attributes.color.needsUpdate=true}if(T.pu){T.g.attributes.position.needsUpdate=true;T.g.attributes.color.needsUpdate=true;T.pu=false}
+      T.g.setDrawRange((L[1].id%T.C)*6,(N-2)*6); /* the band from the second point to the newest, in the order it was drawn */
+      function rw(g,r,q,c){P.copy(q.s).multiplyScalar(q.hh+0.12);for(var e=0;e<2;e++){V.copy(P).addScaledVector(q.sd,e?q.w:-q.w);twSqV(g,r,e,V,c,1)}}
+      function cap(g,r,q,a,sg,c){var o={s:q.s.clone().addScaledVector(q.tg,sg*Math.sin(a)*q.w/SR).normalize(),sd:q.sd,hh:q.hh,w:Math.cos(a)*q.w};rw(g,r,o,c)}
+      var A=L[0],B=L[1],f=Math.min(1,Math.max(0,(u.t-T.life-A.t)/Math.max(1e-3,B.t-A.t))),tq={s:A.s.clone().lerp(B.s,f).normalize(),sd:A.sd.clone().lerp(B.sd,f).normalize(),tg:A.tg.clone().lerp(B.tg,f).normalize(),hh:A.hh+(B.hh-A.hh)*f,w:A.w+(B.w-A.w)*f,hu:A.hu+(B.hu-A.hu)*f,id:B.id};
+      var tc=X.hue(tq).clone();for(i=0;i<4;i++)cap(T.gt,i,tq,CP[i],-1,tc);rw(T.gt,4,tq,tc);rw(T.gt,5,B,X.hue(B));T.gt.setDrawRange(0,30);twSqUpd(T.gt); /* the tail: a rounded end that slides from one point to the next as it goes, so it shortens smoothly */
+      var Z=L[N-1],ht=Z.s.angleTo(pd)*SR>0.05?twCxTan(Z.s,pd):null;if(!ht)ht=Z.tg;var hq={s:pd,tg:ht,sd:new THREE.Vector3().crossVectors(pd,ht).normalize(),w:0.45+ballR*0.25,hh:Math.max(Z.hh,lmGround(pd)),hu:T.h0+(T.ds+Z.d.angleTo(pd)*SR)/50,id:T.id};
+      rw(T.gh,0,Z,X.hue(Z));var hc=X.hue(hq).clone();rw(T.gh,1,hq,hc);for(i=3;i>=0;i--)cap(T.gh,5-i,hq,CP[i],1,hc);T.gh.setDrawRange(0,30);twSqUpd(T.gh)}}; /* the head runs on right under the maki, drawn last thing in the frame from where the maki is drawn, with a rounded end */
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -3172,7 +3295,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-04c",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-05a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
