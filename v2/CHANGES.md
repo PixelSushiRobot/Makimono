@@ -56,6 +56,7 @@ The listed odds still add up: pattern odds come from each profile's allowed patt
 - **Clouds can be rolled up.** Once the top of the roll reaches a cloud, it sticks like anything else and adds a little size. Over the sea that's around the goal size with a hop; from high ground, sooner.
 - **Edges.** Things too big to roll up stop you closer to them: scenery stops you at the same reach as oversized food (0.85 of the roll plus 0.7 of the thing, instead of the whole roll plus the whole thing). And brushing past one no longer stops you dead: the roll slides round its edge, a little slowed. Heading straight into it, or sliding into something else, still stops you.
 - **Secret `T`:** throws away everything the roll has collected, all at once, the same throw a chopstick hit uses, and the roll goes back to its starting size. The pieces land around you and can be rolled up again. Not listed in the shortcuts card.
+- **Every ant is named.** Rolling up an ant that walks the planet now shows GOT ANT and counts in the ant total, like anthill ants. Before, only anthill and belt ants did.
 - Opening the game drops keyboard focus from the Message cell, so the game's keys always work.
 
 ## The preview page: B-SIDE
@@ -177,6 +178,7 @@ Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint
 
 **Ants mode (Text ANTS)**
 - On top of the ant planet above (the 21 extra small ants): **3 giant ants**, about twice the size of the biggest normal ants, and **ants on the belts**, where about 3 in 10 plates carry a small ant instead of food.
+- **Radioactive ants:** the 3 giant ants and about 1 in 6 of the others are radioactive. Their body glows a dim toxic green and slowly breathes, each at its own pace, with a soft green glow on the ground under them; the giant ones also give off a few tiny specks that drift up and fade. Rolled up, one shows GOT RADIOACTIVE ANT and still counts as an ant. Which ants are picked doesn't change the planet's layout.
 
 **YOLO mode (Text YOLO)**
 - **When:** art whose Message or Pattern contains "yolo".

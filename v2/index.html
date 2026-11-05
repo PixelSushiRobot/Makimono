@@ -1210,7 +1210,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       props.forEach(function(o){if(o===HP)return;var d=hOut(o.dir);if(d)o.dir.copy(d)});terrain.forEach(function(o){var d=hOut(o.dir);if(d)o.dir.copy(d)});ants.forEach(function(o){var d=hOut(o.pos.clone().normalize());if(d)o.pos.copy(d.multiplyScalar(SR))});
       var nx=0,born=[];
       AS.ticks.push(function(t){if(HP.dead){AS.name="ANTHILL · ROLLED UP";if(!AS.counted){AS.counted=1;born.forEach(function(a){if(!a.dead)twW(a.g,a.sz*a.sz)})}return}var every=Math.max(900,params.stepMs*24)*8.5/hs/(antsP?2:1);if(!nx)nx=t+every;if(t<nx)return;nx=t+every;
-        born=born.filter(function(a){return !a.dead});if(born.length>=24)return;var ag=buildAnt(),asz=Math.min(0.85,0.15+0.045*hs)+lr()*0.12;ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;ag.userData.nm="ANT";
+        born=born.filter(function(a){return !a.dead});if(born.length>=24)return;var ag=buildAnt(),asz=Math.min(0.85,0.15+0.045*hs)+lr()*0.12;ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;ag.userData.nm="ANT"; /* every ant is named, so rolling one up shows GOT ANT and counts it */ag.userData.nm="ANT";
         var a=lr()*6.283,an={g:ag,pos:lmAt(AS,Math.cos(a)*1.6,Math.sin(a)*1.6).multiplyScalar(SR),head:lmW(AS,Math.cos(a),Math.sin(a)),sz:asz,req:R0,gain:0.05,cd:0,dead:false,ph:lr()*6.28};ants.push(an);born.push(an);AS.name="ANTHILL · "+born.length+" OUT"})}
     twOrbA=0}
   /* the belt top under the roll, if it's on the road (0 if not). Searches near where it last was, so it's cheap each frame */
@@ -1364,7 +1364,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     clouds.forEach(function(o){o.g.userData.nm="CLOUD";if(!o.dead){var s=o.g.scale.x*1.5;twW(o.g,s*s)}});ants.forEach(function(o){if(!o.dead){twW(o.g,o.sz*o.sz)}});
     if(plaza){plaza.gn=0;plaza.n0=0;for(var k=0;k<169;k++)if(!plaza.out||plaza.out.some(function(O){return !O[k]})){plaza.n0++;twTot+=plaza.TS*plaza.TS}}if(twR)twTot+=twR.NSL*twR.SLW*3.2}
   function twNear(o,ratio,t){if(ratio<0.75||(o.wob&&t-o.wob<650))return;o.wob=t;if(twWob.indexOf(o)<0)twWob.push(o)}
-  function twGrab(g){twGot++;var nm=twNm(g);if(nm==="ANT")twAnts++;if(nm==="CHOPSTICKS")twChops++;twCoinGot(g);if(nm){if(nm==="PLATE"&&twBu.length===1&&twBu[0]!=="PLATE"&&twNow-twBuT<=200){twLast=twBu[0]+" + PLATE";twBu=[]}else{twBu=[nm];twBuT=twNow;twLast=nm}twLastT=twNow}twGL.push([twCat(g,nm),ballR])}
+  function twGrab(g){twGot++;var nm=twNm(g);if(nm==="ANT")twAnts++;if(nm==="CHOPSTICKS")twChops++;twCoinGot(g);if(nm){if(nm==="PLATE"&&twBu.length===1&&twBu[0]!=="PLATE"&&twNow-twBuT<=200){twLast=twBu[0]+" + PLATE";twBu=[]}else{twBu=[nm];twBuT=twNow;twLast=g.userData.rad||nm}twLastT=twNow}twGL.push([twCat(g,nm),ballR])}
   /* the last-pickup line: a belt sushi and the plate under it (added a frame later) show as one line, SALMON + PLATE, instead of
      flicking from the sushi's name to PLATE. Anything else replaces the line as it is rolled up */
   var twBu=[],twBuT=-1e9;
@@ -2216,6 +2216,29 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function twYoDrop(o){var b=o.g.userData.blob;if(b&&o.yoY){b.position.y=0.03;b.scale.setScalar(1)}if(o.yoY){o.g.position.addScaledVector(o.dir,-o.yoY);o.yoY=0}}
   /* YOLO hops: the rise takes 40% of the hop and the fall the other 60%, easing out of the top, so the roll comes down slowly the way it would in light gravity. Other hops (a bump, a shock) keep the plain arc */
   function twYoArc(x,m){if(!params.yolo||!m)return Math.sin(x*Math.PI);return x<0.4?Math.sin(x/0.4*Math.PI/2):Math.cos((x-0.4)/0.6*Math.PI/2)}
+  /* RADIOACTIVE ANTS: in Text ANTS, the 3 giant ants and about 1 in 6 of the other ants are radioactive. Their body (not the legs) glows faintly and breathes,
+     each at its own pace, and a soft glow lies on the ground under them; the giant ones also give off a few tiny specks that drift up and fade. Kept dim, never bright.
+     The colour is a muted toxic green. The GOT line calls them RADIOACTIVE ANT (they still count as ants). Picked with their own random numbers, so the planet is laid out the same.
+     A rolled-up radioactive ant keeps its glowing body on the roll, but loses its ground glow and specks, like its shadow */
+  var twRadL=[],twRadTx=null;
+  var twRadC={c:0x2c3a24,e:0x8fd86a,g:0x8fd86a};
+  function twRadTex(){if(twRadTx)return twRadTx;var c=document.createElement("canvas");c.width=c.height=64;var x=c.getContext("2d"),g=x.createRadialGradient(32,32,2,32,32,32);
+    g.addColorStop(0,"rgba(255,255,255,0.9)");g.addColorStop(0.5,"rgba(255,255,255,0.35)");g.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=g;x.fillRect(0,0,64,64);twRadTx=new THREE.CanvasTexture(c);return twRadTx}
+  function twRadMk(p,ag,giant){if(!p.antsM)return;if(!giant&&Math.random()>=1/6)return;var C=twRadC;ag.userData.rad="RADIOACTIVE ANT";var R={g:ag,giant:giant,ph:Math.random()*6.28,sp:0.8+Math.random()*0.5,body:[],sk:[]};
+    var bm=new THREE.MeshStandardMaterial({color:C.c,emissive:C.e,emissiveIntensity:0.35,flatShading:true,roughness:.5});
+    ag.traverse(function(n){if(n.isMesh&&n.geometry&&n.geometry.type==="IcosahedronGeometry"){n.material=bm;R.body.push(n)}});R.bm=bm; /* the abdomen, thorax and head (the legs, antennae and eyes stay as they are) */
+    var pg=new THREE.PlaneGeometry(2.4,2.4);pg.rotateX(-Math.PI/2);var gm=new THREE.MeshBasicMaterial({map:twRadTex(),color:C.g,transparent:true,opacity:0.22,depthWrite:false,side:THREE.DoubleSide});
+    var gl=new THREE.Mesh(pg,gm);gl.position.y=0.04;gl.renderOrder=3;ag.add(gl);R.gl=gl;R.gm=gm;
+    if(giant){var sg=new THREE.IcosahedronGeometry(0.035,0);for(var i=0;i<3;i++){var sm=new THREE.MeshBasicMaterial({color:C.g,transparent:true,opacity:0,depthWrite:false}),s=new THREE.Mesh(sg,sm);s.userData.o=i/3;s.userData.x=(Math.random()-0.5)*0.4;s.userData.z=(Math.random()-0.5)*0.6-0.2;ag.add(s);R.sk.push(s)}}
+    twRadL.push(R)}
+  function twRadOff(R){if(R.gl){R.g.remove(R.gl);R.gl=null}R.sk.forEach(function(s){R.g.remove(s)});R.sk=[]}
+  function twRadTick(t,dt){if(!twRadL.length)return;
+    for(var i=0;i<twRadL.length;i++){var R=twRadL[i];
+      if(!R.g.userData.blob&&(R.gl||R.sk.length))twRadOff(R); /* rolled up: the roll took its shadow, so the glow and specks go too */
+      var w=0.5+0.5*Math.sin(t/1000*R.sp*Math.PI*2/1.6+R.ph);R.bm.emissiveIntensity=0.22+0.28*w; /* breathes about once every 1.6 s, each at its own pace */
+      if(R.gl)R.gm.opacity=0.14+0.14*w;
+      for(var j=0;j<R.sk.length;j++){var s=R.sk[j],f=((t/1000)/2.2+s.userData.o)%1;s.position.set(s.userData.x,0.7+f*0.9,s.userData.z);s.material.opacity=0.55*Math.sin(f*Math.PI)}}} /* a speck rises 0.9 over 2.2 s, fading in and out */
+  function twRadClear(){twRadL.length=0}
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -2255,9 +2278,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     enemies=[];for(var e=0;e<Math.max(2,p.enemyN);e++){var ed=twChopDir(e);var em=buildChopstick();var esz=(rnd()<0.22?1.9+rnd()*1.9:0.7+rnd()*0.8)*(p.esize||1);em.scale.setScalar(esz);scene.add(em);em.add(makeBlob(0.5));enemies.push({g:em,pos:ed.multiplyScalar(SR).clone(),sign:e%2?1:-1,cd:0,sz:esz})}
     // ants: roam the planet; too big = they bump you and steal, big enough = you roll them up (they flee)
     // ANTS pieces (Message or Pattern mentions ants): the usual 9 plus 21 small ants you can roll up from the start, so the planet reads as an ant planet
-    ants=[];var antBig=9,antN=antBig+(p.antsM?21:0),antG=antN;if(p.antsM)antN+=3; /* Text ANTS: 21 more small ants, and 3 giant ones */
-    for(var ai=0;ai<antN;ai++){var ad=fibDir((ai*17+5)%64,64);var ag=buildAnt();var small=ai>=antBig&&ai<antG,asz=ai>=antG?2.2+rnd():small?0.38+rnd()*0.2:0.7+rnd()*0.9; /* a giant ant is 2.2x to 3.2x: it can only be rolled up near the goal size */ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;
-      ants.push({g:ag,pos:ad.multiplyScalar(SR),head:null,sz:asz,req:small?R0:1.5+asz*0.9,gain:small?0.05:0.1+asz*0.08,cd:0,dead:false,ph:rnd()*6.28})} // small ants: rollable at the starting size, smaller growth each
+    twRadClear();ants=[];var antBig=9,antN=antBig+(p.antsM?21:0),antG=antN;if(p.antsM)antN+=3; /* Text ANTS: 21 more small ants, and 3 giant ones */
+    for(var ai=0;ai<antN;ai++){var ad=fibDir((ai*17+5)%64,64);var ag=buildAnt();var small=ai>=antBig&&ai<antG,asz=ai>=antG?2.2+rnd():small?0.38+rnd()*0.2:0.7+rnd()*0.9; /* a giant ant is 2.2x to 3.2x: it can only be rolled up near the goal size */ag.scale.setScalar(asz);scene.add(ag);var ab=makeBlob(0.7);ag.add(ab);ag.userData.blob=ab;ag.userData.nm="ANT"; /* every ant is named, so rolling one up shows GOT ANT and counts it */
+      twRadMk(p,ag,ai>=antG);ants.push({g:ag,pos:ad.multiplyScalar(SR),head:null,sz:asz,req:small?R0:1.5+asz*0.9,gain:small?0.05:0.1+asz*0.08,cd:0,dead:false,ph:rnd()*6.28})} // small ants: rollable at the starting size, smaller growth each
     // player: ball rig (surface-aligned) + clump (rolls) + maki-roll character (pushes, does not roll)
     ball=new THREE.Group();scene.add(ball);
     clump=new THREE.Group();ball.add(clump);
@@ -2381,7 +2404,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
         var away=ball.position.clone().sub(en.pos);bumpV.copy(away.normalize().multiplyScalar(16+4*(en.sz||1)));if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.75}wobT=0.5} // knocked away: shove + little hop + wobble
     }
     // ants wander; within sight they come at you while you're small, and run once you can roll them up
-    for(var ai=0;ai<ants.length;ai++){var an=ants[ai];if(an.dead)continue;an.cd=Math.max(0,an.cd-dt);var au=an.pos.clone().normalize();
+    twRadTick(t,dt);for(var ai=0;ai<ants.length;ai++){var an=ants[ai];if(an.dead)continue;an.cd=Math.max(0,an.cd-dt);var au=an.pos.clone().normalize();
       if(!an.head){an.head=new THREE.Vector3(au.y,au.z,au.x).cross(au).normalize()}
       an.head.applyAxisAngle(au,Math.sin(t/650+an.ph)*1.6*dt);                                   // meander
       var big=ballR>=an.req,ad2=an.pos.angleTo(ball.position)*SR,spd=1.6;
@@ -3127,7 +3150,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-03c",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-04a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
