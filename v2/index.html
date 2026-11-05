@@ -2127,10 +2127,10 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function twRuleFree(o,nd){for(var i=0;i<obstacles.length;i++){var ob=obstacles[i];if(ob.dead)continue;var lim=(ob.size+o.foot*0.6)/SR,c1=nd.dot(ob.dir);if(1-c1<lim*lim*0.5&&c1>o.dir.dot(ob.dir))return false}return true} /* a pickup can't drift into scenery, so it piles up against it */
   function twRuleTurn(v,ax,a){if(a)v.applyAxisAngle(ax,a)}
   function twRuleAlong(pd,v){var ax=new THREE.Vector3().crossVectors(up,v);if(ax.lengthSq()<1e-10)return;var l=v.length();pPos.applyAxisAngle(ax.normalize(),l/SR*twRu._dt)} /* move the roll along the ground by v (a speed) for this frame */
-  function twRuleMove(dt,t){var u=twRu;twRuleLabel();if(!u||twSpec)return;u.t+=dt;u._dt=dt;u.flash=Math.max(0,u.flash-dt);twRuleFx(dt);var pd=pPos.clone().normalize(),pull=new THREE.Vector3(),skid=false;
+  function twRuleMove(dt,t){var u=twRu;twRuleLabel();if(!u||twSpec)return;u.t+=dt;u._dt=dt;u.fc=(u.fc||0)+1;u.flash=Math.max(0,u.flash-dt);twRuleFx(dt);var pd=pPos.clone().normalize(),pull=new THREE.Vector3(),skid=false;
     twRuleLabel(); /* the GOT line names the rule once, just after the round starts */
     if(u.k==="scroll"){var bi=twRuleBand(pd),s=u.b[bi],w=s*1.6/SR*dt;if(u.lastB>=0&&bi!==u.lastB)u.flash=1.5;u.lastB=bi;if(hopT<=0||!hopMine){twRuleTurn(pPos,u.A,w);twRuleTurn(fwd,u.A,w)}
-      var an=twRuleAnn();if(an>0.004)twRuleMarks();twRuleOp(an)} /* carried by the band you're on (not while you're up in your own hop) */
+      var an=twRuleAnn();if(an>0.004&&(PQ.tier<2||u.fc%2))twRuleMarks();twRuleOp(an)} /* carried by the band you're on (not while you're up in your own hop); on a slower device (quality tier 2 or 3) the marks move every other frame */
     else if(u.k==="diagonal"){var g=twRuleGust(),wv=g*5.5*0.4/SR*dt;twRuleTurn(pPos,u.W,wv);twRuleTurn(fwd,u.W,wv);if(g>0.75&&u.g0<=0.75)u.burst=1.6;u.g0=g;u.burst=Math.max(0,u.burst-dt);pull.crossVectors(u.W,pd).multiplyScalar(g*2.2);twRuleTrees(g);twRuleClouds(g,dt);twRuleStreaks(dt,g)} /* the wind pushes you at 0.4 of what it does to a small pickup (up to 2.2 a second in a gust, against 7.5 for your top speed) */
     else if(u.k==="ripple")twRuleRipple(dt,pd);
     if(twRC("slip")){var tg=fwd.clone().multiplyScalar(vel*twRuSpd);if(!twSl.v)twSl.v=tg.clone();twSl.v.addScaledVector(up,-twSl.v.dot(up));twSl.v.lerp(tg,1-Math.exp(-dt*1.3));var ex=twSl.v.clone().sub(tg);twRuleAlong(pd,ex);pull.add(ex.clone().multiplyScalar(0.6));if(ex.length()>2.5)skid=true} /* SLIPPERY: the roll's real movement catches up with where you steer at about 1.3 a second, so the gap (ex) carries it wide or on after you let go */
@@ -2142,15 +2142,16 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(twRuFx.m.parent!==scene)scene.add(twRuFx.m);twSl.pk-=dt;if(twSl.pk>0)return;twSl.pk=0.06;var P=twRuFx.p[twRuFx.k=(twRuFx.k+1)%24],pd=pPos.clone().normalize(),sd=new THREE.Vector3().crossVectors(up,fwd).normalize();
     P.a=0;P.pos=pd.clone().multiplyScalar(surfaceR(pd)+0.15).addScaledVector(sd,(Math.random()-0.5)*ballR*1.2).addScaledVector(fwd,-ballR*0.5);P.v=pd.clone().multiplyScalar(1.2+Math.random()).addScaledVector(fwd,-1-Math.random()).addScaledVector(sd,(Math.random()-0.5)*1.5)} /* SKID: little white dust cubes kicked up behind the roll's foot */
   function twRuleFx(dt){if(!twRuFx)return;var M=new THREE.Matrix4();for(var i=0;i<24;i++){var P=twRuFx.p[i];P.a+=dt;if(P.a>=0.5||!P.pos){M.makeScale(0,0,0);twRuFx.m.setMatrixAt(i,M);continue}P.pos.addScaledVector(P.v,dt);var s=(1-P.a/0.5)*(0.6+ballR*0.25);M.makeScale(s,s,s);M.setPosition(P.pos.x,P.pos.y,P.pos.z);twRuFx.m.setMatrixAt(i,M)}twRuFx.m.instanceMatrix.needsUpdate=true}
-  function twRuleProp(o,dt){var u=twRu;if(!u||!u.k||twSpec||o.abs||o.g.userData.belt||u.k==="ripple")return;var a=0,ax=null;
+  function twRuleProp(o,dt){var u=twRu;if(!u||!u.k||twSpec||o.abs||o.g.userData.belt||u.k==="ripple")return;var a=0,ax=null,T=PQ.tier||0;
+    if(T>=1&&o.dir.angleTo(pPos)*SR>40)return;if(T>=2){var N=T>=3?3:2;if(o.rpK==null)o.rpK=Math.floor(Math.random()*N);o.rpA=(o.rpA||0)+dt;if((u.fc+o.rpK)%N)return;dt=o.rpA;o.rpA=0} /* on a slower device only pickups within 40 of you drift; at tier 2 each moves every other frame and at tier 3 every third (taking the frames it missed), spread so they don't all move on the same frame */
     if(u.k==="scroll"){a=u.b[twRuleBand(o.dir)]*1.6/SR*dt;ax=u.A}else{a=twRuleGust()*5.5/(1+o.foot*1.5)/SR*dt;ax=u.W} /* big things hardly move in the wind */
     if(!a)return;var nd=u.q.copy(o.dir).applyAxisAngle(ax,a);if(twRuleFree(o,nd))o.dir.copy(nd)}
   function twRuleLift(o){var u=twRu;if(!u||u.k!=="ripple"||o.abs)return;for(var i=0;i<u.shocks.length;i++){var S=u.shocks[i];if(S.st!=="go"||o.rhId===S.id)continue;if(o.dir.angleTo(S.c)*SR<S.r){o.rhId=S.id;o.rhT=u.t}}
     if(o.rhT!=null){var x=(u.t-o.rhT)/0.35;if(x>=1)o.rhT=null;else o.g.position.addScaledVector(o.dir,Math.sin(x*Math.PI)*(0.5+o.foot*0.3))}} /* RIPPLE: a pickup the ring passes hops once */
-  function twRuleMarks(){var u=twRu;if(!u.im)return;var M=new THREE.Matrix4(),d=new THREE.Vector3(),tg=new THREE.Vector3(),sd=new THREE.Vector3(),E=u.E,SC=new THREE.Vector3();
-    for(var n=0;n<u.pts.length;n++){var q=u.pts[n],cl=Math.cos(q.la),sl=Math.sin(q.la),th=q.th+q.s*1.6/SR*u.t;d.copy(E[0]).multiplyScalar(Math.cos(th)*cl).addScaledVector(E[1],Math.sin(th)*cl).addScaledVector(u.A,sl);
+  function twRuleMarks(){var u=twRu;if(!u.im)return;var M=new THREE.Matrix4(),d=new THREE.Vector3(),tg=new THREE.Vector3(),sd=new THREE.Vector3(),E=u.E,SC=new THREE.Vector3(),T3=PQ.tier>=3,k=0;
+    for(var n=0;n<u.pts.length;n++){if(T3&&n%3===2)continue;var q=u.pts[n],cl=Math.cos(q.la),sl=Math.sin(q.la),th=q.th+q.s*1.6/SR*u.t;d.copy(E[0]).multiplyScalar(Math.cos(th)*cl).addScaledVector(E[1],Math.sin(th)*cl).addScaledVector(u.A,sl);
       tg.copy(E[0]).multiplyScalar(-Math.sin(th)).addScaledVector(E[1],Math.cos(th)).multiplyScalar(q.s>0?1:-1);sd.crossVectors(d,tg);
-      var h=surfaceR(d)+0.08;M.makeBasis(sd,d,tg);if(q.ph!=null){var lf=(u.t/2.6+q.ph)%1,gw=Math.sin(lf*Math.PI);M.scale(SC.set(0.6+0.4*gw,1,Math.max(0.02,gw)))}M.setPosition(d.x*h,d.y*h,d.z*h);u.im.setMatrixAt(n,M)} /* a FLOW line grows from nothing to full length and back over 2.6 s */u.im.instanceMatrix.needsUpdate=true} /* the marks travel with the ground */
+      var h=surfaceR(d)+0.08;M.makeBasis(sd,d,tg);if(q.ph!=null){var lf=(u.t/2.6+q.ph)%1,gw=Math.sin(lf*Math.PI);M.scale(SC.set(0.6+0.4*gw,1,Math.max(0.02,gw)))}M.setPosition(d.x*h,d.y*h,d.z*h);u.im.setMatrixAt(k++,M)} /* a FLOW line grows from nothing to full length and back over 2.6 s */u.im.count=k;u.im.instanceMatrix.needsUpdate=true} /* the marks travel with the ground; at quality tier 3 one mark in three is left out */
   function twRuleTrees(g){var u=twRu,pd=pPos.clone().normalize(),wt=new THREE.Vector3(),ax=new THREE.Vector3(),Q=new THREE.Quaternion();
     u.trees.forEach(function(ob){if(ob.dead||!ob.q0||pd.angleTo(ob.dir)*SR>45)return;wt.crossVectors(u.W,ob.dir);if(wt.lengthSq()<1e-8)return;ax.crossVectors(ob.dir,wt).normalize();
       var a=(0.06+0.16*g+0.05*g*Math.sin(u.t*5+ob.dir.x*13))*(twRM()?0.6:1);Q.setFromAxisAngle(ax,a);ob.g.quaternion.copy(Q).multiply(ob.q0)})} /* trees within 45 lean with the wind and sway, more in a gust */
@@ -2160,7 +2161,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     for(var i=0;i<u.st.length;i++){var s=u.st[i];s.age+=dt;if(s.age>=s.life){var a=Math.random()*6.283,r=(3+Math.random()*14)/SR;s.d=c.clone().multiplyScalar(Math.cos(r)).addScaledVector(E[0],Math.cos(a)*Math.sin(r)).addScaledVector(E[1],Math.sin(a)*Math.sin(r)).normalize();s.h=0.5+Math.random()*2.4;s.life=0.5+Math.random()*0.5;s.age=0}
       s.d.applyAxisAngle(u.W,g*16/SR*dt);d.copy(s.d);tg.crossVectors(u.W,d);if(vis<0.01||tg.lengthSq()<1e-6){M.makeScale(0,0,0);u.im.setMatrixAt(i,M);continue}tg.normalize();sd.crossVectors(d,tg);
       var f=Math.sin(Math.PI*s.age/s.life)*vis;M.makeBasis(sd,d,tg);M.scale(new THREE.Vector3(1,1,Math.max(0.01,f)));var R=surfaceR(d)+s.h;M.setPosition(d.x*R,d.y*R,d.z*R);u.im.setMatrixAt(i,M)}u.im.instanceMatrix.needsUpdate=true} /* a few streaks round you, only at the start and as a gust picks up */
-  function twRuleShock(c){var g=new THREE.BufferGeometry(),S=72,P=new Float32Array((S+1)*2*3),I=[];for(var i=0;i<S;i++){var a=i*2;I.push(a,a+1,a+2,a+1,a+3,a+2)}g.setAttribute("position",new THREE.BufferAttribute(P,3));g.setIndex(I);
+  function twRuleShock(c){var g=new THREE.BufferGeometry(),S=[72,48,36,24][PQ.tier||0],P=new Float32Array((S+1)*2*3),I=[];for(var i=0;i<S;i++){var a=i*2;I.push(a,a+1,a+2,a+1,a+3,a+2)}g.setAttribute("position",new THREE.BufferAttribute(P,3));g.setIndex(I);
     var m=new THREE.Mesh(g,twRuleMat(0.4));m.frustumCulled=false;scene.add(m);twRu.ms.push(m);return {c:c,r:0,st:"warn",w:0,m:m,E:twRuleBasis(c),S:S,hit:false,id:++twRu.id}}
   function twRuleRingAt(S,r0,r1,lift){var P=S.m.geometry.attributes.position.array,d=new THREE.Vector3();for(var j=0;j<=S.S;j++){var ph=j/S.S*6.283;for(var e=0;e<2;e++){var th=Math.max(0,e?r1:r0)/SR;d.copy(S.c).multiplyScalar(Math.cos(th)).addScaledVector(S.E[0],Math.cos(ph)*Math.sin(th)).addScaledVector(S.E[1],Math.sin(ph)*Math.sin(th));var h=surfaceR(d)+lift,q=(j*2+e)*3;P[q]=d.x*h;P[q+1]=d.y*h;P[q+2]=d.z*h}}S.m.geometry.attributes.position.needsUpdate=true}
   function twRuleRipple(dt,pd){var u=twRu;u.next-=dt;if(u.next<=0){u.next=4+Math.random()*2;var E=twRuleBasis(pd),a=Math.random()*6.283,r=(6+Math.random()*14)/SR;u.shocks.push(twRuleShock(pd.clone().multiplyScalar(Math.cos(r)).addScaledVector(E[0],Math.cos(a)*Math.sin(r)).addScaledVector(E[1],Math.sin(a)*Math.sin(r)).normalize()))} /* a shock every 4 to 6 s, 6 to 20 away from you */
@@ -2244,8 +2245,9 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      moves, once per shock, and it's only how they look: what blocks you and what you can roll up don't change. */
   var twQkA=[],twQkV=null,twQkQ=null,twQkW=null;
   function twQkOn(){return true}
-  function twQkU(){var u=twRu;return u&&u.k==="ripple"&&u.shocks&&!twSpec&&twQkOn()?u:null}
-  function twQkHit(o,d,u){for(var i=0;i<u.shocks.length;i++){var S=u.shocks[i];if(S.st!=="go"||o.qkId===S.id)continue;if(d.angleTo(S.c)*SR<S.r){o.qkId=S.id;o.qkT=u.t;o.qkC=S.c.clone();return true}}return false}
+  function twQkU(){var u=twRu;return u&&u.k==="ripple"&&u.shocks&&!twSpec&&twQkOn()&&PQ.tier<3?u:null} /* at quality tier 3 only the pickups hop */
+  function twQkNear(d){return PQ.tier<2||d.angleTo(pPos)*SR<40} /* at quality tier 2 only things within 40 of you react */
+  function twQkHit(o,d,u){if(!twQkNear(d))return false;for(var i=0;i<u.shocks.length;i++){var S=u.shocks[i];if(S.st!=="go"||o.qkId===S.id)continue;if(d.angleTo(S.c)*SR<S.r){o.qkId=S.id;o.qkT=u.t;o.qkC=S.c.clone();return true}}return false}
   function twQkAway(d,c){twQkW=twQkW||new THREE.Vector3();twQkW.copy(d).sub(c);twQkW.addScaledVector(d,-twQkW.dot(d));if(twQkW.lengthSq()<1e-10)return null;return twQkW.normalize()} /* along the ground, away from where the shock started */
   function twQkRestore(o){if(o.qkQ0)o.g.quaternion.copy(o.qkQ0);if(o.qkP0)o.g.position.copy(o.qkP0);o.qkQ0=o.qkP0=null;o.qkT=null}
   function twQkTick(t,dt){var u=twQkU();if(!u){if(twQkA.length){twQkA.forEach(twQkRestore);twQkA.length=0}return}twQkV=twQkV||new THREE.Vector3();twQkQ=twQkQ||new THREE.Quaternion();
@@ -3170,7 +3172,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-04b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-04c",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
