@@ -2239,6 +2239,26 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       if(R.gl)R.gm.opacity=0.14+0.14*w;
       for(var j=0;j<R.sk.length;j++){var s=R.sk[j],f=((t/1000)/2.2+s.userData.o)%1;s.position.set(s.userData.x,0.7+f*0.9,s.userData.z);s.material.opacity=0.55*Math.sin(f*Math.PI)}}} /* a speck rises 0.9 over 2.2 s, fading in and out */
   function twRadClear(){twRadL.length=0}
+  /* TREMORS FOR EVERYTHING: on a Ripple planet the shock's ring moves more than the pickups. Trees, bushes, flowers and mushrooms sway, tipping away from
+     where the shock started and springing back over 0.7 s; rocks hop a little; ants hop and scatter away for a moment; chopsticks hop and wobble. Only what the ring is passing
+     moves, once per shock, and it's only how they look: what blocks you and what you can roll up don't change. */
+  var twQkA=[],twQkV=null,twQkQ=null,twQkW=null;
+  function twQkOn(){return true}
+  function twQkU(){var u=twRu;return u&&u.k==="ripple"&&u.shocks&&!twSpec&&twQkOn()?u:null}
+  function twQkHit(o,d,u){for(var i=0;i<u.shocks.length;i++){var S=u.shocks[i];if(S.st!=="go"||o.qkId===S.id)continue;if(d.angleTo(S.c)*SR<S.r){o.qkId=S.id;o.qkT=u.t;o.qkC=S.c.clone();return true}}return false}
+  function twQkAway(d,c){twQkW=twQkW||new THREE.Vector3();twQkW.copy(d).sub(c);twQkW.addScaledVector(d,-twQkW.dot(d));if(twQkW.lengthSq()<1e-10)return null;return twQkW.normalize()} /* along the ground, away from where the shock started */
+  function twQkRestore(o){if(o.qkQ0)o.g.quaternion.copy(o.qkQ0);if(o.qkP0)o.g.position.copy(o.qkP0);o.qkQ0=o.qkP0=null;o.qkT=null}
+  function twQkTick(t,dt){var u=twQkU();if(!u){if(twQkA.length){twQkA.forEach(twQkRestore);twQkA.length=0}return}twQkV=twQkV||new THREE.Vector3();twQkQ=twQkQ||new THREE.Quaternion();
+    for(var i=0;i<obstacles.length;i++){var o=obstacles[i];if(o.dead||o.hid)continue;if(twQkHit(o,o.dir,u)&&!o.qkQ0){o.qkQ0=o.g.quaternion.clone();o.qkP0=o.g.position.clone();twQkA.push(o)}}
+    for(var j=twQkA.length-1;j>=0;j--){var b=twQkA[j],nm=b.g.userData.nm,rock=nm==="ROCK"||nm==="BIG ROCK",D=rock?0.35:0.7,x=(u.t-b.qkT)/D;
+      if(b.dead||x>=1){twQkRestore(b);twQkA.splice(j,1);continue}b.g.quaternion.copy(b.qkQ0);b.g.position.copy(b.qkP0);
+      if(rock)b.g.position.addScaledVector(b.dir,Math.sin(x*Math.PI)*(0.15+b.size*0.25)); /* a rock hops, a bit higher for a bigger one */
+      else{var aw=twQkAway(b.dir,b.qkC);if(aw){twQkV.crossVectors(b.dir,aw).normalize();twQkQ.setFromAxisAngle(twQkV,Math.sin(x*Math.PI*3)*(1-x)*0.22);b.g.quaternion.premultiply(twQkQ)}}}} /* tips away, springs back past upright, settles */
+  function twQkAnt(an,nu){var u=twQkU();if(!u)return;twQkHit(an,nu,u);if(an.qkT==null)return;var x=(u.t-an.qkT)/0.4;
+    if(x<1)an.g.position.addScaledVector(nu,Math.sin(x*Math.PI)*0.5*an.sz);
+    if(x<1.5&&an.head){var aw=twQkAway(nu,an.qkC);if(aw)an.head.lerp(aw,0.25).addScaledVector(nu,-an.head.dot(nu)).normalize()}else if(x>=1.5)an.qkT=null} /* hops, then runs away from the shock for a moment */
+  function twQkEn(en,d){var u=twQkU();if(!u)return;twQkHit(en,d,u);if(en.qkT==null)return;var x=(u.t-en.qkT)/0.45;if(x>=1){en.qkT=null;return}
+    en.g.position.addScaledVector(d,Math.sin(x*Math.PI)*0.4*(en.sz||1));en.g.rotateZ(Math.sin(x*Math.PI*4)*(1-x)*0.25)} /* a hop and a wobble */
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -2399,12 +2419,12 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       try{twRuleProp(o,dt)}catch(e){twRuleErr(e)}o.dir.normalize();o.g.position.copy(o.dir.clone().multiplyScalar(o.abs||(o.tw?lmGround(o.dir):surfaceR(o.dir))));try{twRuleLift(o)}catch(e){twRuleErr(e)}twYoFloat(o,dt,t);if(!o.keepQ){o.g.quaternion.copy(QT.setFromUnitVectors(YUP,o.dir));o.g.rotateY(o.still?o.spin:o.spin+t/900)}
       if(!(o.tops&&o.tops.some(twAlive))&&!(o.cool>twClock)&&(ballR>=o.req||o.mine)&&(o.abs||ball.position.angleTo(o.dir)*SR<ballR+o.foot)&&twTouch(twYoG(o),o.dir,o.foot)){o.dead=true;twYoDrop(o);o.g.userData.req=o.req;stickToRoll(o.g);ballR+=o.gain;pips++}}
     // chopstick monsters roam and snatch stuck sushi off the clump
-    for(var e=0;e<enemies.length;e++){var en=enemies[e];if(en.dead)continue;en.cd=Math.max(0,en.cd-dt);var eu=en.pos.clone().normalize();var toB=(twSpec?twSpecT(en,t):ball.position).clone().sub(en.pos);toB.addScaledVector(eu,-toB.dot(eu));if(toB.lengthSq()>1e-5)toB.normalize();var dist=en.pos.angleTo(ball.position)*SR;var tang=new THREE.Vector3().crossVectors(eu,toB).multiplyScalar(en.sign);var orbit=twSpec?0:dist<(ballR+5)?0.85:0.25;var edir=toB.multiplyScalar(1-orbit).addScaledVector(tang,orbit);if(edir.lengthSq()>1e-5)edir.normalize();en.pos.applyAxisAngle(new THREE.Vector3().crossVectors(eu,edir).normalize(),2.4*(params.espeed||1)/SR*dt);var endir=en.pos.clone().normalize();en.pos.copy(endir).multiplyScalar(lmGround(endir));en.g.position.copy(en.pos);var ef=twSpec?(en.fw=(en.fw||edir.clone()).lerp(edir,Math.min(1,dt*4))).clone():ball.position.clone().sub(en.pos); /* on the restored planet the roll is hidden but still sits where it stopped: the chopsticks no longer circle that spot or turn to watch it (passing over it flipped them round every frame); they face the way they walk, turning smoothly */ef.addScaledVector(endir,-ef.dot(endir));if(ef.lengthSq()<1e-6)ef.set(endir.z,endir.x,endir.y);ef.normalize();var es=new THREE.Vector3().crossVectors(endir,ef).normalize();en.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(es,endir,ef));en.g.rotateZ(Math.sin(t/150+e)*0.16); // always faces the roll (eyes on you), waddling side to side
+    for(var e=0;e<enemies.length;e++){var en=enemies[e];if(en.dead)continue;en.cd=Math.max(0,en.cd-dt);var eu=en.pos.clone().normalize();var toB=(twSpec?twSpecT(en,t):ball.position).clone().sub(en.pos);toB.addScaledVector(eu,-toB.dot(eu));if(toB.lengthSq()>1e-5)toB.normalize();var dist=en.pos.angleTo(ball.position)*SR;var tang=new THREE.Vector3().crossVectors(eu,toB).multiplyScalar(en.sign);var orbit=twSpec?0:dist<(ballR+5)?0.85:0.25;var edir=toB.multiplyScalar(1-orbit).addScaledVector(tang,orbit);if(edir.lengthSq()>1e-5)edir.normalize();en.pos.applyAxisAngle(new THREE.Vector3().crossVectors(eu,edir).normalize(),2.4*(params.espeed||1)/SR*dt);var endir=en.pos.clone().normalize();en.pos.copy(endir).multiplyScalar(lmGround(endir));en.g.position.copy(en.pos);var ef=twSpec?(en.fw=(en.fw||edir.clone()).lerp(edir,Math.min(1,dt*4))).clone():ball.position.clone().sub(en.pos); /* on the restored planet the roll is hidden but still sits where it stopped: the chopsticks no longer circle that spot or turn to watch it (passing over it flipped them round every frame); they face the way they walk, turning smoothly */ef.addScaledVector(endir,-ef.dot(endir));if(ef.lengthSq()<1e-6)ef.set(endir.z,endir.x,endir.y);ef.normalize();var es=new THREE.Vector3().crossVectors(endir,ef).normalize();en.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(es,endir,ef));en.g.rotateZ(Math.sin(t/150+e)*0.16);twQkEn(en,endir); // always faces the roll (eyes on you), waddling side to side
       if(twChopEat(en))continue;if(en.cd<=0&&ball.position.distanceTo(en.pos)<ballR+0.8*(en.sz||1)){en.cd=1.8;var kids=clump.children.filter(function(c){return c!==core});twShed(kids,0.34);ballR=Math.max(R0,ballR-0.34);pips=Math.max(0,pips-1);
         var away=ball.position.clone().sub(en.pos);bumpV.copy(away.normalize().multiplyScalar(16+4*(en.sz||1)));if(hopT<=0){hopMine=false;hopD=hopDur;hopT=hopDur*0.75}wobT=0.5} // knocked away: shove + little hop + wobble
     }
     // ants wander; within sight they come at you while you're small, and run once you can roll them up
-    twRadTick(t,dt);for(var ai=0;ai<ants.length;ai++){var an=ants[ai];if(an.dead)continue;an.cd=Math.max(0,an.cd-dt);var au=an.pos.clone().normalize();
+    twRadTick(t,dt);twQkTick(t,dt);for(var ai=0;ai<ants.length;ai++){var an=ants[ai];if(an.dead)continue;an.cd=Math.max(0,an.cd-dt);var au=an.pos.clone().normalize();
       if(!an.head){an.head=new THREE.Vector3(au.y,au.z,au.x).cross(au).normalize()}
       an.head.applyAxisAngle(au,Math.sin(t/650+an.ph)*1.6*dt);                                   // meander
       var big=ballR>=an.req,ad2=an.pos.angleTo(ball.position)*SR,spd=1.6;
@@ -2415,7 +2435,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
       var aax=new THREE.Vector3().crossVectors(au,an.head);if(aax.lengthSq()>1e-6)an.pos.applyAxisAngle(aax.normalize(),spd/SR*dt);
       var nu=an.pos.clone().normalize();an.pos.copy(nu).multiplyScalar(lmGround(nu));an.head.addScaledVector(nu,-an.head.dot(nu)).normalize();
       an.g.position.copy(an.pos).addScaledVector(nu,Math.abs(Math.sin(t/90+an.ph))*0.05*an.sz);
-      an.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(nu,an.head).normalize(),nu,an.head));an.g.rotateZ(Math.sin(t/80+an.ph)*0.06);
+      an.g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(nu,an.head).normalize(),nu,an.head));an.g.rotateZ(Math.sin(t/80+an.ph)*0.06);twQkAnt(an,nu);
       if(ball.position.distanceTo(an.pos)<ballR+0.55*an.sz+0.8&&twTouch(an.pos,an.pos.clone().normalize(),0.55*an.sz)){ /* the roll has to really touch the ant (see twTouch) */
         if(big){an.dead=true;an.g.userData.req=an.req;stickToRoll(an.g); /* remembered, so a knocked-off ant needs the same size again */ballR+=an.gain;pips++}
         else if(an.cd<=0){an.cd=1.4;var akids=clump.children.filter(function(c){return c!==core});twShed(akids,0.2);ballR=Math.max(R0,ballR-0.2);pips=Math.max(0,pips-1);
@@ -3150,7 +3170,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-04a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-04b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
