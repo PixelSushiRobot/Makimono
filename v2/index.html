@@ -1344,7 +1344,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
         /* the first hard landing bounces once (a third of the speed back, half the sideways speed, slower tumble); after that it settles */
         if(!F.b&&vr<-4&&F.age<=6){F.b=1;p.copy(nd).multiplyScalar(gr+0.02);F.v.addScaledVector(nd,-vr*1.33);F.v.multiplyScalar(0.5);F.sp*=0.4;continue}
         F.st=0;F.nd=nd;F.h0=Math.max(0,p.length()-gr);F.q0=F.g.quaternion.clone();F.spin=0;F.q1=F.q0.clone()}}}
-  function twSky(dt,t,cm,hop){twEatPlaza(cm);twFallTick(dt);
+  function twSky(dt,t,cm,hop){twEatPlaza(cm);twFallTick(dt);twEaseTick(dt);
     if(twDone&&cm<params.targetMul*0.8){twDone=false;twBack(t,0)}
     if(banner&&!banner.stay&&!twOrb.length&&cm>=params.targetMul*0.8){twOrbit(banner,t);banner=null}
     if(!twOrb.length)return;if(cm<params.targetMul*0.8){twBack(t,0);return}twOrbA-=twSg*dt*0.035;var pdir=ball.position.clone().normalize(),reach=Math.max(surfaceR(pdir)+hop,rideB)+ballR*2,left=0;
@@ -1728,7 +1728,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
         var cg=buildChopstick(),csz=Math.max(0.8,ballR*0.55);cg.scale.setScalar(csz);scene.add(cg);M.ar.push({g:cg,d:sd,sz:csz,t:0,st:-1})}
       M.ar=M.ar.filter(function(a){a.t+=dt;var u=a.d;
         if(a.st===0){var an2=u.angleTo(bd);if(an2>1e-4){var ax2=new V3().crossVectors(u,bd);if(ax2.lengthSq()>1e-12)u.applyAxisAngle(ax2.normalize(),Math.min(an2,asp*dt/SR)).normalize()}
-          if(a.cd>0)a.cd-=dt;else if(u.angleTo(pPos.clone().normalize())*SR<ballR+a.sz*0.9){a.st=1;a.t=0;a.bk=new V3().crossVectors(bd,u);M.kn={t:0,kf:0.7+0.5*ak,ax:twKnAx(u,pPos.clone().normalize(),G)}}}
+          if(a.cd>0)a.cd-=dt;else if(u.angleTo(pPos.clone().normalize())*SR<twArmD(ballR*(typeof twRadK==="function"?twRadK():1),a.sz)){a.st=1;a.t=0;a.bk=new V3().crossVectors(bd,u);M.kn={t:0,kf:0.7+0.5*ak,ax:twKnAx(u,pPos.clone().normalize(),G)}}}
         if(a.st===1&&a.bk&&a.bk.lengthSq()>1e-12)u.applyAxisAngle(a.bk.clone().normalize(),a.sz*3*dt/SR).normalize();
         var fz=bd.clone().addScaledVector(u,-bd.dot(u));if(fz.lengthSq()<1e-8)fz.set(u.y,u.z,u.x).cross(u);fz.normalize();var xa=new V3().crossVectors(u,fz).normalize(),fs=a.sz*0.733,
           gy=Math.max(lmGround(u),lmGround(u.clone().multiplyScalar(SR).addScaledVector(xa,fs).normalize()),lmGround(u.clone().multiplyScalar(SR).addScaledVector(xa,-fs).normalize())); /* the ground under both feet, so it never sinks into a slope */
@@ -1914,7 +1914,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
 
   function twOsSnap(){var r=GAME.querySelector(".pause .rpt");if(!r)return;var d=r.style.display;twReport(".pause .rpt");twOs={c:ballR/R0,t:params.targetMul,n:pips,r:r.innerHTML};r.style.display=d}
   var _twPause0=pauseGame;pauseGame=function(){_twPause0();if(phase!=="pause")return;var fin=!!(twGi||twSpec||twEnd);
-    if(fin&&twOs){HUD.pstat.textContent="Size "+twOs.c.toFixed(1)+"× / "+twPbLab(twOs.c,twOs.t)+" · "+(twSpec?"Final":"!!!")+" · "+twOs.n+" "+(twOs.n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display="";prp.innerHTML=twOs.r}}
+    if(fin&&twOs){HUD.pstat.textContent="Size "+twMx(twOs.c)+"× / "+twPbLab(twOs.c,twOs.t)+" · "+(twSpec?"Final":"!!!")+" · "+twOs.n+" "+(twOs.n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display="";prp.innerHTML=twOs.r}}
     else if(freeRoll&&!fin&&HUD.timer){var tt=(HUD.timer.textContent||"").trim();if(tt&&tt!=="FREE ROLL")HUD.pstat.textContent=HUD.pstat.textContent.replace("· Free roll ·","· "+(tt.charAt(0)+tt.slice(1).toLowerCase())+" ·")} /* free roll: the pause line says what the timer slot says (3 left, All clear) */
     /* the line under the title: all caps. In free roll (where the stats block below already has the numbers) it is only the status, small and dim
        like the block's labels, as a heading for it: FREE ROLL, 3 LEFT, ALL CLEAR, !!! with the monster out, FINAL on the final planet */
@@ -2080,6 +2080,23 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     return true}
   function twPick(r,belt){var p=params;if(p.paul&&r()<0.4){if(belt){var x=r();return x<0.35?"glasses":x<0.55?"cake":x<0.8?"gift":"phat"}return ["glasses","glasses","glasses","cake","gift","phat","ghost","ghostg"][(r()*8)|0]}if(p.tezos&&r()<0.25)return "tezos";if(belt&&p.antsM&&r()<0.3)return "pant";return INGK[(r()*INGK.length)|0]} /* TEXT MODES: what goes on a spot on the ground (or a belt plate). PAUL HBD: about 4 in 10 become glasses, birthday cakes, gifts and party hats, with ghosts on the ground. TEZOS: about 1 in 4 become Tezos logos. ANTS: about 3 in 10 belt plates carry an ant. Every other pattern draws exactly as before */
 
+  /* LAST PIECES GET EASIER: in free roll, once nothing left on the planet can be rolled up at your size (food, scenery, ants, plaza tiles, belt slats; not clouds, which take height, not size)
+     and you have not grown for 4 s, the smallest piece still too big for you eases what it needs down to your size over about 3 s, wobbling as things do when you are nearly big enough, so you can see it is ready.
+     One at a time: rolling it up may be enough for the rest; if not, 4 s later the next one eases. A planet can always be cleared this way (YOLO's giant food, FUTOMAKI's half growth, pieces lost to knocks), so OMAKASE stays in reach.
+     It never comes into play while anything is still in reach, so ordinary planets play as before */
+  var twEz={t:0,r:0,o:null};
+  function twEzTg(g){return g&&g.userData&&(g.userData.mkO||(g.children[0]&&g.children[0].userData&&g.children[0].userData.mkO))} /* counted towards PLANET CLEARED, as in twLeftList */
+  function twEaseTick(dt){if(!freeRoll||twSpec||twSim){twEz.t=0;twEz.o=null;return}var R=ballR,i,o,best=null,bv=1e9,bk="";if(R>twEz.r+1e-4){twEz.t=0;twEz.r=R}
+    for(i=0;i<props.length;i++){o=props[i];if(o.dead||o.hid||!twEzTg(o.g))continue;if(R>=o.req)return twEzOff();if(o.req<bv){bv=o.req;best=o;bk="p"}}
+    for(i=0;i<obstacles.length;i++){o=obstacles[i];if(o.dead||o.hid||!twEzTg(o.g))continue;if(R>o.size*0.9)return twEzOff();if(o.size*0.9<bv){bv=o.size*0.9;best=o;bk="s"}}
+    for(i=0;i<ants.length;i++){o=ants[i];if(o.dead||!twEzTg(o.g))continue;if(R>=o.req)return twEzOff();if(o.req<bv){bv=o.req;best=o;bk="a"}}
+    if(plaza&&plaza.gone&&R>=params.targetMul*0.5*R0&&twLeftList().some(function(q){return !q.g}))return twEzOff(); /* plaza tiles you can still take */
+    if(twR&&twR.slats&&R>=twR.need&&twR.slats.some(function(m,j){return !twR.gone[j]&&m.visible}))return twEzOff();
+    if(!best)return;twEz.t+=dt;if(twEz.t<4)return;if(twEz.o!==best){twEz.o=best;twEz.v=bv;twEz.rate=Math.max(0.25,(bv-R)/3)}
+    var nv=Math.max(R*0.995,(bk==="s"?best.size*0.9:best.req)-twEz.rate*dt); /* down to just under your size, so the next touch rolls it up */
+    if(bk==="s")best.size=nv/0.9;else best.req=nv;if(bk!=="a")twNear(best,1,twNow)} /* the eased piece wobbles while it gets ready */
+  function twEzOff(){twEz.t=0;twEz.o=null}
+  function twArmD(r,sz){var w=0.72*sz,H=2.07*sz,len=Math.hypot(w,H),yt=r*(1-w/len),d=yt<=H?w+r*(len-w)/H:Math.sqrt(Math.max(0,r*r-(r-H)*(r-H)));return d+0.08*sz} /* how far apart, along the ground, the roll (radius r, as it is drawn) and a little chopstick (size sz) are when they really touch: the chopstick is a narrow A, its feet 0.72 of its size either side and its top 2.07 up, so the round roll meets its sloping leg (or, if the roll is the taller, its top) well before their middles are a roll plus a chopstick apart; plus a little for the legs' thickness. It used to knock as soon as they were a roll and 0.9 of a chopstick apart, about a third of a roll before they touched */
   /* PATTERN RULES: the art's pattern gives the planet one rule of its own, taken from how that pattern moves in the art. The terrain itself never changes.
      The world shows the rule more than any marker does, and markers announce it and then fade: at the start of a round the GOT line names it, the cues are clear for 3 s,
      then fade to almost nothing, and come back briefly when something changes (a new band, a gust, a shock on its way).
@@ -2326,10 +2343,10 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
       var sp=6.2*j/(1+o.foot*0.4)/SR*dt,tries=[0,1.1,-1.1];for(var i=0;i<3;i++){var a2=aw.clone().applyAxisAngle(o.dir,tries[i]),nd=o.dir.clone().applyAxisAngle(new THREE.Vector3().crossVectors(o.dir,a2).normalize(),sp);
         if(relief01(nd)>=WATER&&twRuleFree(o,nd)){o.dir.copy(nd);o.smH=1;return}}}, /* about 5 a second for a small piece, 9 in a jink (you top out at 7.5); won't run into the sea; if scenery is in the way on all sides, it's cornered */
     lift:function(o){var u=twRu;twCxUp(o,o.smH?Math.abs(Math.sin(u.t*14+o.spin))*0.3:0)}}; /* little hops as it runs */
-  twRuIco.sparkle='<path fill="currentColor" d="M239.35 70.08a13.41 13.41 0 0 0-11.77-9.28l-36.94-2.92l-14.21-33.66a13.51 13.51 0 0 0-24.86 0l-14.21 33.66l-36.94 2.92a13.39 13.39 0 0 0-7.66 23.58l28.06 23.68l-8.56 35.39a13.32 13.32 0 0 0 5.1 13.91a13.51 13.51 0 0 0 15 .69L164 139l31.65 19.06a13.54 13.54 0 0 0 15-.69a13.34 13.34 0 0 0 5.09-13.91l-8.56-35.39l28.06-23.68a13.32 13.32 0 0 0 4.11-14.31M193.08 99a8 8 0 0 0-2.61 8l8.28 34.21l-30.62-18.41a8 8 0 0 0-8.25 0l-30.62 18.43l8.28-34.23a8 8 0 0 0-2.62-8L108 76.26l35.52-2.81a8 8 0 0 0 6.74-4.87L164 35.91l13.79 32.67a8 8 0 0 0 6.74 4.87l35.53 2.81Zm-105 24.18l-58.42 58.48a8 8 0 0 1-11.32-11.32l58.45-58.45a8 8 0 0 1 11.32 11.32Zm10.81 49.87a8 8 0 0 1 0 11.31l-53.23 53.3a8 8 0 0 1-11.32-11.32l53.27-53.26a8 8 0 0 1 11.31 0Zm73-1a8 8 0 0 1 0 11.32l-54.28 54.28a8 8 0 0 1-11.32-11.32l54.29-54.28a8 8 0 0 1 11.36.01Z"/>';
+  twRuIco.sparkle='<path fill="currentColor" d="M96 120a40 40 0 1 0 40 40a40 40 0 0 0-40-40m0 64a24 24 0 1 1 24-24a24 24 0 0 1-24 24m125.66-61.66a8 8 0 0 1 0 11.32l-48 48a8 8 0 0 1-11.32-11.32l48-48a8 8 0 0 1 11.32 0M160 136a8 8 0 0 1-5.66-13.66l24-24a8 8 0 0 1 11.32 11.32l-24 24A8 8 0 0 1 160 136m69.66-66.34l-16 16a8 8 0 0 1-11.32-11.32l16-16a8 8 0 0 1 11.32 11.32M122.34 90.34l72-72a8 8 0 1 1 11.32 11.32l-72 72a8 8 0 0 1-11.32-11.32m24.57 109.26a8 8 0 0 1 0 11.31A72 72 0 1 1 45.09 109.09l82.74-82.75a8 8 0 1 1 11.32 11.32L56.4 120.4a56 56 0 0 0 79.2 79.2a8 8 0 0 1 11.31 0"/>'; /* Phosphor meteor (regular, MIT) */
   twRuIco.chase='<path fill="currentColor" d="m231.16 166.63l-28.63-14.31A47.74 47.74 0 0 1 176 109.39V80a8 8 0 0 0-8-8a48.05 48.05 0 0 1-48-48a8 8 0 0 0-12.83-6.37L30.13 76l-.2.16a16 16 0 0 0-1.24 23.75L142.4 213.66a8 8 0 0 0 5.66 2.34H224a16 16 0 0 0 16-16v-19.06a15.92 15.92 0 0 0-8.84-14.31M224 200h-72.63L40 88.63l12.87-9.76l38.79 38.79A8 8 0 0 0 103 106.34L65.74 69.11l40-30.31A64.15 64.15 0 0 0 160 87.5v21.89a63.65 63.65 0 0 0 35.38 57.24L224 180.94ZM70.8 184H32a8 8 0 0 1 0-16h38.8a8 8 0 1 1 0 16m40 24a8 8 0 0 1-8 8H48a8 8 0 0 1 0-16h54.8a8 8 0 0 1 8 8"/>';
-  twRuNm.squiggle="RAINBOW TRAIL";twRuNm.sparkle="METEOR SHOWER";twRuNm.chase="STAMPEDE"; /* labels; icons from Phosphor (regular, MIT): tornado, shooting star, sneaker in motion */
-  twRuIco.squiggle='<path fill="currentColor" d="M184 168v16a8 8 0 0 1-16 0v-16a40 40 0 0 0-80 0v16a8 8 0 0 1-16 0v-16a56 56 0 0 1 112 0m-56-88a88.1 88.1 0 0 0-88 88v16a8 8 0 0 0 16 0v-16a72 72 0 0 1 144 0v16a8 8 0 0 0 16 0v-16a88.1 88.1 0 0 0-88-88m0-32A120.13 120.13 0 0 0 8 168v16a8 8 0 0 0 16 0v-16a104 104 0 0 1 208 0v16a8 8 0 0 0 16 0v-16A120.13 120.13 0 0 0 128 48"/>'; /* Phosphor rainbow (regular, MIT) */
+  twRuNm.squiggle="RAINBOW TRAIL";twRuNm.sparkle="METEOR SHOWER";twRuNm.chase="STAMPEDE"; /* labels; icons from Phosphor (regular, MIT): meteor, sneaker in motion, scribble */
+  twRuIco.squiggle='<path fill="currentColor" d="M205.67 189.66a14.61 14.61 0 0 0 0 20.68a8 8 0 0 1-11.32 11.32a30.64 30.64 0 0 1 0-43.32l9.38-9.37A14.63 14.63 0 0 0 183 148.28L116.28 215A30.63 30.63 0 0 1 73 171.72L171.72 73A14.63 14.63 0 0 0 151 52.28L84.28 119A30.63 30.63 0 0 1 41 75.72l41.34-41.38a8 8 0 0 1 11.31 11.32L52.27 87A14.63 14.63 0 0 0 73 107.72L139.72 41A30.63 30.63 0 0 1 183 84.28L84.28 183A14.63 14.63 0 0 0 105 203.72L171.72 137A30.63 30.63 0 0 1 215 180.28Z"/>'; /* Phosphor scribble (regular, MIT) */
 
   /* RAINBOW TRAIL (Squiggle), after Chromie Squiggle, the generative art the pattern is named for: the maki draws a thick rainbow line on the ground as it rolls, its colour running round the wheel as it goes.
      The line is a flat band, wider as the maki grows, round at both ends and in the bends, and lasts 30 s: its tail shortens smoothly as it goes. Where it crosses itself the newer part lies on top.
@@ -2437,8 +2454,8 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     for(i=0;i<Math.min(T.length,10);i++){var a=T[i],ax=new THREE.Vector3().crossVectors(pd,a.d);if(ax.lengthSq()<1e-10)continue;ax.normalize();
       var g0=Math.min(40,Math.max(G.lo,a.D-3-w*0.3)),gs=[0,2,4,-2,6];for(j=0;j<gs.length;j++){var c=pd.clone().applyAxisAngle(ax,(g0+gs[j])/SR).normalize();if(twCkOk(c,w*0.6)&&far(c))return {d:c,P:a.d,T:null,F:F.filter(function(o){return o.dir.angleTo(a.d)*SR<20})}}}
     return null} /* the gate stands on the way to it, just in front (or, if it is nearer than the gate may be, just past it); any loose food left near it is lined up behind as before */
-  function twCkLine(A,pd){var u=twRu,d=A.d,aw=twCxTan(d,pd),L=A.T?[A.T]:[],n=PQ.tier>=2?5:7,s=2.2,j,p=d.clone();if(!aw)return;aw.negate();
-    var O=A.F.filter(function(o){return o!==A.T&&o.dir.angleTo(A.P)*SR<(A.T?14:20)}).sort(function(a,b){return a.dir.angleTo(A.P)-b.dir.angleTo(A.P)});L=L.concat(O.slice(0,n-1)); /* the food nearest it, up to 7 pieces in all (5 on the slowest two quality tiers) */
+  function twCkLine(A,pd){var u=twRu,d=A.d,aw=twCxTan(d,pd),L=A.T?[A.T]:[],n=PQ.tier>=2?3:4,s=2.2,j,p=d.clone();if(!aw)return;aw.negate();
+    var O=A.F.filter(function(o){return o!==A.T&&o.dir.angleTo(A.P)*SR<(A.T?14:20)}).sort(function(a,b){return a.dir.angleTo(A.P)-b.dir.angleTo(A.P)});L=L.concat(O.slice(0,n-1)); /* the food nearest it, up to 4 pieces in all (3 on the slowest two quality tiers) */
     for(j=0;j<L.length;j++){var o=L[j];s+=o.foot+0.5;var q=d.clone().addScaledVector(aw,s/SR).normalize(),tr=0;while(!twCkOk(q,o.foot)&&tr++<3){s+=1.2;q=d.clone().addScaledVector(aw,s/SR).normalize()}if(tr>3)break;s+=o.foot+0.3+ballR*0.3;
       o.ckL=1;o.ckF={a:o.dir.clone(),b:q,t0:u.t+0.15+j*0.09}}} /* lines them up one behind another, straight on from the gate, each hopping over to its place in turn */
   var twCkV={
@@ -2458,9 +2475,9 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
           if(q.go!=null){var x=(u.t-q.go)/0.5;if(x>=1){X.gone(q);C.g.splice(i,1);continue}q.G.scale.setScalar(1+x*(q.hit?0.35:-0.9));q.b.material.opacity=1-x;continue} /* a gate you went through swells and fades; one that is left goes small */
           var x0=Math.min(1,(u.t-q.t0)/0.18);q.G.scale.setScalar(x0<1?1-(1-x0)*(1-x0):1); /* it pops up at once, in under a fifth of a second, fast then settling */
           v.copy(pd).sub(q.c);var a=v.dot(q.t)*SR,b=v.dot(q.n)*SR;
-          if(q.sb!=null&&(b>0)!==(q.sb>0)&&Math.abs(a)<q.w/2&&Math.abs(b)<3){q.hit=true;q.go=u.t;C.ch=u.t-C.lg<=10?C.ch+1:1;C.lg=u.t;C.bS=Math.min(1.5,0.7+0.2*(C.ch-1));C.bE=u.t+Math.min(7,3.5+0.8*(C.ch-1));twLast=C.ch>1?"CHECKERED FLAG x"+C.ch:"CHECKERED FLAG";twLastT=twNow;twCkRing(pd)} /* through, between the posts, either way */
+          if(q.sb!=null&&(b>0)!==(q.sb>0)&&Math.abs(a)<q.w/2&&Math.abs(b)<3){q.hit=true;q.go=u.t;C.ch=u.t-C.lg<=10?C.ch+1:1;C.lg=u.t;C.bS=Math.min(1,0.5+0.15*(C.ch-1));C.bE=u.t+Math.min(5,3+0.5*(C.ch-1));twLast=C.ch>1?"CHECKERED FLAG x"+C.ch:"CHECKERED FLAG";twLastT=twNow;twCkRing(pd)} /* through, between the posts, either way */
           else{var dn=pd.angleTo(q.c)*SR;if(q.d0==null)q.d0=dn;if(u.t-q.t0>30||u.t-q.t0>4&&dn>Math.max(q.d0,40)+8)q.go=u.t}q.sb=b} /* a missed gate goes after 30 s, or once you are well past where it stood up (8 further than it was then, and not in its first 4 s) */
-        if(u.t<C.bE&&hopT<=0&&Math.abs(vel)>0.02){var ax=new THREE.Vector3().crossVectors(up,fwd);if(ax.lengthSq()>1e-10){var f=Math.min(1,(C.bE-u.t)/0.6);pPos.applyAxisAngle(ax.normalize(),(twRuSpd/SR)*dt*vel*C.bS*f*Math.min(3,Math.sqrt(ballR/R0)))}twRulePuff(dt)} /* the boost, rolling forward or backing up: 70% faster for 3.5 s, then 20% faster and 0.8 s longer for each gate in the run (up to 150% faster for 7 s), and more as the maki grows (the square root of how many times its starting size it is, up to 3 times), so a big maki feels it as much; easing off at the end; white dust kicks up behind you */
+        if(u.t<C.bE&&hopT<=0&&Math.abs(vel)>0.02){var ax=new THREE.Vector3().crossVectors(up,fwd);if(ax.lengthSq()>1e-10){var f=Math.min(1,(C.bE-u.t)/0.6);pPos.applyAxisAngle(ax.normalize(),(twRuSpd/SR)*dt*vel*C.bS*f*Math.min(3,Math.sqrt(ballR/R0)))}twRulePuff(dt)} /* the boost, rolling forward or backing up: 50% faster for 3 s, then 15% faster and 0.5 s longer for each gate in the run (up to twice as fast for 5 s), and more as the maki grows (the square root of how many times its starting size it is, up to 3 times), so a big maki feels it as much; easing off at the end; white dust kicks up behind you */
         twCkRings()}}};
   twRuX.checker={
     init:function(R){var u=twRu;u.ck={rg:[]};twCkV.flag.init(R)},
@@ -2536,7 +2553,8 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function twPbH(m,G){return "<b>GOAL</b>"+twPbG(m,G).toFixed(1)+"×"} /* the GOAL side of the row */
   function twPbNx(m,G){var M=twMG(),S=G*M[0],Gd=G*M[1];return m<G?["goal","Goal",G]:m<S?["silver","Silver",S]:["gold","Gold",Gd]} /* the next medal line for a size: its name in a sentence, on the pause screen, and its size */
   function twPbLab(m,G){var x=twPbNx(m,G);return x[1]+" "+x[2].toFixed(1)+"×"} /* the pause screen: Goal 3.2×, then Silver 3.8×, then Gold 4.5×, the same as the HUD's GOAL */
-  function twPbLine(m,G,n){var x=twPbNx(m,G),d=Math.max(0.1,Math.ceil((x[2]-m)*10-1e-6)/10);return "You rolled up to "+m.toFixed(1)+"× with "+n+" "+(n===1?"object":"objects")+", "+(m>=x[2]?"past gold ("+x[2].toFixed(1)+"×)":d.toFixed(1)+"× short of "+x[0])+". Keep rolling as long as you like."} /* the end screen with a medal: how far it was to the next one (rounded up, so it never says 0.0 short), or past gold */
+  function twPbLine(m,G,n){var x=twPbNx(m,G),d=Math.max(0.1,Math.ceil((x[2]-m)*10-1e-6)/10);return "You rolled up to "+twMx(m)+"× with "+n+" "+(n===1?"object":"objects")+", "+(m>=x[2]?"past gold ("+x[2].toFixed(1)+"×)":d.toFixed(1)+"× short of "+x[0])+". Keep rolling as long as you like."} /* the end screen with a medal: how far it was to the next one (rounded up, so it never says 0.0 short), or past gold */
+  function twMx(m){return (Math.floor(m*10)/10).toFixed(1)} /* a size as it is shown everywhere: rounded down to 0.1, never up, so 3.17 reads 3.1 and the size never shows a goal or medal line it has not reached (the round is won on the exact size, so what is shown is never more than you have) */
   /* PIECES ON THE ROLL: pieces are laid on the roll as messily as ever (any spin, up to 25 degrees of lean, some buried deep, most snug, some proud), then checked against the roll as it really is under them:
        the lowest part of the piece (its bottom quarter, towards the roll) is measured point by point, and if over half of it is clear of the roll's surface the piece is pressed in until half of it touches,
        so a wide, tilted or perched piece sits on the maki instead of hovering beside it. Pieces already in deep enough are left alone, and nothing is shrunk (only the anthill, as before).
@@ -2744,7 +2762,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     var curMul=ballR/R0,hit=curMul>=params.targetMul;twSky(dt,t,curMul,hop);twGrowEnd();curMul=ballR/R0;hit=curMul>=params.targetMul;
     if(!freeRoll){timeLeft-=dt;if(timeLeft<0)timeLeft=0}
     twPbSet(curMul,params.targetMul);
-    var szk=curMul.toFixed(1)+"|"+twPbG(curMul,params.targetMul).toFixed(1);if(HUD.sizelab._k!==szk){HUD.sizelab._k=szk;HUD.sizelab.innerHTML="<span><b>SIZE</b>"+curMul.toFixed(1)+"×</span><span class=\"gl\">"+twPbH(curMul,params.targetMul)+"</span>"} // size and goal as a scoreboard row, rebuilt only when a number changes
+    var szk=twMx(curMul)+"|"+twPbG(curMul,params.targetMul).toFixed(1);if(HUD.sizelab._k!==szk){HUD.sizelab._k=szk;HUD.sizelab.innerHTML="<span><b>SIZE</b>"+twMx(curMul)+"×</span><span class=\"gl\">"+twPbH(curMul,params.targetMul)+"</span>"} // size and goal as a scoreboard row, rebuilt only when a number changes
     twHud(t);var tzk=twCoinKey(pips);if(HUD.traits._n!==tzk){HUD.traits._n=tzk;HUD.traits.innerHTML=twCoinHtml(pips)}
     HUD.timer.textContent=freeRoll?(twBkL&&twBkOn(twBkL.length)?(twBkL.length?twBkL.length+" LEFT":"ALL CLEAR"):"FREE ROLL"):Math.floor(timeLeft/60)+":"+("0"+Math.floor(timeLeft%60)).slice(-2);
     twGiStep(dt,t);stepBanner(dt,t);if(twSpec){twSpecCam(dt);stepBanner(0,t)}
@@ -2770,7 +2788,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function end(win){running=false;cancelAnimationFrame(raf);
     var curMul=ballR/R0,ratio=curMul/params.targetMul,grade=twOmk?"OMAKASE":ratio>=1.4?"GOLD":ratio>=1.2?"SILVER":ratio>=1?"BRONZE":"";
     var pal={OMAKASE:["#ff8a6a","#c2452f"],GOLD:["#f6c945","#b8860b"],SILVER:["#dde2e8","#9aa3ad"],BRONZE:["#d99a5c","#9c5a24"]}[grade];
-    var v={current:curMul.toFixed(1),target:params.targetMul.toFixed(1),count:pips};
+    var v={current:twMx(curMul),target:params.targetMul.toFixed(1),count:pips};
     HUD.medal.innerHTML=win&&pal?winArt(grade,pal):"";
     HUD.grade.textContent=win?grade:"";HUD.grade.style.color=pal?pal[0]:"#fff";
     if(win){
@@ -2789,7 +2807,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
   function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};releaseStick();
     var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
-    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / "+twPbLab(curMul,params.targetMul)+" · "+(freeRoll?(twGi?"!!!":"Free roll"):(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display=freeRoll?"":"none";if(freeRoll)twReport(".pause .rpt")}
+    HUD.pstat.textContent="Size "+twMx(curMul)+"× / "+twPbLab(curMul,params.targetMul)+" · "+(freeRoll?(twGi?"!!!":"Free roll"):(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display=freeRoll?"":"none";if(freeRoll)twReport(".pause .rpt")}
     overlays(HUD.pause);phase="pause"}
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
@@ -3461,7 +3479,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-07b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-07c",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
