@@ -1914,7 +1914,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
 
   function twOsSnap(){var r=GAME.querySelector(".pause .rpt");if(!r)return;var d=r.style.display;twReport(".pause .rpt");twOs={c:ballR/R0,t:params.targetMul,n:pips,r:r.innerHTML};r.style.display=d}
   var _twPause0=pauseGame;pauseGame=function(){_twPause0();if(phase!=="pause")return;var fin=!!(twGi||twSpec||twEnd);
-    if(fin&&twOs){HUD.pstat.textContent="Size "+twOs.c.toFixed(1)+"× / Goal "+twOs.t.toFixed(1)+"× · "+(twSpec?"Final":"!!!")+" · "+twOs.n+" "+(twOs.n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display="";prp.innerHTML=twOs.r}}
+    if(fin&&twOs){HUD.pstat.textContent="Size "+twOs.c.toFixed(1)+"× / "+twPbLab(twOs.c,twOs.t)+" · "+(twSpec?"Final":"!!!")+" · "+twOs.n+" "+(twOs.n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display="";prp.innerHTML=twOs.r}}
     else if(freeRoll&&!fin&&HUD.timer){var tt=(HUD.timer.textContent||"").trim();if(tt&&tt!=="FREE ROLL")HUD.pstat.textContent=HUD.pstat.textContent.replace("· Free roll ·","· "+(tt.charAt(0)+tt.slice(1).toLowerCase())+" ·")} /* free roll: the pause line says what the timer slot says (3 left, All clear) */
     /* the line under the title: all caps. In free roll (where the stats block below already has the numbers) it is only the status, small and dim
        like the block's labels, as a heading for it: FREE ROLL, 3 LEFT, ALL CLEAR, !!! with the monster out, FINAL on the final planet */
@@ -2534,6 +2534,9 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     if(sb)sb.pbT.forEach(function(t,i){t.style.left=(((i?G*M[0]:G)-1)/(Tg-1)*100)+"%"})} /* the marks sit at bronze and silver along the way from 1× to gold */
   function twPbG(m,G){var M=twMG();return m<G?G:m<G*M[0]?G*M[0]:G*M[1]} /* the GOAL number: the next medal */
   function twPbH(m,G){return "<b>GOAL</b>"+twPbG(m,G).toFixed(1)+"×"} /* the GOAL side of the row */
+  function twPbNx(m,G){var M=twMG(),S=G*M[0],Gd=G*M[1];return m<G?["goal","Goal",G]:m<S?["silver","Silver",S]:["gold","Gold",Gd]} /* the next medal line for a size: its name in a sentence, on the pause screen, and its size */
+  function twPbLab(m,G){var x=twPbNx(m,G);return x[1]+" "+x[2].toFixed(1)+"×"} /* the pause screen: Goal 3.2×, then Silver 3.8×, then Gold 4.5×, the same as the HUD's GOAL */
+  function twPbLine(m,G,n){var x=twPbNx(m,G),d=Math.max(0.1,Math.ceil((x[2]-m)*10-1e-6)/10);return "You rolled up to "+m.toFixed(1)+"× with "+n+" "+(n===1?"object":"objects")+", "+(m>=x[2]?"past gold ("+x[2].toFixed(1)+"×)":d.toFixed(1)+"× short of "+x[0])+". Keep rolling as long as you like."} /* the end screen with a medal: how far it was to the next one (rounded up, so it never says 0.0 short), or past gold */
   /* PIECES ON THE ROLL: pieces are laid on the roll as messily as ever (any spin, up to 25 degrees of lean, some buried deep, most snug, some proud), then checked against the roll as it really is under them:
        the lowest part of the piece (its bottom quarter, towards the roll) is measured point by point, and if over half of it is clear of the roll's surface the piece is pressed in until half of it touches,
        so a wide, tilted or perched piece sits on the maki instead of hovering beside it. Pieces already in deep enough are left alone, and nothing is shrunk (only the anthill, as before).
@@ -2772,7 +2775,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     HUD.grade.textContent=win?grade:"";HUD.grade.style.color=pal?pal[0]:"#fff";
     if(win){
       HUD.et.textContent=pick("win"+grade,twWinPool(grade,COPY.win[grade]));
-      HUD.em.textContent=fill("You rolled up to {current}× (target {target}×) with {count} "+(pips===1?"object":"objects")+". Keep rolling as long as you like.",v);
+      HUD.em.textContent=twPbLine(curMul,params.targetMul,pips);
     } else {
       var band=ratio<0.5?"low":ratio<0.8?"mid":"high";                 // progress bands: under 50%, 50-79%, 80%+
       HUD.et.textContent=pick("fail",COPY.fail);
@@ -2786,7 +2789,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function overlays(show){[HUD.start,HUD.end,HUD.pause,HUD.confirm].forEach(function(o){o.classList.toggle("hidden",o!==show)})}
   function pauseGame(){if(phase!=="play")return;running=false;cancelAnimationFrame(raf);keys={};releaseStick();
     var curMul=ballR/R0,n=pips,tl=Math.max(0,Math.ceil(timeLeft));
-    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / Goal "+params.targetMul.toFixed(1)+"× · "+(freeRoll?(twGi?"!!!":"Free roll"):(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display=freeRoll?"":"none";if(freeRoll)twReport(".pause .rpt")}
+    HUD.pstat.textContent="Size "+curMul.toFixed(1)+"× / "+twPbLab(curMul,params.targetMul)+" · "+(freeRoll?(twGi?"!!!":"Free roll"):(Math.floor(tl/60)+":"+("0"+tl%60).slice(-2)+" left"))+" · "+n+" "+(n===1?"object":"objects");var prp=GAME.querySelector(".pause .rpt");if(prp){prp.style.display=freeRoll?"":"none";if(freeRoll)twReport(".pause .rpt")}
     overlays(HUD.pause);phase="pause"}
   function askRestart(){if(phase==="play")pauseGame();if(phase!=="pause")return;overlays(HUD.confirm);phase="confirm"}
   function cancelRestart(){if(phase!=="confirm")return;overlays(HUD.pause);phase="pause"}
@@ -3458,7 +3461,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-07a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-07b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
