@@ -2086,7 +2086,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
      It never comes into play while anything is still in reach, so ordinary planets play as before */
   var twEz={t:0,r:0,o:null};
   function twEzTg(g){return g&&g.userData&&(g.userData.mkO||(g.children[0]&&g.children[0].userData&&g.children[0].userData.mkO))} /* counted towards PLANET CLEARED, as in twLeftList */
-  function twEaseTick(dt){if(!freeRoll||twSpec||twSim){twEz.t=0;twEz.o=null;return}var R=ballR,i,o,best=null,bv=1e9,bk="";if(R>twEz.r+1e-4){twEz.t=0;twEz.r=R}
+  function twEaseTick(dt){if(!freeRoll||twSpec||(typeof twSim!=="undefined"&&twSim)){twEz.t=0;twEz.o=null;return}var R=ballR,i,o,best=null,bv=1e9,bk="";if(R>twEz.r+1e-4){twEz.t=0;twEz.r=R}
     for(i=0;i<props.length;i++){o=props[i];if(o.dead||o.hid||!twEzTg(o.g))continue;if(R>=o.req)return twEzOff();if(o.req<bv){bv=o.req;best=o;bk="p"}}
     for(i=0;i<obstacles.length;i++){o=obstacles[i];if(o.dead||o.hid||!twEzTg(o.g))continue;if(R>o.size*0.9)return twEzOff();if(o.size*0.9<bv){bv=o.size*0.9;best=o;bk="s"}}
     for(i=0;i<ants.length;i++){o=ants[i];if(o.dead||!twEzTg(o.g))continue;if(R>=o.req)return twEzOff();if(o.req<bv){bv=o.req;best=o;bk="a"}}
@@ -3479,7 +3479,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-07c",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-07d",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
