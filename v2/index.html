@@ -1135,7 +1135,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   /* the layered anthill: a dome of jagged plates stacked like the reference, alternating the land colour and a darker shade, with scavenged bits
      (flat chips and a triangle in the piece's colours) poking out between the layers and one ant standing on top */
   /* a rolled-up anthill shrinks onto the roll: no bigger than 1.2 times the roll's size (an ANTS hill is 15-20, so it hid the whole roll), easing down over about a third of a second, and sitting snug rather than buried */
-  function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ballR*1.2;return g.scale.x>m?m:0}
+function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ballR*1.2;return g.scale.x>m?m:0}
   function twHillEase(g,k){var c=g.scale.x+(k.gs-g.scale.x)*0.15;if(Math.abs(c-k.gs)<0.01){c=k.gs;k.gs=0}g.scale.setScalar(c)}
   function twHill2(c,dk,K,p,lr){var g=new THREE.Group(),N=7,H=0.62,R=0.6,lt=c.clone().lerp(new THREE.Color(1,1,1),0.18),y=0;var sk=new THREE.Mesh(new THREE.CylinderGeometry(R*0.98,R*1.04,0.5,8),twM(dk));sk.position.y=-0.24;g.add(sk); /* a skirt reaching half its size into the ground, so the hill sits in the land on a slope */
     for(var i=0;i<N;i++){var f=i/N,r=R*Math.sqrt(Math.max(0.05,1-f*f))*(0.94+lr()*0.12),th=H/N*(1.05+lr()*0.3),ge=new THREE.CylinderGeometry(r*0.9,r,th,8),pa=ge.attributes.position;
@@ -2470,7 +2470,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   twRuNm.checker="GRAND PRIX";
   twRuIco.checker='<path fill="currentColor" d="M227.32 48.75a8 8 0 0 0-8.56 1.25c-28 24.22-51.72 12.48-79.21-1.13C111.07 34.76 78.78 18.79 42.76 50A8 8 0 0 0 40 56v168a8 8 0 0 0 16 0v-44.23c26.79-21.16 49.87-9.75 76.45 3.41c28.49 14.09 60.77 30.06 96.79-1.13a8 8 0 0 0 2.76-6V56a8 8 0 0 0-4.68-7.25M216 71.6v40.65c-14 11.06-27 13.22-40 10.88V79.34a60.05 60.05 0 0 0 40-7.74m-56 3.76v43c-6.66-2.67-13.43-6-20.45-9.48c-8.82-4.37-18-8.91-27.55-12.18v-43c6.66 2.66 13.43 6 20.45 9.48c8.82 4.37 18.01 8.91 27.55 12.18M96 48.91v43.78a60.06 60.06 0 0 0-40 7.75V59.78c14-11.06 27-13.21 40-10.87M86.58 152A60.06 60.06 0 0 0 56 160.43v-40.65c14-11.06 27-13.22 40-10.88v43.8a65.6 65.6 0 0 0-9.42-.7m25.42 4.67v-43c6.66 2.66 13.43 6 20.45 9.48c8.82 4.37 18 8.9 27.55 12.17v43c-6.66-2.67-13.43-6-20.45-9.48c-8.82-4.37-18.01-8.9-27.55-12.17m64 26.45v-43.8a65.6 65.6 0 0 0 9.42.72a60.1 60.1 0 0 0 30.58-8.47v40.68c-14 11.06-27 13.21-40 10.87"/>'; /* Phosphor flag checkered (regular, MIT) */
   /* FUTOMAKI (Maki, after the original art that started the collection): the roll is a long log, rolling side on. It starts as a normal roll and grows mostly longer, not fatter: its radius with the 0.7th power of its size and its length with the 1.8th.
-     It picks up along its whole length, its ends stop against scenery you are too small for and shove big food along, it turns 45% slower, and the ground is slippery so it slides into its turns (the label says only FUTOMAKI).
+     It picks up along its whole length, its ends stop against scenery you are too small for and shove big food along, it turns 45% slower.
      Since the long log sweeps up so much more, each piece adds half its usual size, so it gets to gold about as late as a normal roll */
   function twMkLabel(s){twRuNm.maki=s;twRuLabK=""} /* changes the label at once */
   function twMkTake(o){if(o.dead||o.abs||(o.tops&&o.tops.some(twAlive))||o.cool>twClock||ballR<o.req)return false;o.dead=true;twYoDrop(o);o.g.userData.req=o.req;stickToRoll(o.g);ballR+=o.gain;pips++;return true} /* rolls up a piece the same way rolling into it does */
@@ -2486,8 +2486,8 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
           plaza.gone[k]=true;plaza.vis[k]=false;n++;var cc=new THREE.Color();plaza.m.getColorAt(k,cc);var tm=new THREE.Mesh(new THREE.BoxGeometry(plaza.TS*0.94,S.y,plaza.TS*0.94),twM(cc));tm.position.copy(P);tm.quaternion.copy(Q);tm.userData.req=params.targetMul*0.5*R0;tm.userData.mkO=plaza.TS*plaza.TS;tm.userData.nm="PLAZA TILE";plaza.gn=(plaza.gn||0)+1;scene.add(tm);stickToRoll(tm);
           plaza.m.setMatrixAt(k,plaza.Z0);plaza.m.instanceMatrix.needsUpdate=true;ballR+=0.035;pips++}}, /* plaza tiles under the log out beyond its middle, the same as the game rolls them up, but only once the log is over them: not past its ends, and only just in front of or behind where it touches */
       slat:function(pd,sd,H,r){var R=twR,n=0,j;if(!R||!R.slats||ballR<R.need)return;
-        for(j=0;j<R.NSL&&n<2;j++){if(R.gone[j])continue;var gm=R.slats[j];if(!gm.visible)continue;var Ms=twRu.mk;if(Ms.imS&&Ms.imS[j]&&Ms.im.has(Ms.imS[j]))continue;var gw=gm.getWorldPosition(new THREE.Vector3()),gv=gw.clone().normalize().sub(pd),gs=Math.abs(gv.dot(sd))*SR,gf=Math.abs(gv.dot(fwd))*SR;if(gs<twMkV.futo.m0(r)||gs>H+0.2||gf>r*0.5+0.6+gs*gs/(2*SR))continue;
-          R.gone[j]=true;R.broken=true;R.gn=(R.gn||0)+1;n++;var gc=gm.clone();gc.userData.req=R.need;gc.position.copy(gw);gc.quaternion.copy(gm.getWorldQuaternion(new THREE.Quaternion()));gc.scale.copy(gm.getWorldScale(new THREE.Vector3()));scene.add(gc);gm.visible=false;stickToRoll(gc);ballR+=0.05;pips++}}, /* belt slates the same way, once the log is on top of them; each keeps where it really was, so it sticks on where it was picked up (two a frame at most, as before) */
+        for(j=0;j<R.NSL&&n<8;j++){if(R.gone[j])continue;var gm=R.slats[j];if(!gm.visible)continue;var Ms=twRu.mk;if(Ms.imS&&Ms.imS[j]&&Ms.im.has(Ms.imS[j]))continue;var gw=gm.getWorldPosition(new THREE.Vector3()),gv=gw.clone().normalize().sub(pd),gs=Math.abs(gv.dot(sd))*SR,gf=Math.abs(gv.dot(fwd))*SR;var ge=Math.min(1,gs/H);if(gs<twMkV.futo.m0(r)||gs>H+1.6||gf>r*((Ms.long?0.8:0.6)+0.25*ge)+1.6+gs*gs/(2*SR))continue;
+          R.gone[j]=true;R.broken=true;R.gn=(R.gn||0)+1;n++;var gc=gm.clone();gc.userData.req=R.need;gc.position.copy(gw);gc.quaternion.copy(gm.getWorldQuaternion(new THREE.Quaternion()));gc.scale.copy(gm.getWorldScale(new THREE.Vector3()));scene.add(gc);gm.visible=false;stickToRoll(gc);ballR+=0.05;pips++}}, /* belt slates the same way, once the log is on top of them; each keeps where it really was, so it sticks on where it was picked up; the same reach as food along the log, plus half a slate (they are 3.2 across), and up to eight a frame, since a long log lying along the belt is over dozens at once */
       scen:function(pd,sd,H,r){for(var i=0;i<obstacles.length;i++){var ob=obstacles[i];if(ob.dead||ob.hid||ballR<=ob.size*0.9||twMkV.futo.im(ob))continue;var v=ob.dir.clone().sub(pd),s=Math.abs(v.dot(sd))*SR,f=Math.abs(v.dot(fwd))*SR;if(s<twMkV.futo.m0(r)||s>H+ob.size*0.5||f>r*0.7+ob.size*0.7+s*s/(2*SR))continue;
           ob.dead=true;ob.g.scale.multiplyScalar(0.75);stickToRoll(ob.g);ballR+=Math.min(0.18,ob.size*0.12)}}, /* trees, rocks and the rest you are big enough for, rolled up along the log, the same as the game does in the middle */
       im:function(x){var I=twRu.mk.im;return I&&I.has(x)}, /* something that was under the log at the start: left alone until the log has moved off it */
@@ -2522,8 +2522,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
   function twLenK(){var u=twRu,M=u&&u.mk;return u&&u.k==="maki"&&M&&M.kx?M.kx:1} /* how many times its usual length the roll is: pieces stick along all of it */
   function twRadK(){var u=twRu,M=u&&u.mk;return u&&u.k==="maki"&&M&&M.r?M.r/ballR:1} /* how much thinner than a normal roll of its size it is: pieces stay on its surface */
   function twRollC(){var k=twRadK();if(k>=1)return ball.position;return ball.position.clone().addScaledVector(ball.position.clone().normalize(),-ballR*(1-k))} /* the middle of the roll as drawn: a thinner roll sits lower */
-  var twRC0=twRC;twRC=function(k){var u=twRu;if(k==="slip"&&u&&u.k==="maki")return true;return twRC0(k)}; /* FUTOMAKI comes with SLIPPERY GROUND: the log slides into its turns */
-  function twMkSlipLab(){var u=twRu;return !(u&&u.k==="maki")} /* but its label says only FUTOMAKI */
+  function twMkSlipLab(){return true} /* the label lists SLIPPERY GROUND whenever it is on (FUTOMAKI no longer brings it) */
   twRuIco.maki='<path fill="currentColor" d="M149.26 159.26C155.09 173.82 163.5 176 168 176s12.91-2.18 18.74-16.74c3.39-8.48 5.26-19.58 5.26-31.26s-1.87-22.78-5.26-31.26C180.91 82.18 172.5 80 168 80s-12.91 2.18-18.74 16.74c-3.39 8.48-5.26 19.58-5.26 31.26s1.87 22.78 5.26 31.26M168 96.2c2.62 2.06 8 13 8 31.8s-5.38 29.74-8 31.8c-2.62-2.06-8-13-8-31.8s5.38-29.74 8-31.8M232 216h-35.59c16.71-18.27 27.59-50.53 27.59-88c0-58.32-26.35-104-60-104H92c-33.65 0-60 45.68-60 104s26.35 104 60 104h140a8 8 0 0 0 0-16M193.74 63.93C202.93 80.91 208 103.67 208 128s-5.07 47.09-14.26 64.07C185.38 207.5 174.82 216 164 216s-21.38-8.5-29.74-23.93C125.07 175.09 120 152.33 120 128s5.07-47.09 14.26-64.07C142.62 48.5 153.18 40 164 40s21.38 8.5 29.74 23.93M48 128c0-2.5.07-5 .17-7.44L80 97.83l24.43 17.45c-.28 4.16-.43 8.41-.43 12.72a180 180 0 0 0 3.07 33.5l-22.42-16a8 8 0 0 0-9.3 0l-23.74 17A161 161 0 0 1 48 128m14.26-64.07C70.62 48.5 81.18 40 92 40h39.59c-11.9 13-20.84 33.12-25 57.16L84.65 81.49a8 8 0 0 0-9.3 0L50.49 99.25C52.85 86 56.83 74 62.26 63.93m0 128.14a100 100 0 0 1-5.94-13.32L80 161.83l33.94 24.24c4.6 12 10.6 22.22 17.65 29.93H92c-10.82 0-21.38-8.5-29.74-23.93"/>' /* Phosphor tire (regular, MIT) */
   /* SIZE BAR: empty at your starting size (1×) and full at gold, white all the way; thin soft grey marks show where bronze (the goal) and silver are.
      The GOAL number is the next medal to reach: bronze (the goal), then silver, then gold, and stays on gold once you have it */
@@ -2532,6 +2531,19 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     if(sb)sb.pbT.forEach(function(t,i){t.style.left=(((i?G*M[0]:G)-1)/(Tg-1)*100)+"%"})} /* the marks sit at bronze and silver along the way from 1× to gold */
   function twPbG(m,G){var M=twMG();return m<G?G:m<G*M[0]?G*M[0]:G*M[1]} /* the GOAL number: the next medal */
   function twPbH(m,G){return "<b>GOAL</b>"+twPbG(m,G).toFixed(1)+"×"} /* the GOAL side of the row */
+  /* PIECES ON THE ROLL: pieces are laid on the roll as messily as ever (any spin, up to 25 degrees of lean, some buried deep, most snug, some proud), then checked against the roll as it really is under them:
+       the lowest part of the piece (its bottom quarter, towards the roll) is measured point by point, and if over half of it is clear of the roll's surface the piece is pressed in until half of it touches,
+       so a wide, tilted or perched piece sits on the maki instead of hovering beside it. Pieces already in deep enough are left alone, and nothing is shrunk (only the anthill, as before).
+     PICKUP BY WIDTH: a piece also needs the roll's size to be 0.4 of its longest side (the roll 0.8 of it across), as well as half its size, so long and wide things (big fish, big shrimp) wait for a bigger roll */
+  function twFitBox(g){var p=g.parent,P=g.position.clone(),Q=g.quaternion.clone(),b=g.userData.blob;if(p)p.remove(g);if(b)g.remove(b);g.position.set(0,0,0);g.quaternion.identity();g.updateMatrixWorld(true);
+    var B=new THREE.Box3().setFromObject(g,true),S=new THREE.Vector3();B.getSize(S);g.position.copy(P);g.quaternion.copy(Q);if(b)g.add(b);if(p)p.add(g);g.updateMatrixWorld(true);return S} /* the piece's size in its own frame (with its scale), without its shadow */
+  function twFit(g,s){var k=g.userData.stick;if(!k||k.gs)return;clump.updateMatrixWorld(true);g.updateMatrixWorld(true);
+    var r=R0*0.98*s*twRadK(),Ci=new THREE.Matrix4().copy(clump.matrixWorld).invert(),Mx=new THREE.Matrix4(),v=new THREE.Vector3(),D=[];
+    g.traverse(function(o){if(!o.isMesh||!o.visible||o.material===blobMat||!o.geometry||!o.geometry.attributes.position)return;var P=o.geometry.attributes.position,n=P.count,st=Math.max(1,Math.floor(n/300));Mx.multiplyMatrices(Ci,o.matrixWorld);
+      for(var i=0;i<n;i+=st){v.fromBufferAttribute(P,i).applyMatrix4(Mx);D.push(Math.hypot(v.y,v.z))}}); /* every part of the piece (up to 300 points each), as how far it is from the roll's middle line */
+    if(D.length<3)return;D.sort(function(a,b){return a-b});var lo=D[0],hi=D[D.length-1],cut=lo+(hi-lo)*0.25,B=[];for(var j=0;j<D.length&&D[j]<=cut;j++)B.push(D[j]);
+    var mid=B[Math.floor(B.length*0.5)],push=mid-r;if(push>0){k.sink+=push;placeStuck(g,s)}} /* its bottom quarter: if over half of it is clear of the roll, it is pressed in until half touches */
+  function twFitReq(){props.forEach(function(o){if(o.fq0==null)o.fq0=o.req;if(o.abs||o.g.userData.nm==="ANTHILL"){o.req=o.fq0;return}var S=twFitBox(o.g);o.req=Math.max(o.fq0,0.4*Math.max(S.x,S.z))})} /* the roll's size has to be 0.4 of its longest side (0.8 across) */
   function build(tr,cells){
     SR=SR_BASE;
     params=deriveParams(tr,cells);
@@ -2579,7 +2591,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     clump=new THREE.Group();ball.add(clump);
     ballR=R0;
     core=buildMakiRoll(p);clump.add(core);welG=core.clone(); // the welcome screen's spinning roll: a copy of this exact roll (same filling layout, no extra random draws)
-    spawnWorld(p);twTrails(p);try{twRuleInit(p)}catch(e){twRu=null;twRuleErr(e)}clearSpawn();mkptPlaza();lmBuild(p);lmClear();mkptClear();twBuild(p);twCount();
+    spawnWorld(p);twTrails(p);try{twRuleInit(p)}catch(e){twRu=null;twRuleErr(e)}clearSpawn();mkptPlaza();lmBuild(p);lmClear();mkptClear();twBuild(p);twFitReq();twCount();
     banner=null;if(p.isText||tr.Message||window.MAKI_TXT){var msg=((window.MAKI_TXT&&window.MAKI_TXT.msg)||tr.Message||(tr.Pattern||"").replace(/^text\s*/i,"")||"MAKIMONO").trim()||"MAKIMONO";banner=buildBanner(msg,p);scene.add(banner.g);window.MKSP_MSG=msg} /* the message, kept so the sky letters can come back */
     pPos=new THREE.Vector3(0,1,0.001).normalize();pPos.multiplyScalar(surfaceR(pPos)+ballR);
     up=pPos.clone().normalize();fwd=new THREE.Vector3(0,0,1);
@@ -2609,7 +2621,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     g.userData.stick={rd:rd,xf:xf,sink:gs?gs*0.06:sink,gs:gs};
     var tilt=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(Math.random()-0.5,0,Math.random()-0.5).normalize(),(Math.random()-0.5)*0.9); // knocked askew, up to ~25 degrees
     g.quaternion.setFromUnitVectors(YUP,rd).multiply(tilt).multiply(new THREE.Quaternion().setFromAxisAngle(YUP,Math.random()*6.283)); // base against the roll, random lean + spin
-    clump.add(g);placeStuck(g,s)}
+    clump.add(g);placeStuck(g,s);twFit(g,s)}
   function placeStuck(g,s){var k=g.userData.stick;if(k.gs)twHillEase(g,k);g.position.set(k.xf*R0*0.85*s*twLenK(),0,0).addScaledVector(k.rd,R0*0.98*s*twRadK()-k.sink)} // on the current (scaled) roll surface
   var twSub=0;function step(t){if(!running)return;perfSample(t,t-lastT);var T=Math.min(200,t-lastT),n=twEnd||!(T>50)?1:Math.ceil(T/50-1e-6);if(n>1){var t0=t-T;lastT=t0;twSub=1;for(var si=1;si<n&&running;si++)stepOne(t0+T*si/n);twSub=0;if(!running)return}stepOne(t)} /* on a slow frame (under 20 fps) the game runs a few shorter steps and draws only the last, so it keeps real speed instead of going slow motion; each step is still at most 0.05 s, so nothing is skipped through. A wait of more than 0.2 s (a stall) only moves the game on by 0.2 s */
   function stepOne(t){
@@ -3443,7 +3455,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-06a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-06b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
