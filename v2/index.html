@@ -716,7 +716,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
     p.chase=false; /* Chase's magnet and its 9 chopsticks are off for now, to revisit later */
     p.enemyN=2; /* 2 chopsticks for every pattern */
     p.stepMs=fast?70:slow?210:140;
-    p.dir=/left|ccw|west|anti/.test((tr.Direction||"").toLowerCase())?-1:1;
+    p.dir=/left|ccw|west|anti/.test((tr.Direction||"").toLowerCase())?-1:1;p.dirN=tr.Direction||"";
     p.isText=/text|marquee/.test(p.pattern);
     p.kind=/checker/.test(p.pattern)?"checker":/ripple/.test(p.pattern)?"ripple":/chase/.test(p.pattern)?"chase":/diagonal/.test(p.pattern)?"diagonal":/sparkle/.test(p.pattern)?"sparkle":/maki/.test(p.pattern)?"rings":/text|marquee|scroll/.test(p.pattern)?"scroll":"flow";
     // colour pools from the real pixels
@@ -1160,7 +1160,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
        The path is sampled once (twR): direction, the way it runs, its side, the belt top (a little over the land, smoothed, no slope steeper than
        0.5) and the lowest ground under it, so the slats reach down to the land */
     {var P0=S0.clone().applyAxisAngle(ZA,-13/SR).normalize(),T0=Z.clone().addScaledVector(P0,-Z.dot(P0)).normalize(),NR=new THREE.Vector3().crossVectors(P0,T0).normalize();
-      var M=1200,R={d:[],T:[],B:[],L:[],top:[],lo:[],spd:2.4*(params.dir||1),off:0,ride:{mv:true,dv:new THREE.Vector3(),rd:1},near:-1};
+      var M=1200,R={d:[],T:[],B:[],L:[],top:[],lo:[],spd:2.4*(/reverse/i.test(params.dirN||"")?-1:1),off:0,ride:{mv:true,dv:new THREE.Vector3(),rd:1},near:-1};
       /* the weave, pushed out of the plaza's way (with a margin) and eased in and out so the bend stays smooth */
       var LA=[],PE=[],PS=[],pcc=plaza?plaza.c:null,plim=plaza?plaza.ang+2.4/SR:0,psg=pcc&&pcc.dot(NR)>0?-1:1,j,q;
       var pt_=function(th,lat){return P0.clone().multiplyScalar(Math.cos(th)).addScaledVector(T0,Math.sin(th)).multiplyScalar(SR).addScaledVector(NR,lat).normalize()};
@@ -3481,7 +3481,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-07e",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-07f",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */

@@ -90,7 +90,7 @@ The traits use the new wave names (Wave, Short Wave) on both sides.
 Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint.html`) and the root player are unchanged.
 
 **Things to roll up**
-- **A belt of plates:** a ring of conveyor-belt sushi plates. The plates and the sushi on them can be rolled up, and so can the belt's slats once you're big enough.
+- **A belt of plates:** a ring of conveyor-belt sushi plates. The plates and the sushi on them can be rolled up, and so can the belt's slats once you're big enough. The belt runs by the Direction trait: Forward the way the maki faces at the start, Reverse the other way (Text pieces are always Reverse). Before, it ran the same way on every piece.
 - **An anthill:** a layered anthill some way off to the right of the start. Once you're big enough, the hill itself rolls up. On the roll it shrinks to at most 1.2× the roll's size, so a big hill (an ANTS planet's is 15 to 20) no longer hides the maki.
 - **The piece's own art as a plaza:** a 13×13 plaza of raised tiles just ahead of the start, laid out like the art. Only the maki's tiles count. The background tiles are left out, and the eyes stay right in every pose. The roll can hop up onto the tiles.
 - **Sky letters:** the message's letters in the sky can be rolled up too once the roll reaches them.
