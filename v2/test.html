@@ -15,10 +15,11 @@ h1{font-size:20px;margin:0 0 4px;letter-spacing:.04em;text-transform:uppercase}
 h2{font-size:12px;margin:26px 0 10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:400}
 .sub{color:var(--mute);margin:0 0 12px;max-width:78ch;text-wrap:pretty}
 .ver{color:var(--mute);font-size:11px}
-.keys{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;color:var(--mute);font-size:11px;line-height:18px;margin:0 0 8px}
-.keys>span{display:inline-flex;align-items:center}
+.keys{display:grid;grid-template-columns:96px 1fr;gap:6px;align-items:start;color:var(--mute);font-size:11px;line-height:18px;margin:0 0 8px}
+.kv{display:flex;flex-wrap:wrap;gap:6px 14px}
+.kv>span{display:inline-flex;align-items:center}
 .keys+.keys{margin-bottom:16px}
-.kh{color:var(--ink);text-transform:uppercase;letter-spacing:.08em;min-width:84px}
+.kh{color:var(--ink);text-transform:uppercase;letter-spacing:.08em}
 kbd{font:inherit;font-size:10.5px;line-height:15px;color:var(--ink);border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 5px;margin-right:4px}
 .bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px;border:1px solid var(--line);background:var(--panel);margin-bottom:8px;position:sticky;top:0;z-index:5}
 .bar label{display:flex;gap:8px;align-items:center;color:var(--mute);text-transform:uppercase;font-size:11px;letter-spacing:.08em}
@@ -72,8 +73,8 @@ button.chip.on{border-color:var(--acc);background:var(--acc);color:var(--bg)}
 <body>
 <h1>Katamaki v2 · planet conditions</h1>
 <p class="sub">Every Pattern trait has its own planet condition. <b>Play</b> opens the game with that card's piece: press KATAMAKI (or <kbd>G</kbd>) once the art loads. <b>Copy</b> puts the play link and the piece's traits on your clipboard, ready for a bug report. <span id="ver" class="ver"></span></p>
-<div class="keys"><span class="kh">Game keys:</span><span><kbd>G</kbd>play / back to art</span><span><kbd>P</kbd>pause</span><span><kbd>R</kbd>restart</span><span><kbd>Enter</kbd>start, keep rolling</span><span><kbd>Z</kbd>zoom</span><span><kbd>C</kbd>photo</span></div>
-<div class="keys"><span class="kh">Test keys:</span><span><kbd>M</kbd>magnet</span><span><kbd>Shift</kbd><kbd>M</kbd>super magnet</span><span><kbd>T</kbd>throw off everything rolled up</span></div>
+<div class="keys"><span class="kh">Game keys:</span><span class="kv"><span><kbd>G</kbd>play / back to art</span><span><kbd>P</kbd>pause</span><span><kbd>R</kbd>restart</span><span><kbd>Enter</kbd>start, keep rolling</span><span><kbd>Z</kbd>zoom</span><span><kbd>C</kbd>photo</span></span></div>
+<div class="keys"><span class="kh">Test keys:</span><span class="kv"><span><kbd>M</kbd>magnet</span><span><kbd>Shift</kbd><kbd>M</kbd>super magnet</span><span><kbd>T</kbd>throw off everything rolled up</span></span></div>
 
 <div class="bar">
   <label id="qlab">Quality</label><div id="tier" class="seg" role="group" aria-labelledby="qlab"><button type="button" data-t="">Auto</button><button type="button" data-t="3">Low</button><button type="button" data-t="2">Medium</button><button type="button" data-t="1">High</button><button type="button" data-t="0">Ultra</button></div>
