@@ -359,10 +359,10 @@ var S={},FOUND={},CNT={},draws=0,left=0,tmr=0;
 var $=function(s){return document.querySelector(s)};
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null}
 var newEl=$("#newtab"),perfEl=$("#perf"),QN={"":"Auto","0":"Ultra","1":"High","2":"Medium","3":"Low"};
-var tierEl={value:""}; /* quality: Auto (the game picks), or the game's tier 3 (Low) to 0 (Ultra), sent as &tier= */
+var tierEl={value:""}; /* quality: Auto (the game picks), or Low, Medium, High or Ultra, sent as &quality= (the game's tier 3 to 0 inside) */
 function tierShow(){document.querySelectorAll("#tier button").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-t")===tierEl.value?"true":"false")})}
 newEl.checked=store("gt2-new")==="1";tierEl.value=QN[store("gt2-tier")||""]?(store("gt2-tier")||""):"";tierShow();perfEl.checked=store("gt2-perf")==="1";
-function href(seed){var u="index.html?seed="+encodeURIComponent(seed);if(tierEl.value)u+="&tier="+tierEl.value;if(perfEl.checked)u+="&perf=1";return u}
+function href(seed){var u="index.html?seed="+encodeURIComponent(seed);if(tierEl.value)u+="&quality="+QN[tierEl.value].toLowerCase();if(perfEl.checked)u+="&perf=1";return u}
 function absHref(seed){try{return new URL(href(seed),location.href).href}catch(e){return href(seed)}}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
 function trLine(seed){var t=S[seed].tr,o=[];for(var k in t)if(t[k]!=null)o.push(t[k]);return o.join(" · ")}
@@ -461,7 +461,7 @@ function copy(t,msg){
   else toast(fb()?msg:"Copy failed");
 }
 /* what Copy puts on the clipboard: the condition, the play link and the token's traits, for a bug report */
-function report(c){var p=c.getAttribute("data-key"),cur=c.getAttribute("data-cur");return (NM[condOf(p)]||p)+" · seed "+cur+(tierEl.value?" · quality "+QN[tierEl.value]+" (tier "+tierEl.value+")":"")+"\n"+absHref(cur)+"\n"+trLine(cur)+"\ngame "+(VER||GV0)}
+function report(c){var p=c.getAttribute("data-key"),cur=c.getAttribute("data-cur");return (NM[condOf(p)]||p)+" · seed "+cur+(tierEl.value?" · quality "+QN[tierEl.value]:"")+"\n"+absHref(cur)+"\n"+trLine(cur)+"\ngame "+(VER||GV0)}
 document.addEventListener("click",function(e){
   var t=e.target.closest?e.target:null;if(!t)return;
   var cp=t.closest("[data-copy]");if(cp){e.preventDefault();var c0=cp.closest(".card");if(c0.getAttribute("data-cur"))copy(report(c0),"Copied "+(NM[condOf(c0.getAttribute("data-key"))]||""));return}
@@ -472,7 +472,7 @@ $("#tier").addEventListener("click",function(e){var b=e.target.closest("button")
 perfEl.addEventListener("change",function(){store("gt2-perf",perfEl.checked?"1":"0");link()});
 $("#again").addEventListener("click",run);
 /* the version this page was built from, and the one on the site (version.json beside index.html): if they differ, the game has moved on and this page should be rebuilt */
-var GV0="2026-11-07f",VER="";$("#ver").textContent="Built from game "+GV0+".";
+var GV0="2026-11-08a",VER="";$("#ver").textContent="Built from game "+GV0+".";
 try{fetch("version.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.game){VER=j.game;$("#ver").textContent=VER===GV0?"Game "+VER+".":"Built from game "+GV0+", but the site has "+VER+": rebuild this page."}}).catch(function(){})}catch(e){}
 $("#gridC").innerHTML=PATS.filter(function(p){return !MK.isText(p)}).map(card).join("");
 $("#gridT").innerHTML=PATS.filter(MK.isText).map(card).join("");

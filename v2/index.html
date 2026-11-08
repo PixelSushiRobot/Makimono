@@ -2912,16 +2912,16 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   // ---- adaptive quality: watch the frame rate while playing and step down only if the device struggles.
   // tiers: 0 full | 1 sharpness capped at 1.5x | 2 sharpness 1x, half the decor cones and clouds, no antialias from the next round | 3 sharpness .75x, no scattered scenery (clusters stay)
   // a step that doesn't raise the frame rate by 10% is undone and the tier locks (e.g. iOS Low Power Mode caps every page at 30fps, lowering quality can't help).
-  // timing uses the rAF timestamp (the game's own clock), never Date.now (frozen on Aleatory). ?perf=1 shows fps + tier (tap it to force a tier), ?tier=0..3 forces a tier.
+  // timing uses the rAF timestamp (the game's own clock), never Date.now (frozen on Aleatory). ?perf=1 shows fps and the quality level (tap it to force one), ?quality=low|medium|high|ultra forces a level (the older ?tier=0..3 still works: 0 is ultra, 3 low).
   var PQ={tier:0,lock:false,forced:undefined,skip:-1,ws:0,n:0,big:0,last:-1,prev:0},obsSingle0=1e9,perfEl=null;
   function twDPR(){return devicePixelRatio||1}
   (function(){try{var c=document.createElement("canvas").getContext("webgl");if(!c)return;var e=c.getExtension("WEBGL_debug_renderer_info"),r=String(e?c.getParameter(e.UNMASKED_RENDERER_WEBGL):c.getParameter(c.RENDERER)||"");PQ.gpu=r;
     if(/swiftshader|llvmpipe|softpipe|basic render|software/i.test(r))PQ.tier=3;else if(/intel/i.test(r)&&!/iris\s*xe|\barc\b|apple/i.test(r))PQ.tier=twDPR()>1.5?1:2;var lc=c.getExtension("WEBGL_lose_context");if(lc)lc.loseContext()}catch(x){}PQ.t0=PQ.tier})(); /* where quality starts: drawing without a graphics chip (no acceleration) starts at the lowest level, older Intel graphics (as in most 2019 laptops) a level or two down; everything else starts full and steps down if it struggles */
-  (function(){var m=location.search.match(/[?&]tier=([0-3])/);if(m){PQ.tier=+m[1];PQ.lock=true;PQ.forced=PQ.tier}
-    if(!/[?&]perf=1/.test(location.search))return; // readout (top centre) for checking a device: tap it to force tier 0, 1, 2, 3, then back to auto
+  (function(){var m=location.search.match(/[?&]tier=([0-3])/),mq=location.search.match(/[?&]quality=(low|medium|high|ultra)(?![a-z])/i);if(mq)m=[0,{ultra:0,high:1,medium:2,low:3}[mq[1].toLowerCase()]];if(m){PQ.tier=+m[1];PQ.lock=true;PQ.forced=PQ.tier}
+    if(!/[?&]perf=1/.test(location.search))return; // readout (top centre) for checking a device: tap it to step low, medium, high, ultra, then back to auto
     perfEl=document.createElement("button");perfEl.className="perf";perfEl.style.cssText="position:absolute;left:50%;top:calc(52px + env(safe-area-inset-top));transform:translateX(-50%);z-index:3;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(5,6,10,.45);color:#fff;font:700 11px ui-monospace,monospace;letter-spacing:.04em;touch-action:manipulation";GAME.appendChild(perfEl);
-    perfEl.addEventListener("click",function(e){e.stopPropagation();PQ.forced=PQ.forced===undefined?0:PQ.forced+1;
-      if(PQ.forced>3){PQ.forced=undefined;PQ.lock=false;PQ.tier=0}else{PQ.tier=PQ.forced;PQ.lock=true}PQ.last=-1;PQ.skip=-1;PQ.ws=0;perfApply()});
+    perfEl.addEventListener("click",function(e){e.stopPropagation();PQ.forced=PQ.forced===undefined?3:PQ.forced-1;
+      if(PQ.forced<0){PQ.forced=undefined;PQ.lock=false;PQ.tier=0}else{PQ.tier=PQ.forced;PQ.lock=true}PQ.last=-1;PQ.skip=-1;PQ.ws=0;perfApply()});
     perfShow()})();
   function perfPR(){return Math.min(twDPR(),[2,1.5,1,.75][PQ.tier])}
   function perfApply(){if(!renderer)return;renderer.setPixelRatio(perfPR());renderer.setSize(innerWidth,innerHeight);
@@ -2931,7 +2931,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
       if(PQ.tier>=3){if(!o.dead){o.dead=true;o.hid=true;o.g.visible=false}} // hidden scenery also stops blocking
       else if(o.hid){o.dead=false;o.hid=false;o.g.visible=true}});
     perfShow()}
-  function perfShow(fps){if(perfEl)perfEl.textContent=(fps?Math.round(fps):"--")+" fps · tier "+PQ.tier+(PQ.forced!==undefined?" forced":PQ.lock?" locked":" auto")}
+  function perfShow(fps){if(perfEl)perfEl.textContent=(fps?Math.round(fps):"--")+" fps · "+["ULTRA","HIGH","MEDIUM","LOW"][PQ.tier]+(PQ.forced!==undefined?" forced":PQ.lock?" locked":" auto")}
   function perfSample(t,ft){if(PQ.skip<0)PQ.skip=t+1000;if(t<PQ.skip){PQ.ws=0;return} // settle for 1s after (re)starting or a step
     if(!PQ.ws){PQ.ws=t;PQ.n=0;PQ.big=0;return}
     PQ.n++;if(ft>250)PQ.big++;var el=t-PQ.ws;if(el<2000)return;
@@ -3481,7 +3481,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-07f",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-08a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
