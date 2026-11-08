@@ -352,7 +352,7 @@ function can(p,d,v){if(d==="direction"&&MK.isText(p))return v==="reverse"; /* te
   return MK.MIX.some(function(m){if(d==="palette"&&m[0]!==v)return false;if(d!=="speed")return true;return MK.speedSet(m[0],r[0],p).split(",").some(function(i){return MK.SPD[+i][0]===v})})})}
 var NA={};PATS.forEach(function(p){ROWS.forEach(function(r){r[2].forEach(function(v){if(!can(p,r[0],v))NA[p+"|"+r[0]+"|"+v]=1})})});
 function speedHint(p){var ok=MK.SPD.map(function(x){return x[0]}).filter(function(v){return !NA[p+"|speed|"+v]});return ok.length<MK.SPD.length?MK.dn("pattern",p)+" art is "+ok.map(function(v){return lab("speed",v)}).join(" or ")+" only, by the speed rules.":""}
-var CAP=120000;
+var CAP=120000,ODN=20000; /* after every chip has a seed, the page keeps drawing (counting only) until ODN draws, so the odds settle */
 var S={},FOUND={},CNT={},draws=0,left=0,tmr=0;
 var $=function(s){return document.querySelector(s)};
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null}
@@ -413,7 +413,7 @@ function resetDom(){
   });
 }
 /* the pattern odds, counted from this page's draws (so they include the art's fallbacks), once there are enough to mean something */
-function odds(){if(draws<3000)return;PATS.forEach(function(p){var c=cardEl(p);if(!c)return;var n=CNT[p]||0,o=c.querySelector(".odds");if(!n){o.textContent="none in "+draws.toLocaleString("en-US");return}var r=Math.round(draws/n);o.textContent=(r>=30?"rare · ":"")+"~1 in "+r;c.classList.toggle("rare",r>=30)})}
+function odds(){if(draws<1000)return;PATS.forEach(function(p){var c=cardEl(p);if(!c)return;var n=CNT[p]||0,o=c.querySelector(".odds");if(!n){o.textContent="none in "+draws.toLocaleString("en-US");return}var r=Math.round(draws/n);o.textContent=(r>=30?"rare · ":"")+"~1 in "+r;c.classList.toggle("rare",r>=30)})}
 function paint(touched){
   for(var k in touched){
     var c=cardEl(k),F=FOUND[k];if(!c||!F.base)continue;
@@ -436,15 +436,16 @@ function run(){
   resetDom();$("#again").disabled=true;
   function step(){
     var t0=performance.now(),touched={};
-    while(left>0&&draws<CAP&&performance.now()-t0<12){
+    while((left>0||draws<ODN)&&draws<CAP&&performance.now()-t0<12){
       var seed=rnd(),r=MK.gen(seed);draws++;
-      var m=r.mode,F=FOUND[m];CNT[m]=(CNT[m]||0)+1;if(!F)continue;
+      var m=r.mode,F=FOUND[m];CNT[m]=(CNT[m]||0)+1;if(!F||left<=0)continue;
       var add=function(){if(!S[seed])S[seed]={tr:r.tr};touched[m]=1;left--};
       if(!F.base){F.base=seed;add()}
       ROWS.forEach(function(x){var d=x[0],v=r.tr[TRK[d]];if(v!=null&&!F[d][v]){F[d][v]=seed;add()}});
     }
     paint(touched);odds();filter();
-    if(left>0&&draws<CAP){$("#status").textContent="building… "+draws.toLocaleString("en-US")+" draws";tmr=setTimeout(step,0)}
+    if(left<=0)$("#again").disabled=false;
+    if((left>0||draws<ODN)&&draws<CAP){$("#status").textContent=(left>0?"building… ":"seeds ready · counting odds… ")+draws.toLocaleString("en-US")+" draws";tmr=setTimeout(step,0)}
     else{if(left>0)giveUp();$("#status").textContent=(left>0?"partial · ":"fresh seeds · ")+draws.toLocaleString("en-US")+" draws";$("#again").disabled=false}
   }
   step();
