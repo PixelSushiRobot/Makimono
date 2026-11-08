@@ -13,7 +13,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
 body{padding:24px 16px 64px;max-width:1180px;margin:0 auto;font-size:13px;line-height:1.45}
 h1{font-size:20px;margin:0 0 4px;letter-spacing:.04em;text-transform:uppercase}
 h2{font-size:12px;margin:26px 0 10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:400}
-.sub{color:var(--mute);margin:0 0 12px;max-width:78ch}
+.sub{color:var(--mute);margin:0 0 12px;max-width:78ch;text-wrap:pretty}
 .ver{color:var(--mute);font-size:11px}
 .keys{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;color:var(--mute);font-size:11px;line-height:18px;margin:0 0 8px}
 .keys>span{display:inline-flex;align-items:center}
@@ -22,6 +22,11 @@ h2{font-size:12px;margin:26px 0 10px;letter-spacing:.1em;text-transform:uppercas
 kbd{font:inherit;font-size:10.5px;line-height:15px;color:var(--ink);border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 5px;margin-right:4px}
 .bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px;border:1px solid var(--line);background:var(--panel);margin-bottom:8px;position:sticky;top:0;z-index:5}
 .bar label{display:flex;gap:8px;align-items:center;color:var(--mute);text-transform:uppercase;font-size:11px;letter-spacing:.08em}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-left:-10px}
+.seg button{font:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);background:transparent;border:0;border-left:1px solid var(--line);padding:5px 11px;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
 .bar input[type=text],.bar select{font:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:5px 8px}
 .bar input[type=text]{min-width:170px}
 .bar input[type=text]:focus,.bar select:focus{outline:1px solid var(--acc)}
@@ -35,9 +40,10 @@ kbd{font:inherit;font-size:10.5px;line-height:15px;color:var(--ink);border:1px s
 .cond{display:flex;gap:6px;align-items:center;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
 .cond svg{width:17px;height:17px;flex:none}
 .pat{color:var(--mute);font-size:11px}
+.pat .odds{display:block}
 .rare .pat .odds{color:var(--acc)}
-.note{font-size:11.5px;margin:0;color:#c9c9cc}
-.hint{color:var(--mute);font-size:10.5px;margin:0}
+.note{font-size:11.5px;margin:0;color:#c9c9cc;text-wrap:pretty}
+.hint{color:var(--mute);font-size:10.5px;margin:0;text-wrap:pretty}
 .play{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 a.btn,button.btn{font:inherit;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);background:transparent;border:1px solid var(--ink);border-radius:999px;padding:5px 12px;text-decoration:none;cursor:pointer}
 a.btn:hover,button.btn:hover{background:var(--ink);color:var(--bg)}
@@ -61,18 +67,15 @@ button.chip.on{border-color:var(--acc);background:var(--acc);color:var(--bg)}
 </head>
 <body>
 <h1>Katamaki v2 · planet conditions</h1>
-<p class="sub">Every v2 planet condition and text mode, each with a seed that plays it, so rare ones don't need rerolling. Pick a speed, palette or form on a card to switch to a seed that has it, then press Play and hit KATAMAKI (or <kbd>G</kbd>) once the art loads. Copy puts the play link and the token's traits on your clipboard, ready to paste into a bug report. <span id="ver" class="ver"></span></p>
+<p class="sub">Every Pattern trait has its own planet condition. <b>Play</b> opens the game with that card's piece: press KATAMAKI (or <kbd>G</kbd>) once the art loads. <b>Copy</b> puts the play link and the piece's traits on your clipboard, ready for a bug report. <span id="ver" class="ver"></span></p>
 <div class="keys"><span class="kh">Game keys:</span><span><kbd>G</kbd>play / back to art</span><span><kbd>P</kbd>pause</span><span><kbd>R</kbd>restart</span><span><kbd>Enter</kbd>start, keep rolling</span><span><kbd>Z</kbd>zoom</span><span><kbd>C</kbd>photo</span></div>
 <div class="keys"><span class="kh">Test keys:</span><span><kbd>M</kbd>magnet</span><span><kbd>Shift</kbd><kbd>M</kbd>super magnet</span><span><kbd>T</kbd>throw off everything rolled up</span></div>
 
 <div class="bar">
-  <label>Player <input id="base" type="text" value="index.html" spellcheck="false" aria-label="Player URL"></label>
-  <label>Quality <select id="tier" aria-label="Quality tier"><option value="">auto</option><option value="0">tier 0 (full)</option><option value="1">tier 1</option><option value="2">tier 2</option><option value="3">tier 3 (lowest)</option></select></label>
+  <label id="qlab">Quality</label><div id="tier" class="seg" role="group" aria-labelledby="qlab"><button type="button" data-t="">Auto</button><button type="button" data-t="3">Low</button><button type="button" data-t="2">Medium</button><button type="button" data-t="1">High</button><button type="button" data-t="0">Ultra</button></div>
   <label><input id="perf" type="checkbox"> fps</label>
   <label><input id="newtab" type="checkbox"> new tab</label>
   <button id="again" class="btn" type="button">New seeds</button>
-  <label><input id="q" type="text" placeholder="filter: tide, fast, forward…" spellcheck="false"></label>
-  <span id="status" class="pat" aria-live="polite"></span>
 </div>
 
 <h2>Planet conditions</h2>
@@ -80,10 +83,6 @@ button.chip.on{border-color:var(--acc);background:var(--acc);color:var(--bg)}
 <h2>Text modes</h2>
 <div id="gridT" class="grid"></div>
 
-<div class="foot">
-<p>Quality forces the game's quality tier (0 is full, 3 the lowest) so you can try a condition the way a slower device plays it; fps shows the frame rate and tier in the corner (tap it to step through the tiers). Both are added to the play link and to what Copy puts on your clipboard.</p>
-<p>This page is built from the released index.html (2026-11-07f): the art generator, the trait rules, the condition names and icons and the round times all come from it, so seeds, previews and odds match the game. Odds are counted from this page's own draws. Dashed chips are combinations the trait rules never produce. Each chip pins one trait; picking one swaps the card's seed, so the other traits are whatever that seed landed on (hover a chip to see them). Direction is the way the art's filling moves; in the game it also sets which way the sushi belt runs: Forward the way the maki faces at the start, Reverse the other way. Seeds aren't saved, so copy one before you refresh if you need it again.</p>
-</div>
 <div id="toast" class="toast" role="status"></div>
 
 <script>
@@ -318,20 +317,20 @@ NM.maki="FUTOMAKI";
 var RT={time:{fast:30,slow:50,normal:40},goal:{fast:2.7,slow:3.7,normal:3.2}};
 /* What each condition does, for testers (the names and icons above come from the game; this text is the only part kept by hand, keyed by the game's condition) */
 var DESC={
- scroll:"The ground splits into bands that slide in alternating directions, carrying you and loose food along. Faint slats show the flow for the first 3 seconds and again when you cross into a new band.",
- diagonal:"A steady wind with gusts pushes you and loose things across the planet; big things hardly move. Nearby trees lean, clouds drift, and streaks show each gust.",
- ripple:"Every 4 to 6 seconds a faint spot warns, then a ring spreads from it: trees sway, pickups, rocks and ants hop, and when it reaches you you're bumped and the camera shakes.",
- sparkle:"Every 5 to 7.5 seconds a burst of meteors lands near you, glinting first. Close hits bump you; each leaves a scorch mark and small heaps of crumbs you can roll up.",
- chase:"Food you're big enough to roll up runs from you, zigzagging and hopping, a bit slower than you. It won't go into the sea and scenery stops it, so corner it.",
- squiggle:"The maki draws a rainbow line that lasts 30 seconds. Cross your own line to close a loop: colour runs through it and the magnet comes on for 5 seconds.",
- wave:"The sea rises and falls once every 50 seconds. Food in the water floats, bobs and drifts with the current; deep water slows the maki and it splashes.",
- "short wave":"The same water, quicker (every 18 seconds) and lower, with rougher waves that rock you from side to side and a faster current.",
- checker:"Checkered gates stand up ahead, with food lined up behind them. Roll through for a speed boost; reach the next gate within 10 seconds to build it up.",
- maki:"The roll grows into a long log rolling side on, longer more than fatter. It picks up along its whole length, shoves big food with its ends and turns slower.",
- tezos:"Tezos coins, one giant coin, short coin trails to follow, a coin counter, and baking rewards every 12 seconds for the coins on your roll. The message is in the sky.",
- paul:"Red glasses, cakes, gifts and party hats, plus ghosts that put on any glasses or hat they walk into. The message is in the sky.",
- ants:"A real ant planet: twice the ants, 3 giant ants, ants riding some plates and radioactive ants that glow. The message is in the sky.",
- yolo:"Giant food and scenery and low gravity, rolled fresh every round: food floats up and hops hang in the air. The message is in the sky."
+ scroll:"The ground is on the move. Strips of land slide past each other, and you go wherever they're going.",
+ diagonal:"Gusty out. The wind shoves you off course and sends loose food tumbling. The heavy stuff isn't going anywhere.",
+ ripple:"Something's rumbling underground. Watch for the warning glow, then brace: the ground shakes and everything nearby jumps.",
+ sparkle:"Rocks from space. Meteors land all around you, knocking you about, and each one leaves crumbs worth rolling up.",
+ chase:"The food has a mind of its own. Anything small enough to roll up runs when you get close. Corner it.",
+ squiggle:"Leave a little color wherever you roll. Cross your own trail to close a loop and the magnet kicks in for a few seconds.",
+ wave:"The sea comes in, the sea goes out. Food in the water floats away, and deep water slows you right down.",
+ "short wave":"The sea is restless. The tide turns fast, and choppy waves rock you from side to side.",
+ checker:"Ready, set, roll. Race through checkered gates for a speed boost, and make the next one in time to go even faster. Food waits behind every gate.",
+ maki:"That's one long maki. It sweeps up food along its whole length and shoves big things aside with its ends. Turning takes some getting used to.",
+ tezos:"Tezos everywhere. Follow the coin trails, hunt down the giant coin, and the coins on your roll pay out baking rewards that make it grow.",
+ paul:"A party for a sheet ghost in red glasses. Cakes, gifts and party hats everywhere, and every ghost wants the look, grabbing any red glasses or party hat it finds.",
+ ants:"The ants have taken over. Swarms of them, a few giants, radioactive glow-ups, and some riding around on the plates.",
+ yolo:"Everything is perfectly normal. Objects are gigantic, gravity is barely working, and every hop hangs in the air. Nothing to worry about."
 };
 /* art notes, from the generator's own rules */
 var HINT={
@@ -349,7 +348,6 @@ var ROWS=[
 ];
 var DNK={speed:"speed",palette:"palette",form:"roll",direction:"direction"},TRK={speed:"Speed",palette:"Palette",form:"Form",direction:"Direction"};
 function lab(d,v){return MK.dn(DNK[d],v)}
-function sub(d,v){return d==="speed"&&RT.time[v]!=null?RT.time[v]+"s · "+RT.goal[v].toFixed(1)+"×":""}
 /* which chips the trait rules can produce: a pattern needs a ramp that allows it, and a speed needs a palette and ramp whose speed rules allow it */
 function can(p,d,v){if(d==="direction"&&MK.isText(p))return v==="reverse"; /* text pieces always read Reverse, as the generator writes the trait */
   return MK.RAMP.some(function(r){if(!MK.patList(r[0]).some(function(x){return x[0]===p}))return false;
@@ -360,9 +358,11 @@ var CAP=120000,ODN=20000; /* after every chip has a seed, the page keeps drawing
 var S={},FOUND={},CNT={},draws=0,left=0,tmr=0;
 var $=function(s){return document.querySelector(s)};
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null}
-var baseEl=$("#base"),newEl=$("#newtab"),qEl=$("#q"),tierEl=$("#tier"),perfEl=$("#perf");
-baseEl.value=store("gt2-base")||baseEl.value;newEl.checked=store("gt2-new")==="1";tierEl.value=store("gt2-tier")||"";perfEl.checked=store("gt2-perf")==="1";
-function href(seed){var b=baseEl.value.trim()||"index.html",u=b+(b.indexOf("?")<0?"?":"&")+"seed="+encodeURIComponent(seed);if(tierEl.value)u+="&tier="+tierEl.value;if(perfEl.checked)u+="&perf=1";return u}
+var newEl=$("#newtab"),perfEl=$("#perf"),QN={"":"Auto","0":"Ultra","1":"High","2":"Medium","3":"Low"};
+var tierEl={value:""}; /* quality: Auto (the game picks), or the game's tier 3 (Low) to 0 (Ultra), sent as &tier= */
+function tierShow(){document.querySelectorAll("#tier button").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-t")===tierEl.value?"true":"false")})}
+newEl.checked=store("gt2-new")==="1";tierEl.value=QN[store("gt2-tier")||""]?(store("gt2-tier")||""):"";tierShow();perfEl.checked=store("gt2-perf")==="1";
+function href(seed){var u="index.html?seed="+encodeURIComponent(seed);if(tierEl.value)u+="&tier="+tierEl.value;if(perfEl.checked)u+="&perf=1";return u}
 function absHref(seed){try{return new URL(href(seed),location.href).href}catch(e){return href(seed)}}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
 function trLine(seed){var t=S[seed].tr,o=[];for(var k in t)if(t[k]!=null)o.push(t[k]);return o.join(" · ")}
@@ -373,7 +373,7 @@ function card(p){
   var h='<section class="card" data-key="'+p+'" data-k="'+esc((nm+" "+MK.dn("pattern",p)+" "+p+" "+k).toLowerCase())+'">';
   h+='<div class="top"><div class="pv"><span>…</span></div><div class="meta">';
   h+='<div class="cond">'+icon(k)+esc(nm)+'</div>';
-  h+='<div class="pat">'+esc(MK.dn("pattern",p))+' pattern · <span class="odds">counting…</span></div>';
+  h+='<div class="pat">'+esc(MK.dn("pattern",p))+' pattern<span class="odds">counting…</span></div>';
   h+='<p class="note">'+esc(DESC[k]||"")+'</p></div></div>';
   if(hn)h+='<p class="hint">'+esc(hn)+'</p>';
   h+='<div class="play"><a class="btn off" data-play>Play</a><button class="btn" data-copy>Copy</button><span class="seed"></span></div>';
@@ -381,7 +381,7 @@ function card(p){
   ROWS.forEach(function(r){
     h+='<div class="row"><b>'+r[1]+'</b>';
     r[2].forEach(function(v){
-      var l=lab(r[0],v)+(sub(r[0],v)?" · "+sub(r[0],v):"");
+      var l=lab(r[0],v);
       h+=NA[p+"|"+r[0]+"|"+v]?'<span class="chip na" title="Never produced by the trait rules" aria-disabled="true">'+esc(l)+'</span>'
         :'<button type="button" class="chip pend" disabled data-dim="'+r[0]+'" data-val="'+esc(lab(r[0],v))+'">'+esc(l)+'</button>';
     });
@@ -447,19 +447,12 @@ function run(){
       if(!F.base){F.base=seed;add()}
       ROWS.forEach(function(x){var d=x[0],v=r.tr[TRK[d]];if(v!=null&&!F[d][v]){F[d][v]=seed;add()}});
     }
-    paint(touched);odds();filter();
+    paint(touched);odds();
     if(left<=0)$("#again").disabled=false;
-    if((left>0||draws<ODN)&&draws<CAP){$("#status").textContent=(left>0?"building… ":"seeds ready · counting odds… ")+draws.toLocaleString("en-US")+" draws";tmr=setTimeout(step,0)}
-    else{if(left>0)giveUp();$("#status").textContent=(left>0?"partial · ":"fresh seeds · ")+draws.toLocaleString("en-US")+" draws";$("#again").disabled=false}
+    if((left>0||draws<ODN)&&draws<CAP)tmr=setTimeout(step,0);
+    else{if(left>0)giveUp();$("#again").disabled=false}
   }
   step();
-}
-function filter(){
-  var q=qEl.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  document.querySelectorAll(".card").forEach(function(c){
-    var hay=c.getAttribute("data-k")+" "+c.textContent.toLowerCase();
-    c.style.display=q.every(function(w){return hay.indexOf(w)>=0})?"":"none";
-  });
 }
 function toast(t){var e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove("on")},1400)}
 function copy(t,msg){
@@ -468,17 +461,15 @@ function copy(t,msg){
   else toast(fb()?msg:"Copy failed");
 }
 /* what Copy puts on the clipboard: the condition, the play link and the token's traits, for a bug report */
-function report(c){var p=c.getAttribute("data-key"),cur=c.getAttribute("data-cur");return (NM[condOf(p)]||p)+" · seed "+cur+(tierEl.value?" · tier "+tierEl.value:"")+"\n"+absHref(cur)+"\n"+trLine(cur)+"\ngame "+(VER||GV0)}
+function report(c){var p=c.getAttribute("data-key"),cur=c.getAttribute("data-cur");return (NM[condOf(p)]||p)+" · seed "+cur+(tierEl.value?" · quality "+QN[tierEl.value]+" (tier "+tierEl.value+")":"")+"\n"+absHref(cur)+"\n"+trLine(cur)+"\ngame "+(VER||GV0)}
 document.addEventListener("click",function(e){
   var t=e.target.closest?e.target:null;if(!t)return;
   var cp=t.closest("[data-copy]");if(cp){e.preventDefault();var c0=cp.closest(".card");if(c0.getAttribute("data-cur"))copy(report(c0),"Copied "+(NM[condOf(c0.getAttribute("data-key"))]||""));return}
   var pk=t.closest("[data-pick]");if(pk){var c=pk.closest(".card");if(!pk.classList.contains("on"))show(c,pk.getAttribute("data-pick"))}
 });
-baseEl.addEventListener("input",function(){store("gt2-base",baseEl.value);link()});
 newEl.addEventListener("change",function(){store("gt2-new",newEl.checked?"1":"0");link()});
-tierEl.addEventListener("change",function(){store("gt2-tier",tierEl.value);link()});
+$("#tier").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;tierEl.value=b.getAttribute("data-t");store("gt2-tier",tierEl.value);tierShow();link()});
 perfEl.addEventListener("change",function(){store("gt2-perf",perfEl.checked?"1":"0");link()});
-qEl.addEventListener("input",filter);
 $("#again").addEventListener("click",run);
 /* the version this page was built from, and the one on the site (version.json beside index.html): if they differ, the game has moved on and this page should be rebuilt */
 var GV0="2026-11-07f",VER="";$("#ver").textContent="Built from game "+GV0+".";
