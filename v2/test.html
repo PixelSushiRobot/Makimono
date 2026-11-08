@@ -43,22 +43,26 @@ kbd{font:inherit;font-size:10.5px;line-height:15px;color:var(--ink);border:1px s
 .pat .odds{display:block}
 .rare .pat .odds{color:var(--acc)}
 .note{font-size:11.5px;margin:0;color:#c9c9cc;text-wrap:pretty}
-.hint{color:var(--mute);font-size:10.5px;margin:0;text-wrap:pretty}
+.chk{font-size:11px;color:#c9c9cc}
+.chk summary{cursor:pointer;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;font-size:10px}
+.chk summary:hover{color:var(--ink)}
+.chk ul{margin:6px 0 0;padding-left:16px}
+.chk li{margin:2px 0;text-wrap:pretty}
 .play{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 a.btn,button.btn{font:inherit;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);background:transparent;border:1px solid var(--ink);border-radius:999px;padding:5px 12px;text-decoration:none;cursor:pointer}
 a.btn:hover,button.btn:hover{background:var(--ink);color:var(--bg)}
 button.btn:disabled{opacity:.35;cursor:wait}
 .seed{color:var(--mute);font-size:11px;word-break:break-all}
-.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.row b{width:62px;flex:none;font-weight:400;color:var(--mute);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
-.chip{font-size:11px;padding:3px 8px;border:1px solid var(--line);color:var(--ink);text-decoration:none;border-radius:3px}
+.row{display:grid;grid-template-columns:62px 1fr;gap:6px;align-items:start}
+.vals{display:flex;flex-wrap:wrap;gap:6px}
+.row b{line-height:24px;text-align:left;font-weight:400;color:var(--mute);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.chip{font-size:11px;line-height:16px;padding:3px 8px;border:1px solid var(--line);color:var(--ink);text-decoration:none;border-radius:3px}
 button.chip{font:inherit;font-size:11px;background:transparent;cursor:pointer}
 button.chip:hover{border-color:var(--acc);color:var(--acc)}
 button.chip.on{border-color:var(--acc);background:var(--acc);color:var(--bg)}
 .chip.na{color:#55555a;border-style:dashed;cursor:help}
 .chip.pend{opacity:.35;cursor:wait}
 .btn.off{pointer-events:none;opacity:.35}
-.tr{color:var(--mute);font-size:10.5px;margin:0}
 .foot{margin-top:28px;color:var(--mute);font-size:11px;max-width:84ch}
 .foot p{margin:0 0 8px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:6px 12px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:opacity .15s}
@@ -315,45 +319,56 @@ NM["short wave"]="RIPTIDE";
 NM.checker="GRAND PRIX";
 NM.maki="FUTOMAKI";
 var RT={time:{fast:30,slow:50,normal:40},goal:{fast:2.7,slow:3.7,normal:3.2}};
-/* What each condition does, for testers (the names and icons above come from the game; this text is the only part kept by hand, keyed by the game's condition) */
-var DESC={
- scroll:"The ground is on the move. Strips of land slide past each other, and you go wherever they're going.",
- diagonal:"Gusty out. The wind shoves you off course and sends loose food tumbling. The heavy stuff isn't going anywhere.",
- ripple:"Something's rumbling underground. Watch for the warning glow, then brace: the ground shakes and everything nearby jumps.",
- sparkle:"Rocks from space. Meteors land all around you, knocking you about, and each one leaves crumbs worth rolling up.",
- chase:"The food has a mind of its own. Anything small enough to roll up runs when you get close. Corner it.",
- squiggle:"Leave a little color wherever you roll. Cross your own trail to close a loop and the magnet kicks in for a few seconds.",
- wave:"The sea comes in, the sea goes out. Food in the water floats away, and deep water slows you right down.",
- "short wave":"The sea is restless. The tide turns fast, and choppy waves rock you from side to side.",
- checker:"Ready, set, roll. Race through checkered gates for a speed boost, and make the next one in time to go even faster. Food waits behind every gate.",
- maki:"That's one long maki. It sweeps up food along its whole length and shoves big things aside with its ends. Turning takes some getting used to.",
- tezos:"Tezos everywhere. Follow the coin trails, hunt down the giant coin, and the coins on your roll pay out baking rewards that make it grow.",
- paul:"A party for a sheet ghost in red glasses. Cakes, gifts and party hats everywhere, and every ghost wants the look, grabbing any red glasses or party hat it finds.",
- ants:"The ants have taken over. Swarms of them, a few giants, radioactive glow-ups, and some riding around on the plates.",
- yolo:"Everything is perfectly normal. Objects are gigantic, gravity is barely working, and every hop hangs in the air. Nothing to worry about."
-};
-/* art notes, from the generator's own rules */
-var HINT={
- chromie:"Needs 3+ ramp colours, or the art falls back to Scroll (LANDSLIDE).",
- filling_cycle:"Classic Maki pieces have no Profile trait. Neon and Mono need 3+ ramp colours, or the art falls back to Scroll (LANDSLIDE)."
+/* What each condition does, for testers looking for bugs: how it works, in plain words, and what to check. The names and icons above come from the game; this text is kept by hand, keyed by the game's condition. The game-style descriptions are saved in _scratch/desc-game.txt */
+var TECH={
+ scroll:["The ground is split into strips that slide in opposite directions, each at its own speed, carrying you and loose food along. The strips at the very top and bottom of the planet stay still. Faint lines show which way the ground is moving for the first few seconds, and again whenever you cross onto a new strip.",
+  ["The lines flash each time you cross onto a new strip.","Nothing gets stuck or shakes on the edge between two strips.","The ground pushes you just as hard on every Quality setting."]],
+ diagonal:["A steady wind with gusts pushes you and loose food across the planet; big things barely move. Nearby trees lean with it, the clouds drift, and faint streaks show the wind at the start and whenever a gust picks up.",
+  ["Big pieces and scenery stay put.","Trees spring back smoothly when a gust dies down.","Loose food never ends up inside scenery or out in the sea."]],
+ ripple:["Every few seconds a faint glow on the ground warns of a quake, then a ring spreads out from it. As it passes, trees sway and rocks, food and ants hop. It's just for show: nothing moves for good. When the ring reaches you, you get bumped and the camera shakes. On lower Quality settings, fewer things react.",
+  ["You get bumped once per quake, never twice.","After a hop, everything is still where it was and can still be rolled up.","With Reduce Motion on, the camera doesn't shake."]],
+ sparkle:["Every few seconds a handful of meteors land around you, often just ahead. Each one glints before it hits, and a close one bumps you. On land it leaves a scorch mark that fades, and small heaps of crumbs. Crumbs can be rolled up but don't count toward clearing the planet; only so many lie about at once, and the oldest shrink away. On Medium and Low, fewer meteors fall.",
+  ["Crumbs never count toward PLANET CLEARED.","Crumbs don't pile up forever: the oldest shrink away.","A meteor that lands in the sea leaves no scorch mark."]],
+ chase:["Food you're big enough to roll up runs away when you get close, zigzagging and hopping, a little slower than you. When you're almost on it, it dodges to one side. It runs in short bursts, then rests. It won't run into the sea, and scenery blocks it.",
+  ["Food never runs into the sea or through scenery.","Food you're too small for doesn't run.","A runaway can always be cornered and rolled up."]],
+ squiggle:["Your maki draws a rainbow line on the ground that fades after about 30 seconds. Cross an older part of your own line to close a loop: colour ripples through it and the magnet switches on for 5 seconds. Each new loop restarts the 5 seconds. Spinning on the spot, tiny circles, hops and getting knocked about don't count.",
+  ["The magnet switches off 5 seconds after the last loop, and when the round ends.","A magnet you turned on with M isn't switched off by a loop.","Getting knocked about or hopping never closes a loop."]],
+ wave:["The sea slowly rises and falls, about once a minute, starting at low tide. When it rises, food in the water floats, bobs, drifts and stays where it ends up when the water goes back out. Deep water slows the maki down.",
+  ["Floating food stops at the shore and against scenery.","Floating food can still be rolled up.","Floating food doesn't look jumpy on Medium or Low."]],
+ "short wave":["The same water as TIDE, but it comes and goes much faster, stays lower, and its rougher waves rock you from side to side. The current is stronger.",
+  ["The rocking never pushes you through scenery.","Floating food doesn't look jumpy on Medium or Low."]],
+ checker:["Checkered gates stand up ahead, with a short line of food behind each one. Roll through a gate (either way) for a speed boost. Reach the next gate within 10 seconds and the boost gets stronger and lasts longer, up to twice your speed. A gate you miss goes away after a while. Late in the round, gates appear in front of whatever is left to roll up.",
+  ["You don't grow to gold too easily.","Gates keep appearing late in the round, when there's little food left.","The boost wears off on time, even when you back up."]],
+ maki:["Your roll grows into a long log that rolls side on: it gets much longer but only a little fatter. It picks things up along its whole length, pushes away food that's too big with its ends, and turns more slowly. It only picks up what actually touches it.",
+  ["Nothing gets picked up from far away, especially the anthill.","Belt pieces are still easy to pick up when the log is at its longest.","When the giant chopsticks appear and the small ones knock you, the log slides back without sinking into the ground or floating."]],
+ tezos:["Some of the food, on the ground and on the belts, is Tezos coins, plus one giant coin and a few short trails of coins to follow. After your first coin, the OBJECTS count turns into a coin counter. The last 10 coins left spin and sparkle so you can find them. Every few seconds, the coins on your roll pay out baking rewards that make it a little bigger.",
+  ["Each coin is only counted once, even if it's knocked off and rolled up again.","The coin total goes up when the belts bring in new coins.","The last 10 coins shine, and the counter celebrates when you have them all."]],
+ paul:["Some of the food becomes red glasses, cakes, gifts and party hats. Sheet ghosts wander about, at least one bigger than you; they walk anywhere, sometimes under the ground, and put on any glasses or party hat they walk into. Ghosts can't be rolled up. Roll into a ghost's face and its glasses end up on your roll and its hat gets knocked off.",
+  ["Big glasses sit on the roll instead of floating beside it.","Glasses taken from a ghost don't count toward clearing the planet.","Ghosts never stop the planet from being cleared."]],
+ ants:["Many more ants than usual: lots of small ones you can roll up from the start, which never knock you back, and a few giant ants you can only roll up when you're nearly at the goal size. Some ants ride around on the belt plates. The giants and some of the others are radioactive: they glow, and roll up as RADIOACTIVE ANT, still counting as an ant.",
+  ["A radioactive ant stops glowing once it's rolled up.","Small ants never knock you back.","Giant ants can't be rolled up too early."]],
+ yolo:["About half the food and scenery is giant, and gravity is weak, both picked fresh for every new planet. Loose food floats up off the ground and bobs, while its shadow stays below; it can still be rolled up. Hops go higher and hang in the air. After time's up, if nothing left is small enough to roll up and you haven't grown for a few seconds, the smallest piece left slowly shrinks until you can roll it up.",
+  ["Keep rolling after time's up never ends stuck with pieces you can't roll up.","Floating food can be rolled up and lands on the roll.","Getting knocked back makes a normal hop, not a floaty one."]]
 };
 /* the condition a pattern plays, worked out the way the game does: the Pattern trait in lower case, and for text, the words in it */
 function condOf(k){var n=MK.dn("pattern",k);if(MK.isText(k))return /paul\s*hbd/i.test(n)?"paul":/tezos/i.test(n)?"tezos":/yolo/i.test(n)?"yolo":/ants/i.test(n)?"ants":"";return n.toLowerCase()}
 var PATS=MK.PAT.map(function(x){return x[0]});
-var ROWS=[
- ["speed","Speed",MK.SPD.map(function(x){return x[0]})],
+/* a trait's values in the order given, then any others the game has */
+function ord(L,pre){var ids=L.map(function(x){return x[0]});return pre.filter(function(v){return ids.indexOf(v)>=0}).concat(ids.filter(function(v){return pre.indexOf(v)<0}))}
+var ROWS=[ /* the same order as the traits in art mode */
  ["palette","Palette",MK.MIX.map(function(x){return x[0]})],
- ["form","Form",MK.ROLL.map(function(x){return x[0]})],
- ["direction","Direction",MK.DIR.map(function(x){return x[0]})]
+ ["profile","Profile",MK.RAMP.map(function(x){return x[0]})],
+ ["direction","Direction",ord(MK.DIR,["forward","reverse"])],
+ ["speed","Speed",ord(MK.SPD,["slow","normal","fast"])],
+ ["form","Form",MK.ROLL.map(function(x){return x[0]})]
 ];
-var DNK={speed:"speed",palette:"palette",form:"roll",direction:"direction"},TRK={speed:"Speed",palette:"Palette",form:"Form",direction:"Direction"};
+var DNK={speed:"speed",palette:"palette",form:"roll",direction:"direction",profile:"ramp"},TRK={speed:"Speed",palette:"Palette",form:"Form",direction:"Direction",profile:"Profile"};
 function lab(d,v){return MK.dn(DNK[d],v)}
 /* which chips the trait rules can produce: a pattern needs a ramp that allows it, and a speed needs a palette and ramp whose speed rules allow it */
 function can(p,d,v){if(d==="direction"&&MK.isText(p))return v==="reverse"; /* text pieces always read Reverse, as the generator writes the trait */
-  return MK.RAMP.some(function(r){if(!MK.patList(r[0]).some(function(x){return x[0]===p}))return false;
+  return MK.RAMP.some(function(r){if(d==="profile"&&r[0]!==v)return false;if(!MK.patList(r[0]).some(function(x){return x[0]===p}))return false;
   return MK.MIX.some(function(m){if(d==="palette"&&m[0]!==v)return false;if(d!=="speed")return true;return MK.speedSet(m[0],r[0],p).split(",").some(function(i){return MK.SPD[+i][0]===v})})})}
 var NA={};PATS.forEach(function(p){ROWS.forEach(function(r){r[2].forEach(function(v){if(!can(p,r[0],v))NA[p+"|"+r[0]+"|"+v]=1})})});
-function speedHint(p){var ok=MK.SPD.map(function(x){return x[0]}).filter(function(v){return !NA[p+"|speed|"+v]});return ok.length<MK.SPD.length?MK.dn("pattern",p)+" art is "+ok.map(function(v){return lab("speed",v)}).join(" or ")+" only, by the speed rules.":""}
 var CAP=120000,ODN=20000; /* after every chip has a seed, the page keeps drawing (counting only) until ODN draws, so the odds settle */
 var S={},FOUND={},CNT={},draws=0,left=0,tmr=0;
 var $=function(s){return document.querySelector(s)};
@@ -369,23 +384,21 @@ function trLine(seed){var t=S[seed].tr,o=[];for(var k in t)if(t[k]!=null)o.push(
 function rnd(){var s;do{var n;if(window.crypto&&crypto.getRandomValues){n=crypto.getRandomValues(new Uint32Array(1))[0]}else{n=Math.floor(Math.random()*4294967296)}s=n.toString(16).padStart(8,"0")}while(/^\d+$/.test(s));return s}
 function icon(k){return '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">'+(ICO[k]||"")+'</svg>'}
 function card(p){
-  var k=condOf(p),nm=NM[k]||"NO CONDITION",hn=[HINT[p],speedHint(p)].filter(Boolean).join(" ");
+  var k=condOf(p),nm=NM[k]||"NO CONDITION",T=TECH[k]||["",[]];
   var h='<section class="card" data-key="'+p+'" data-k="'+esc((nm+" "+MK.dn("pattern",p)+" "+p+" "+k).toLowerCase())+'">';
   h+='<div class="top"><div class="pv"><span>…</span></div><div class="meta">';
   h+='<div class="cond">'+icon(k)+esc(nm)+'</div>';
   h+='<div class="pat">'+esc(MK.dn("pattern",p))+' pattern<span class="odds">counting…</span></div>';
-  h+='<p class="note">'+esc(DESC[k]||"")+'</p></div></div>';
-  if(hn)h+='<p class="hint">'+esc(hn)+'</p>';
+  h+='</div></div><p class="note">'+esc(T[0])+'</p>';if(T[1].length)h+='<details class="chk"><summary>Check</summary><ul>'+T[1].map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul></details>';
   h+='<div class="play"><a class="btn off" data-play>Play</a><button class="btn" data-copy>Copy</button><span class="seed"></span></div>';
-  h+='<p class="tr"></p>';
   ROWS.forEach(function(r){
-    h+='<div class="row"><b>'+r[1]+'</b>';
+    h+='<div class="row"><b>'+r[1]+'</b><span class="vals">';
     r[2].forEach(function(v){
       var l=lab(r[0],v);
       h+=NA[p+"|"+r[0]+"|"+v]?'<span class="chip na" title="Never produced by the trait rules" aria-disabled="true">'+esc(l)+'</span>'
         :'<button type="button" class="chip pend" disabled data-dim="'+r[0]+'" data-val="'+esc(lab(r[0],v))+'">'+esc(l)+'</button>';
     });
-    h+='</div>';
+    h+='</span></div>';
   });
   return h+'</section>';
 }
@@ -401,7 +414,6 @@ function show(c,seed){
   var a=c.querySelector("a[data-play]");
   a.classList.remove("off");a.href=href(seed);
   c.querySelector(".seed").textContent=seed;
-  c.querySelector(".tr").textContent=trLine(seed);
   c.setAttribute("data-cur",seed);
   preview(c,seed);
   updateLit(c);
@@ -411,7 +423,7 @@ function resetDom(){
   document.querySelectorAll(".card").forEach(function(c){
     c.removeAttribute("data-cur");c.classList.remove("rare");
     var a=c.querySelector("a[data-play]");a.classList.add("off");a.removeAttribute("href");
-    c.querySelector(".seed").textContent="searching…";c.querySelector(".tr").textContent="";c.querySelector(".odds").textContent="counting…";
+    c.querySelector(".seed").textContent="searching…";c.querySelector(".odds").textContent="counting…";
     var pv=c.querySelector(".pv");pv.style.background="";pv.innerHTML="<span>…</span>";
     c.querySelectorAll(".chip[data-dim]").forEach(function(b){b.disabled=true;b.className="chip pend";b.removeAttribute("data-pick");b.removeAttribute("title")});
   });
@@ -435,7 +447,7 @@ function giveUp(){
 function run(){
   clearTimeout(tmr);
   FOUND={};S={};CNT={};draws=0;left=0;
-  PATS.forEach(function(p){FOUND[p]={base:null,speed:{},palette:{},form:{},direction:{}};left++;
+  PATS.forEach(function(p){FOUND[p]={base:null,speed:{},palette:{},form:{},direction:{},profile:{}};left++;
     ROWS.forEach(function(r){r[2].forEach(function(v){if(!NA[p+"|"+r[0]+"|"+v])left++})})});
   resetDom();$("#again").disabled=true;
   function step(){
