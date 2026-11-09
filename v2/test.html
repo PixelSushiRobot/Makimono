@@ -14,7 +14,6 @@ body{padding:24px 16px 64px;max-width:1180px;margin:0 auto;font-size:13px;line-h
 h1{font-size:20px;margin:0 0 4px;letter-spacing:.04em;text-transform:uppercase}
 h2{font-size:12px;margin:26px 0 10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:400}
 .sub{color:var(--mute);margin:0 0 12px;max-width:78ch;text-wrap:pretty}
-.ver{color:var(--mute);font-size:11px}
 .keys{display:grid;grid-template-columns:96px 1fr;gap:6px;align-items:start;color:var(--mute);font-size:11px;line-height:18px;margin:0 0 8px}
 .kv{display:flex;flex-wrap:wrap;gap:6px 14px}
 .kv>span{display:inline-flex;align-items:center}
@@ -72,7 +71,7 @@ button.chip.on{border-color:var(--acc);background:var(--acc);color:var(--bg)}
 </head>
 <body>
 <h1>Katamaki v2 · planet conditions</h1>
-<p class="sub">Every Pattern trait has its own planet condition. <b>Play</b> opens the game with that card's piece: press KATAMAKI (or <kbd>G</kbd>) once the art loads. <b>Copy</b> puts the play link and the piece's traits on your clipboard, ready for a bug report. <span id="ver" class="ver"></span></p>
+<p class="sub">Every Pattern trait has its own planet condition. <b>Play</b> opens the game with that card's piece: press KATAMAKI (or <kbd>G</kbd>) once the art loads. <b>Copy</b> puts the play link and the piece's traits on your clipboard, ready for a bug report.</p>
 <div class="keys"><span class="kh">Game keys:</span><span class="kv"><span><kbd>G</kbd>play / back to art</span><span><kbd>P</kbd>pause</span><span><kbd>R</kbd>restart</span><span><kbd>Enter</kbd>start, keep rolling</span><span><kbd>Z</kbd>zoom</span><span><kbd>C</kbd>photo</span></span></div>
 <div class="keys"><span class="kh">Test keys:</span><span class="kv"><span><kbd>M</kbd>magnet</span><span><kbd>Shift</kbd><kbd>M</kbd>super magnet</span><span><kbd>T</kbd>throw off everything rolled up</span></span></div>
 
@@ -485,10 +484,14 @@ $("#tier").addEventListener("click",function(e){var b=e.target.closest("button")
 perfEl.addEventListener("change",function(){store("gt2-perf",perfEl.checked?"1":"0");link()});
 $("#again").addEventListener("click",run);
 /* the version this page was built from, and the one on the site (version.json beside index.html): if they differ, the game has moved on and this page should be rebuilt */
-var GV0="2026-11-08a",VER="";$("#ver").textContent="Built from game "+GV0+".";
-try{fetch("version.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.game){VER=j.game;$("#ver").textContent=VER===GV0?"Game "+VER+".":"Built from game "+GV0+", but the site has "+VER+": rebuild this page."}}).catch(function(){})}catch(e){}
-$("#gridC").innerHTML=PATS.filter(function(p){return !MK.isText(p)}).map(card).join("");
-$("#gridT").innerHTML=PATS.filter(MK.isText).map(card).join("");
+/* the game version, for what Copy puts on the clipboard: the one on the site (version.json beside index.html), or the one this page was built from */
+var GV0="2026-11-08a",VER="";
+try{fetch("version.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.game)VER=j.game}).catch(function(){})}catch(e){}
+/* the cards, commonest first and rarest last, by the chance the trait rules give each pattern (a pattern's weight within each profile's pattern list) */
+function chance(p){var T=MK.RAMP.reduce(function(a,r){return a+r[1]},0);return MK.RAMP.reduce(function(a,r){var l=MK.patList(r[0]),s=l.reduce(function(b,x){return b+x[1]},0),m=l.filter(function(x){return x[0]===p})[0];return a+(m?r[1]/T*m[1]/s:0)},0)}
+var BYR=PATS.slice().sort(function(a,b){return chance(b)-chance(a)});
+$("#gridC").innerHTML=BYR.filter(function(p){return !MK.isText(p)}).map(card).join("");
+$("#gridT").innerHTML=BYR.filter(MK.isText).map(card).join("");
 run();
 </script>
 </body>
