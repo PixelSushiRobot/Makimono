@@ -1427,7 +1427,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
      with three sparks drifting up it and shrinking as they go. Tall enough to see from planet view, growing with the roll. Pickups, scenery,
      ants, clouds, plaza tiles and belt slats, the nearest 80 at most. The list is rebuilt every
      8 frames; each beacon follows its own thing every frame (ants, clouds and the belt move) */
-  var twBk=[],twBkN=0,twBkL=null,twBkT=null;
+  var twBk=[],twBkN=0,twBkL=null,twBkT=null,twBkNx=0;
   /* beacons: on once 10 or fewer are left, then they stay on for the round. A plaza tile counts as left whatever pose the maki is in (it
      used to count only in poses that show it, so the count jumped with every hop and the beams blinked), and belt sushi coming back
      can't switch them off again */
@@ -1453,7 +1453,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   /* a beam's thing that has just been rolled up (now on the roll, its position no longer on the planet) loses its beam at once; the list is also
      rebuilt on the next frame (stickToRoll clears it), so no beam points off in a wrong direction for the frames before the next refresh */
   function twBkGone(g){for(var p=g.parent;p;p=p.parent)if(p===clump)return true;return false}
-  function twBeacons(t){var bp=ball.position;if(!((twBkN++)%8)||!twBkL)twBkL=twLeftList();var on=twBkOn(twBkL.length);if(!on){if(twBk.length)twBk.forEach(function(b){b.visible=false});return}
+  function twBeacons(t){var bp=ball.position;if(t>=twBkNx||!twBkL){twBkNx=t+133;twBkL=twLeftList()}var on=twBkOn(twBkL.length);if(!on){if(twBk.length)twBk.forEach(function(b){b.visible=false});return}
     var K=twBkKit(),L=twBkL;if(L.length>80){L.forEach(function(q){q.d=(q.g?q.g.position:q.p).distanceToSquared(bp)});L.sort(function(a,b){return a.d-b.d});L.length=80}
     var H=8+ballR*4,W=(0.18+ballR*0.05)*1.6,s=t/1000;K.fade.opacity=0.75+0.2*Math.sin(t/260);
     for(var i=0;i<Math.max(L.length,twBk.length);i++){var b=twBk[i];if(i>=L.length){if(b)b.visible=false;continue}if(!b){b=twBkMake();twBk.push(b)}
@@ -2280,7 +2280,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
       else{var aw=twQkAway(b.dir,b.qkC);if(aw){twQkV.crossVectors(b.dir,aw).normalize();twQkQ.setFromAxisAngle(twQkV,Math.sin(x*Math.PI*3)*(1-x)*0.22);b.g.quaternion.premultiply(twQkQ)}}}} /* tips away, springs back past upright, settles */
   function twQkAnt(an,nu){var u=twQkU();if(!u)return;twQkHit(an,nu,u);if(an.qkT==null)return;var x=(u.t-an.qkT)/0.4;
     if(x<1)an.g.position.addScaledVector(nu,Math.sin(x*Math.PI)*0.5*an.sz);
-    if(x<1.5&&an.head){var aw=twQkAway(nu,an.qkC);if(aw)an.head.lerp(aw,0.25).addScaledVector(nu,-an.head.dot(nu)).normalize()}else if(x>=1.5)an.qkT=null} /* hops, then runs away from the shock for a moment */
+    if(x<1.5&&an.head){var aw=twQkAway(nu,an.qkC);var qd=an.qkLt==null?1/60:Math.min(0.1,Math.max(0,u.t-an.qkLt));an.qkLt=u.t;if(aw)an.head.lerp(aw,1-Math.pow(0.75,qd*60)).addScaledVector(nu,-an.head.dot(nu)).normalize()}else if(x>=1.5)an.qkT=null} /* hops, then runs away from the shock for a moment (it turns by time, not per frame, so it turns the same at 60 and 120 fps) */
   function twQkEn(en,d){var u=twQkU();if(!u)return;twQkHit(en,d,u);if(en.qkT==null)return;var x=(u.t-en.qkT)/0.45;if(x>=1){en.qkT=null;return}
     en.g.position.addScaledVector(d,Math.sin(x*Math.PI)*0.4*(en.sz||1));en.g.rotateZ(Math.sin(x*Math.PI*4)*(1-x)*0.25)} /* a hop and a wobble */
   /* MORE PLANET CONDITIONS: three more patterns get a condition of their own, each taken from how the pattern moves in the art.
@@ -2413,7 +2413,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     if(W.chop){var sd=new THREE.Vector3().crossVectors(up,fwd).normalize();twRuleAlong(pd,sd.multiplyScalar(Math.sin(twRu.t*2.1)*1.4*f))} /* RIPTIDE: the waves rock you from side to side */
     if(Math.abs(vel)>0.3)twRulePuff(dt)} /* a white splash behind you as you go */
   function twWtFloat(o,X){if(o.tw||o.g.userData.belt)return;var u=twRu,T=PQ.tier||0,L=0,d,U=u.wt.U;if(o.wtK==null)o.wtK=Math.floor(Math.random()*8);
-    if(T>=1&&o.wtL!=null&&((u.fc+o.wtK)%(o.dir.angleTo(pPos)*SR>40?8:T>=2?2:1)))L=o.wtL;else{d=X.dep(o.dir);if(d>0.04)L=d-0.06+twWtWv(U,o.dir.clone().multiplyScalar(SR+WATER*RELIEF))*0.8+Math.sin(u.t*2+o.dir.x*9)*0.04;o.wtL=L}twCxUp(o,Math.max(0,L))} /* floats at the top of the water and bobs; its shadow stays on the ground below. On a slower device the float height is worked out again every other frame near you on tier 2 and 3, and every eighth frame beyond 40 from you on tier 1 and up (spread so they do not all update together), using the last height in between */
+    if(T>=1&&o.wtL!=null&&u.t<o.wtN)L=o.wtL;else{o.wtN=u.t+(o.dir.angleTo(pPos)*SR>40?8:T>=2?2:0)/60*(o.wtN==null?(o.wtK+1)/8:1);d=X.dep(o.dir);if(d>0.04)L=d-0.06+twWtWv(U,o.dir.clone().multiplyScalar(SR+WATER*RELIEF))*0.8+Math.sin(u.t*2+o.dir.x*9)*0.04;o.wtL=L}twCxUp(o,Math.max(0,L))} /* floats at the top of the water and bobs; its shadow stays on the ground below. On a slower device the float height is worked out again every 1/30 s near you on tier 2 and 3, and every 8/60 s beyond 40 from you on tier 1 and up (spread so they do not all update together), using the last height in between; timed in seconds, not frames, so a 120 Hz screen does the same work as a 60 Hz one */
   function twWtDrift(o,dt,X){var u=twRu,W=u.wt;if(o.tw)return;var d=X.dep(o.dir);if(d<=0.04)return;var nd=o.dir.clone().applyAxisAngle(W.A,W.cs*W.cur*Math.min(1,d/0.4)/(1+o.foot*1.2)/SR*dt);if(X.dep(nd)>0.04&&twRuleFree(o,nd))o.dir.copy(nd)} /* the current carries it round the planet; it stops at the water's edge and against scenery */
   function twWtTide(cy,amp,wa,wk,ws,cs,ch){return {
     init:function(R){var u=twRu,W=u.wt={cy:cy,amp:amp,cs:cs,chop:ch,cur:R()<0.5?1:-1,base:SR+WATER*RELIEF},m;W.U=twWtU(R,wa,wk,ws);W.A=twRuleAxis(R,0.5);W.lev=W.base+0.05;
@@ -3486,7 +3486,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-09b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-09c",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
