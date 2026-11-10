@@ -3486,7 +3486,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-10d",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-10e",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
@@ -3499,6 +3499,38 @@ B.addEventListener("pointerup",function(e){if(e.pointerType!=="mouse"){lastU=e.t
   if(SS&&SS.getItem("mkUpGo")==="1"){var kb=document.querySelector('.export-bar a[aria-label="Play Katamaki"]');if(kb&&!kb.classList.contains("loading")&&!kb.getAttribute("aria-busy")){SS.removeItem("mkUpGo");setTimeout(function(){kb.click()},300)}} /* refreshed from the game: open it again once the KATAMAKI button is ready */
   var k=on+"|"+where;if(k===key)return;key=k;if(!on||where==="play"){T.classList.remove("in");return} /* hidden while a round is played; back as soon as any screen is up, or on the art */
   if(!T.classList.contains("in")){T.classList.add("in");if(T._seen)T.classList.add("seen");T._seen=1}})()})();</script>
+<!-- ART PAGE BUTTONS UNDER THE TRAITS (released 2026-11-10e): phones, touch screens and small windows (shorter side under 600 px) only
+     With the traits shown, the poster's own bar moves out of the frame to just below it: as wide as the frame, the same gap as the colour chips' padding,
+       and the same gap again to the poster's edge. The poster grows by that much (the art and traits keep their size; the whole poster shrinks a little to fit).
+     Labels are the trait values' size; padding and icons are doubled to match the poster's own button proportions.
+     Which button fills the row: KATAMAKI alone (or with B-SIDE) fills it; with a wallet list, the wallet fills it and KATAMAKI and B-SIDE hug their labels. ⋯ is always a circle.
+     The ⋯ menu, the wallet list and the token picker open upward (the bar is at the bottom now), at the same larger size. -->
+<style>
+html.dkbox .stage.show{--dkx:calc(var(--scale-unit)*72 + var(--bw)*2);--canvas:min(100vw,calc((100vh - 4px)/1.072));height:calc(var(--canvas) + var(--dkx));padding-bottom:calc(var(--sz-20) + var(--dkx))} /* room for the bar: the gap (20) + the button (52) + its border */
+html.dkbox .stage.show .export-bar{top:calc(100% + var(--bw) + var(--sz-20));left:calc(var(--bw)*-1);right:calc(var(--bw)*-1);gap:calc(var(--scale-unit)*10);transform:none!important} /* gap between buttons: half the padding (10); never scaled, so the borders match the traits' lines */
+html.dkbox .export-bar .button{justify-content:center;gap:calc(var(--scale-unit)*4);padding:calc(var(--scale-unit)*10) calc(var(--scale-unit)*14) calc(var(--scale-unit)*10) calc(var(--scale-unit)*20);font-size:var(--sz-30);white-space:nowrap;box-sizing:border-box}
+html.dkbox .export-bar .button .icon{width:calc(var(--scale-unit)*32);height:calc(var(--scale-unit)*32)}
+html.dkbox .export-bar>.button{flex:0 0 auto}
+html.dkbox .export-bar>a[aria-label="Play Katamaki"]{flex:1 1 auto} /* KATAMAKI fills the row... */
+html.dkbox .export-bar:has(>.wlb) >a[aria-label="Play Katamaki"]{flex:0 0 auto} /* ...unless there's a wallet list, which fills it instead */
+html.dkbox .export-bar>.wlb{flex:1 1 auto;min-width:0;padding-right:calc(var(--scale-unit)*20)}
+html.dkbox .export-bar .wlb span{overflow:hidden;text-overflow:ellipsis}
+html.dkbox .export-bar>.more{flex:0 0 auto;padding:calc(var(--scale-unit)*10)}
+html.dkbox .export-bar .seedb{height:calc(var(--scale-unit)*52 + var(--bw)*2);padding:0}
+html.dkbox .export-bar.seeding>.seedb{flex:1 1 auto;min-width:0}
+html.dkbox .export-bar .seedb .st{padding:0 0 0 calc(var(--scale-unit)*20)}
+html.dkbox .export-bar .seedb .rr,html.dkbox .export-bar .seedb .sx{padding:0 calc(var(--scale-unit)*14) 0 calc(var(--scale-unit)*4)}
+html.dkbox .export-bar.seeding .seedb input{flex:1 1 auto;min-width:0;width:auto;padding:0 0 0 calc(var(--scale-unit)*20);font-size:var(--sz-30)}
+html.dkbox .export-bar.seeding .seedb .sp{padding:0 calc(var(--scale-unit)*10) 0 calc(var(--scale-unit)*20)}
+html.dkbox .export-bar .mkmenu{top:auto;bottom:calc(100% + var(--scale-unit)*16);padding:calc(var(--scale-unit)*12) calc(var(--scale-unit)*40);border-radius:calc(var(--scale-unit)*28);font-size:var(--sz-30)}
+html.dkbox .export-bar .mkmenu .button,html.dkbox .export-bar .mkmenu .mi{justify-content:space-between;gap:calc(var(--scale-unit)*40);padding:calc(var(--scale-unit)*20) 0;font-size:var(--sz-30)}
+html.dkbox .export-bar .mkmenu kbd{width:calc(var(--scale-unit)*40);height:calc(var(--scale-unit)*40);border-radius:calc(var(--scale-unit)*12);font-size:calc(var(--scale-unit)*23)}
+html.dkbox .export-bar .mkmenu kbd svg{width:calc(var(--scale-unit)*22);height:calc(var(--scale-unit)*22)}
+html.dkbox .export-bar .mkmenu .keys{gap:calc(var(--scale-unit)*8)}
+html.dkbox .export-bar .mkmenu .mi.tk canvas{width:calc(var(--scale-unit)*56);height:calc(var(--scale-unit)*56);border-radius:calc(var(--scale-unit)*8)}
+html.dkbox .export-bar .mkmenu.wlm{left:0;right:auto}
+</style>
+<script>(function(){var H=document.documentElement,T=matchMedia("(hover:none) and (pointer:coarse)");function on(){H.classList.toggle("dkbox",Math.min(innerWidth,innerHeight)<600||T.matches)}on();addEventListener("resize",on);if(T.addEventListener)T.addEventListener("change",on)})();</script> <!-- larger windows keep the bar inside the poster, as released -->
 <!-- the secret magnet (a tool for playing through quickly): while the game is on, M toggles it and Shift+M toggles SUPER (pulls from anywhere on the planet). While it is on, a small yellow line at the top says MAGNET MODE or SUPER MAGNET MODE. It is redrawn only when the magnet or the game is switched, no loop -->
 <div id="ptT" style="position:fixed;left:50%;top:max(96px,calc(env(safe-area-inset-top) + 96px));transform:translateX(-50%);z-index:2147483647;display:none;max-width:calc(100vw - 16px);padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#ffd84a;font:700 10px ui-monospace,monospace;letter-spacing:.04em;text-align:center;pointer-events:none"></div>
 <script>(function(){var bar=document.getElementById("ptT"),g=document.getElementById("game");
