@@ -2936,9 +2936,9 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     if(!PQ.ws){PQ.ws=t;PQ.n=0;PQ.big=0;return}
     PQ.n++;if(ft>250)PQ.big++;var el=t-PQ.ws;if(el<2000)return;
     var fps=PQ.n*1000/el;PQ.ws=0;PQ.fps=fps;perfShow(fps);
-    if(PQ.lock||PQ.big)return; // a long stall (app switch, garbage collection) spoils the window
-    if(PQ.last>=0){if(fps<PQ.prev*1.1){PQ.tier=PQ.last;PQ.lock=true;PQ.last=-1;perfApply();return}PQ.last=-1} // the last step didn't help: undo it and stop
-    if(fps<48&&PQ.tier<3){PQ.last=PQ.tier;PQ.prev=fps;PQ.tier++;if(PQ.tier===1&&twDPR()<=1.5)PQ.tier=2;perfApply();PQ.skip=t+1000}} /* on a screen already at 1.5x sharpness or less (most PC monitors) the first level changes nothing, so it goes straight to the second: before, that empty step "didn't help" and locked quality at full */
+    if(PQ.lock||(PQ.big&&PQ.big*4<PQ.n))return; // a few long stalls (app switch, garbage collection) spoil the window; when most frames are long the device is just slow, so it still steps down
+    if(PQ.last>=0){if(fps>=30&&fps<PQ.prev*1.1){PQ.tier=PQ.last;PQ.lock=true;PQ.last=-1;perfApply();return}PQ.last=-1} // the last step didn't help: undo it and stop
+    if(fps<48&&PQ.tier<3){PQ.last=PQ.tier;PQ.prev=fps;PQ.tier=fps<20?3:PQ.tier+1;if(PQ.tier===1&&twDPR()<=1.5)PQ.tier=2;perfApply();PQ.skip=t+1000}} /* on a screen already at 1.5x sharpness or less (most PC monitors) the first level changes nothing, so it goes straight to the second: before, that empty step "didn't help" and locked quality at full. Below 20 fps it goes straight to the lowest level, and below 30 a step is never undone: on a slow PC the processor is the limit, so a step may gain little, and undoing it used to lock quality high with the game in slow motion */
   window.addEventListener("keyup",function(e){var k=e.key.length===1?e.key.toLowerCase():e.key;keys[{KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d"}[e.code]||k]=false});window.addEventListener("blur",function(){keys={}}); /* a key let go with Shift or Caps Lock in a different state no longer stays held; leaving the window lets go of everything */
 }
 </script>
@@ -3481,7 +3481,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-08a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-09a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
