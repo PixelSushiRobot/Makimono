@@ -1329,7 +1329,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
       var st=1.4/surfaceR(d0),sp=r()*6.28,nn=5+((r()*3)|0);
       for(var j=0;j<nn;j++){var d=d0.clone().applyAxisAngle(ax,j*st).normalize(),s=0.75,gi=buildIngredient("tezos");gi.scale.setScalar(s);scene.add(gi);var bl=makeBlob(0.7);gi.add(bl);gi.userData.blob=bl;props.push({g:gi,dir:d,foot:s*0.9,req:s*0.5,gain:0.07+s*0.11,spin:sp,dead:false})}}}
   function twShed(kids,loss){var n=Math.min(40,kids.length,Math.max(2,Math.ceil(kids.length*loss/Math.max(R0,ballR)*1.5)));
-    for(var i=0;i<n;i++){var k=kids.pop();if(!k)break;twLost++;twCoinOff(k);var rq0=(k.userData&&k.userData.req)||0;scene.attach(k);k.updateMatrixWorld(true);var bb=new THREE.Box3().setFromObject(k),sz=bb.getSize(new THREE.Vector3()),cn=bb.getCenter(new THREE.Vector3()),d=cn.clone().normalize();
+    for(var i=0;i<n;i++){var k=kids.pop();if(!k)break;twLost++;twCoinOff(k);if(k.userData.bh){k.userData.bh=false;k.visible=true}var rq0=(k.userData&&k.userData.req)||0;scene.attach(k);k.updateMatrixWorld(true);var bb=new THREE.Box3().setFromObject(k),sz=bb.getSize(new THREE.Vector3()),cn=bb.getCenter(new THREE.Vector3()),d=cn.clone().normalize();
       var w=new THREE.Group();w.quaternion.copy(QT.setFromUnitVectors(YUP,d));scene.add(w);w.updateMatrixWorld(true);w.attach(k);w.remove(k);k.updateMatrixWorld(true);var lb=new THREE.Box3().setFromObject(k,true),lo=new THREE.Vector3((lb.min.x+lb.max.x)/2,lb.min.y,(lb.min.z+lb.max.z)/2);w.add(k);k.position.sub(lo);w.position.copy(lo.applyQuaternion(w.quaternion));w.updateMatrixWorld(true);w.userData.skw=twHillGs(k)?0:k.userData.skw||k.scale.x; /* the carrier's origin goes exactly under the piece's lowest point (measured on the piece itself in the carrier's frame, not a world box, which on a tilted piece reaches further down than the piece does), so rolled up again it sits on the maki instead of hovering; it also remembers the piece's size (through any earlier carrier, if it was knocked off before), which sets how deep it sinks in */
       var out=cn.clone().sub(ball.position);out.addScaledVector(d,-out.dot(d));if(out.lengthSq()<1e-6)out.set(Math.random()-.5,0,Math.random()-.5).addScaledVector(d,-0);out.addScaledVector(d,-out.dot(d)).normalize();
       var r=Math.min(3,Math.max(0.2,Math.max(sz.x,sz.y,sz.z)*0.5));
@@ -1744,7 +1744,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
       if(a2<need)M.hit=true});
     if(M.hit||dg<Math.min(L*Math.sin(aO)*0.8,L*0.4)){twGiBarsOff(M);twGiPre=M;twGi=null;window.MKPT_END()}}
   function twGiBarsOff(M){if(!M)return;if(M.bars){M.bars.forEach(function(me){if(me.parent)me.parent.remove(me)});M.bars=null}if(M.ar){M.ar.forEach(function(a){if(a.g.parent)a.g.parent.remove(a.g);if(a.sh&&a.sh.parent)a.sh.parent.remove(a.sh)});M.ar=null}M.kn=null}
-  window.MKPT_END=function(rp){if(!running||twEnd)return;rp=rp===true;var pre=twGiPre;twGiPre=null;if(rp&&twGi){twGiBarsOff(twGi);if(twGi.g.parent)twGi.g.parent.remove(twGi.g);twGi=null}if(!rp&&!pre&&twGi){pre=twGi;twGi=null}if(rp)pre=null;var fc=new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion),l0=cam.position.clone().addScaledVector(fc,cam.position.distanceTo(ball.position));var U=ball.position.clone().normalize(),F=fwd.clone();F.addScaledVector(U,-F.dot(U));if(F.lengthSq()<1e-6)F.set(U.y,U.z,U.x).cross(U);F.normalize();
+  window.MKPT_END=function(rp){if(!running||twEnd)return;twBackAll();rp=rp===true;var pre=twGiPre;twGiPre=null;if(rp&&twGi){twGiBarsOff(twGi);if(twGi.g.parent)twGi.g.parent.remove(twGi.g);twGi=null}if(!rp&&!pre&&twGi){pre=twGi;twGi=null}if(rp)pre=null;var fc=new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion),l0=cam.position.clone().addScaledVector(fc,cam.position.distanceTo(ball.position));var U=ball.position.clone().normalize(),F=fwd.clone();F.addScaledVector(U,-F.dot(U));if(F.lengthSq()<1e-6)F.set(U.y,U.z,U.x).cross(U);F.normalize();
     var Sd=new THREE.Vector3().crossVectors(U,F).normalize(),Y=new THREE.Vector3(0,1,0);twOmk=true;
     var h=GAME.querySelector(".hud");if(h)h.style.visibility="hidden";if(playerShadow)playerShadow.visible=false;if(banner)banner.g.visible=false;twBk.forEach(function(b){b.visible=false});
     var Pv=new THREE.Group(),Wd=new THREE.Group();Pv.add(Wd);Pv.quaternion.setFromUnitVectors(Y,U);Wd.quaternion.copy(Pv.quaternion).invert();scene.add(Pv);Pv.updateMatrixWorld(true);
@@ -1811,7 +1811,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function twLvBack(c){c.visible=true;c._lv=false;var R=twR,j=R&&R.slats?R.slats.indexOf(c):-1;
     if(j>=0){R.gone[j]=false;var A=R.at(j*R.SLW+R.off);c.quaternion.copy(lmFrame(A.d,A.T));c.position.copy(A.d).multiplyScalar((A.top+A.lo)/2);c.scale.set(R.SLW-0.05,A.top-A.lo,3.2)}
     if(typeof twPuff==="function")twPuff(c,0.55,Math.random()*0.6)}
-  function twEndDrop(E){E.it=[];var R=E.mode==="restore";E.dm=E.dm0;E.dt0=E.t;var NC=Math.max(1,clump.children.length-2);
+  function twEndDrop(E){twBackAll();E.it=[];var R=E.mode==="restore";E.dm=E.dm0;E.dt0=E.t;var NC=Math.max(1,clump.children.length-2);
     function back(c,o){if(!c._w0)return false;o.T=new THREE.Vector3();o.Q=new THREE.Quaternion();o.S=new THREE.Vector3();c._w0.decompose(o.T,o.Q,o.S);o.st=E.t+0.2+Math.random()*1.2;return true}
     if(R)twBeltHome(E);if(R){E.Wd.updateMatrixWorld(true);E.Wd.children.slice().forEach(function(c){if(!c._w0){if(c._lv)twLvBack(c);return}var P=new THREE.Vector3().setFromMatrixPosition(c.matrixWorld),P0=new THREE.Vector3().setFromMatrixPosition(c._w0);
         if(!c._lv&&P.distanceToSquared(P0)<1e-4)return;if(c._lv){c.visible=true;c._lv=false}var o={m:c};back(c,o);if(PQ.tier>=2&&(E.nb=(E.nb||0)+1)>60){c.position.copy(o.T);c.quaternion.copy(o.Q);c.scale.copy(o.S)}else E.it.push(o)});
@@ -2043,7 +2043,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function twPhSize(){var P=twPh,pc=P.card.getBoundingClientRect().width,y=twPhLay(P.m,(P.cap.value||P.cap.placeholder).toUpperCase()),f=y.f;var fs=pc*30/1040*f,lh=fs*1.25;P.cap.style.fontSize=fs+"px";P.cap.style.lineHeight=lh+"px";P.m.font=twPhFont(fs);var mm=P.m.measureText("H"),sh=((mm.fontBoundingBoxAscent||fs*1.12)-(mm.fontBoundingBoxDescent||fs*0.36))/2-twPhCap0(P.m)/2;var c=P.cap;c.style.paddingBottom="0px";c.style.paddingTop="0px";c.style.height="0px";P.n=Math.max(1,Math.round(c.scrollHeight/lh));c.style.height="";var n=Math.min(2,Math.max(P.n,y.L.length));c.style.paddingTop=Math.max(0,(pc*156/1040-n*lh)/2-sh)+"px";c.scrollTop=0} /* the field is a two-line text box: its padding drops the one or two lines so their capitals sit centred in the band, as on the saved photo. P.n is how many lines the field really shows (measured with the box squeezed to nothing, so its height is just its text): the input handler undoes any edit that makes it three */
   function twPhCap0(g){var m=g.measureText("H");return m.actualBoundingBoxAscent||parseFloat((/([0-9.]+)px/.exec(g.font)||[0,30])[1])*0.7} /* the cap height in the current font. On the card the caption is a text field, which centres the whole line (room for accents and descenders too), so its padding shifts it up by the difference */
   function twPhOpen(){if((twPh&&twPh.on)||!GAME.classList.contains("on")||!built||!renderer||!/^(play|pause|end)$/.test(phase))return;
-    var sc=twPhGrab(),col=twPhCols(),P=twPhUI();twPhRes=phase==="play";if(twPhRes)pauseGame();
+    twBackAll();var sc=twPhGrab(),col=twPhCols(),P=twPhUI();twPhRes=phase==="play";if(twPhRes)pauseGame();
     P.col=col;P.sc=sc;P.card.style.background=col.rice;P.cap.style.color=col.nori;P.cap.value=twPhCap;
     var go=function(){var ph=twPhPhoto(sc,col);P.ph=ph;P.img.width=ph.width;P.img.height=ph.height;P.img.getContext("2d").drawImage(ph,0,0);twPhSize()};
     if(document.fonts&&document.fonts.load)document.fonts.load(twPhFont(30)).then(go,go);else go();
@@ -2648,6 +2648,11 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     var tilt=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(Math.random()-0.5,0,Math.random()-0.5).normalize(),(Math.random()-0.5)*0.9); // knocked askew, up to ~25 degrees
     g.quaternion.setFromUnitVectors(YUP,rd).multiply(tilt).multiply(new THREE.Quaternion().setFromAxisAngle(YUP,Math.random()*6.283)); // base against the roll, random lean + spin
     clump.add(g);placeStuck(g,s);twFit(g,s)}
+  /* LOW: pieces on the far side of the roll, facing away from the camera, are hidden: the roll covers them, so nothing changes on screen, but a big roll late in a round carries hundreds of pieces and drawing them all is what slows an old PC down. A piece is hidden only when it is well round the back (the margin grows with its size, so tall ones poking past the edge stay), and everything shows again for a photo, a knock-off, the ending and at any other quality */
+  var twBQ=new THREE.Quaternion(),twBV=new THREE.Vector3(),twBC=new THREE.Vector3(),twBAny=false;
+  function twBackAll(){if(!twBAny)return;twBAny=false;for(var i=0;i<clump.children.length;i++){var c=clump.children[i];if(c.userData.bh){c.userData.bh=false;c.visible=true}}}
+  function twBackOn(){if(PQ.tier<3||twEnd||phase!=="play"||(twPh&&twPh.on)){twBackAll();return false}clump.updateWorldMatrix(true,false);clump.getWorldQuaternion(twBQ);twBC.copy(cam.position).sub(ball.position).normalize();return true}
+  function twBack(g){var k=g.userData.stick,m=-Math.min(0.9,0.45+(k.gs||g.userData.skw||g.scale.x)/Math.max(ballR,1e-3)),h=twBV.copy(k.rd).applyQuaternion(twBQ).dot(twBC)<m;if(h!==!!g.userData.bh){g.userData.bh=h;g.visible=!h;if(h)twBAny=true}}
   function placeStuck(g,s){var k=g.userData.stick;if(k.gs)twHillEase(g,k);g.position.set(k.xf*R0*0.85*s*twLenK(),0,0).addScaledVector(k.rd,R0*0.98*s*twRadK()-k.sink)} // on the current (scaled) roll surface
   var twSub=0;function step(t){if(!running)return;perfSample(t,t-lastT);var T=Math.min(200,t-lastT),n=twEnd||!(T>50)?1:Math.ceil(T/50-1e-6);if(n>1){var t0=t-T;lastT=t0;twSub=1;for(var si=1;si<n&&running;si++)stepOne(t0+T*si/n);twSub=0;if(!running)return}stepOne(t)} /* on a slow frame (under 20 fps) the game runs a few shorter steps and draws only the last, so it keeps real speed instead of going slow motion; each step is still at most 0.05 s, so nothing is skipped through. A wait of more than 0.2 s (a stall) only moves the game on by 0.2 s */
   function stepOne(t){
@@ -2710,7 +2715,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     if(wobT>0){wobT=Math.max(0,wobT-dt);ball.rotateZ(Math.sin(wobT*40)*wobT*0.5)}try{twRuleLean()}catch(e){twRuleErr(e)} // hit wobble
     clump.rotation.x+=(SPEED*dt*(blocked?0:mv))/ballR; // roll matches travel; stops when blocked
     core.scale.setScalar(ballR/R0);
-    for(var sc=0,sS=ballR/R0;sc<clump.children.length;sc++){var sk=clump.children[sc];if(sk.userData.stick)placeStuck(sk,sS)} // push stuck objects out with the growing (or shrinking) roll
+    for(var sc=0,sS=ballR/R0,sBk=twBackOn();sc<clump.children.length;sc++){var sk=clump.children[sc];if(sk.userData.stick){placeStuck(sk,sS);if(sBk)twBack(sk)}} // push stuck objects out with the growing (or shrinking) roll
     // animate ONLY the sparse filling features (grow up/down); the planet surface is static
     for(var ti=0;ti<terrain.length;ti++){var c=terrain[ti];var sy=Math.max(0.12,c.h0*(0.55+0.45*wave(c,params,t)));c.g.scale.set(c.foot,sy,c.foot);var fr=surfaceR(c.dir);c.g.position.copy(c.dir.clone().multiplyScalar(fr));c.g.quaternion.copy(QT.setFromUnitVectors(YUP,c.dir))}
     /* the plaza shows the art's frame for this 70ms slot, as on the art page (the background tiles are left out, so only the maki shows).
@@ -3481,7 +3486,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-09a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-09b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
