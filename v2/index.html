@@ -3486,7 +3486,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-09c",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-10a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
@@ -3499,6 +3499,78 @@ B.addEventListener("pointerup",function(e){if(e.pointerType!=="mouse"){lastU=e.t
   if(SS&&SS.getItem("mkUpGo")==="1"){var kb=document.querySelector('.export-bar a[aria-label="Play Katamaki"]');if(kb&&!kb.classList.contains("loading")&&!kb.getAttribute("aria-busy")){SS.removeItem("mkUpGo");setTimeout(function(){kb.click()},300)}} /* refreshed from the game: open it again once the KATAMAKI button is ready */
   var k=on+"|"+where;if(k===key)return;key=k;if(!on||where==="play"){T.classList.remove("in");return} /* hidden while a round is played; back as soon as any screen is up, or on the art */
   if(!T.classList.contains("in")){T.classList.add("in");if(T._seen)T.classList.add("seen");T._seen=1}})()})();</script>
+<!-- ART PAGE BUTTONS ON SMALL SCREENS (released 2026-11-10a)
+     Portrait, when there's room under the poster: KATAMAKI, B-SIDE (when the piece has one) and ⋯ move to one centred row under it, each as wide as its label
+       and drawn like the poster's own buttons, and the poster and the row are centred on the screen together. ⋯ opens the poster's own menu style, upward.
+     Landscape on a small screen (or a touch screen): the buttons stay on the poster, scaled up so they are as tall as the PROJECT MAKIMONO title,
+       text and the ⋯ menu included.
+     Only in traits mode (i), like the poster's own buttons: with the traits hidden there are no buttons and the poster stays where it was.
+     On a touch screen the keyboard shortcut chips are hidden; on desktop they stay.
+     Every dock button presses the poster's real control, so it behaves exactly the same. -->
+<style>
+html.mktouch .export-bar kbd,html.mktouch .export-bar .keys,html.mktouch #mkDock kbd,html.mktouch #mkDM kbd{display:none!important}
+#mkDock{position:fixed;z-index:30;display:none;gap:10px;box-sizing:border-box;font-family:'Space Mono',ui-monospace,Menlo,Consolas,monospace;color:rgb(var(--dk-ink));-webkit-tap-highlight-color:transparent}
+html.mkdock #mkDock{display:flex}
+html.mkdock .export-bar{visibility:hidden}
+html.mkdock.mkdock-seed .export-bar{visibility:visible} /* the seed field opens in the poster's bar, so the bar shows while it's open */
+html.mkdock .stage{translate:0 calc(var(--dk-up,0px)*-1)} /* the poster moves up so it and the row are centred together */
+#mkDock .db{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 18px;border:2px solid rgb(var(--dk-ink));border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1;cursor:pointer;-webkit-user-select:none;user-select:none;white-space:nowrap;box-sizing:border-box}
+#mkDock{justify-content:center}#mkDock .db.k,#mkDock .db.b{flex:0 0 auto}#mkDock .db[hidden]{display:none}
+#mkDock .db.m{flex:0 0 auto;width:56px;padding:0}
+#mkDock .db:active,#mkDock .db.on{background:rgb(var(--dk-ink));color:var(--dk-bg)}
+#mkDock .db svg{width:18px;height:18px;fill:currentColor;flex:none}
+#mkDock kbd,#mkDM kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;box-sizing:border-box;border:1px solid currentColor;border-radius:5px;font:400 11px 'Space Mono',ui-monospace,monospace;letter-spacing:0;text-transform:uppercase;opacity:.85}
+#mkDM{position:fixed;z-index:31;display:none;flex-direction:column;min-width:220px;padding:6px 18px;border-radius:14px;background:rgba(var(--dk-ink),.92);color:var(--dk-bg);font-family:'Space Mono',ui-monospace,Menlo,Consolas,monospace;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#mkDM.on{display:flex}
+#mkDM .mr{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:48px;padding:0;border:0;border-top:1px solid currentColor;background:none;color:inherit;font:inherit;font-size:15px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-align:left;width:100%}
+#mkDM .mr{border-top-color:rgba(127,127,127,.35)}
+#mkDM .mr:first-child{border-top:0}
+</style>
+<div id="mkDock" role="toolbar" aria-label="Piece controls"></div>
+<div id="mkDM" role="menu"></div>
+<script>(function(){
+var H=document.documentElement,D=document.getElementById("mkDock"),DM=document.getElementById("mkDM"),G=document.getElementById("game");
+var MORE='<svg viewBox="0 0 16 16"><path d="M3.35 6.8A1.2 1.2 0 1 1 3.35 9.2A1.2 1.2 0 1 1 3.35 6.8ZM8 6.8A1.2 1.2 0 1 1 8 9.2A1.2 1.2 0 1 1 8 6.8ZM12.65 6.8A1.2 1.2 0 1 1 12.65 9.2A1.2 1.2 0 1 1 12.65 6.8Z"/></svg>';
+var TOUCH=matchMedia("(hover:none) and (pointer:coarse)");function touch(){H.classList.toggle("mktouch",TOUCH.matches)}touch();if(TOUCH.addEventListener)TOUCH.addEventListener("change",touch);
+function q(s){return document.querySelector(s)}
+function bar(){return q(".export-bar")}
+/* the poster's real controls: every dock button and menu row presses one of these */
+function real(k){var b=bar();if(!b)return null;var m=b.querySelector(".mkmenu");
+  if(k==="kat")return b.querySelector(".button:not(.bside):not(.more):not(.seedb)");
+  if(k==="bs")return b.querySelector(".bside");
+  if(k==="svg"||k==="gif"){var L=m?m.querySelectorAll("a"):[];for(var i=0;i<L.length;i++){var t=(L[i].textContent||"").toUpperCase();if(t.indexOf(k==="svg"?"SVG":"GIF")>=0)return L[i]}return null}
+  if(k==="seed")return b.querySelector(".seedb .st");
+  if(k==="rnd")return b.querySelector(".seedb .rr");return null}
+function press(k){var el=real(k);if(!el)return;try{el.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true}))}catch(e){}el.click();if(k==="seed")seedWatch()}
+var ROWS=[["svg","Download SVG","E"],["gif","Download GIF","Shift+E"],["seed","View Seed","V"],["rnd","Random Seed","N"]];
+function kb(s){return s.split("+").map(function(x){return "<kbd>"+(x==="Shift"?"⇧":x)+"</kbd>"}).join("")}
+function rows(box){box.querySelectorAll(".mr").forEach(function(n){n.remove()});ROWS.forEach(function(x){var r=document.createElement("button");r.type="button";r.className="mr";r.dataset.k=x[0];r.setAttribute("role","menuitem");r.innerHTML="<span>"+x[1]+"</span><i style=\"display:flex;gap:4px;font-style:normal\">"+kb(x[2])+"</i>";
+  r.addEventListener("click",function(e){e.stopPropagation();closeAll();press(x[0])});box.appendChild(r)})}
+function build(){D.innerHTML="";var k=document.createElement("button");k.type="button";k.className="db k";k.dataset.k="kat";mirror(k);k.setAttribute("aria-label","Play Katamaki");k.addEventListener("click",function(e){e.stopPropagation();press("kat")});
+  var m=document.createElement("button");m.type="button";m.className="db m";m.innerHTML=MORE;m.setAttribute("aria-label","More");m.addEventListener("click",function(e){e.stopPropagation();if(DM.classList.contains("on"))closeAll();else openMore()});
+  var b=document.createElement("button");b.type="button";b.className="db b";b.dataset.k="bs";b.setAttribute("aria-label","B-side: alternate art");b.hidden=true;mirror(b);b.addEventListener("click",function(e){e.stopPropagation();press("bs")});
+  D.appendChild(k);D.appendChild(b);D.appendChild(m);rows(DM)}
+/* a dock button shows the same label and icon as the poster's button it presses, without the shortcut chip, and updates if that changes */
+function mirror(d){var r=real(d.dataset.k);if(!r)return;var h=r.innerHTML;if(d._h===h)return;d._h=h;var t=document.createElement("div");t.innerHTML=h;t.querySelectorAll("kbd,.keys").forEach(function(x){x.remove()});d.innerHTML=t.innerHTML}
+function openMore(){var mb=D.querySelector(".db.m");mb.classList.add("on");var r=mb.getBoundingClientRect();DM.classList.add("on");DM.style.right=Math.max(8,innerWidth-r.right)+"px";DM.style.bottom=(innerHeight-r.top+8)+"px"} /* the menu opens upward, its right edge on the ⋯ button's */
+function closeAll(){if(!DM.classList.contains("on"))return;var mb=D.querySelector(".db.m");if(mb)mb.classList.remove("on");DM.classList.remove("on")}
+document.addEventListener("click",function(e){if(DM.classList.contains("on")&&!DM.contains(e.target))closeAll()});
+window.addEventListener("keydown",function(e){if(e.key==="Escape"&&DM.classList.contains("on")){e.stopImmediatePropagation();closeAll()}},true);
+function seedWatch(){var n=0;(function w(){var b=bar(),inp=b&&b.querySelector(".seedb input"),open=inp&&getComputedStyle(inp).display!=="none";H.classList.toggle("mkdock-seed",!!open);if(open||n++<20)setTimeout(w,150)})()}
+/* landscape on a small screen or a touch screen: the poster's own buttons scale up to the title's height, kept clear of the title */
+function grow(on){var b=bar(),t=q(".poster-title"),st=q(".stage");if(!b)return;if(!on||!t||!st){b.style.transform="";return}
+  b.style.transform="";var kt=real("kat"),bh=kt?kt.offsetHeight:0,th=t.offsetHeight;if(!bh||!th)return;var s=th/bh,room=(st.offsetWidth-t.offsetWidth-st.offsetWidth*0.06)/Math.max(1,b.offsetWidth);s=Math.max(1,Math.min(s,room));
+  b.style.transformOrigin="top right";b.style.transform="scale("+s.toFixed(3)+")"}
+var GAP=14;
+var idle=false;
+function place(){var st=q(".stage"),gameOn=G&&G.classList.contains("on");if(!st||gameOn||!st.classList.contains("show")){if(idle)return;idle=true;H.classList.remove("mkdock");H.style.setProperty("--dk-up","0px");grow(false);closeAll();return}idle=false; /* in the game, or with the traits hidden, nothing to do */
+  var cs=getComputedStyle(st);H.style.setProperty("--dk-ink",(cs.getPropertyValue("--ink-rgb")||"20,20,20").trim());H.style.setProperty("--dk-bg",(cs.getPropertyValue("--bg")||"#0b0b0c").trim());
+  var W=innerWidth,Hh=innerHeight,sz=st.offsetHeight,dh=56,port=Hh>W,fit=port&&Hh-sz>=dh+GAP*3;
+  if(fit){var up=(GAP+dh)/2;H.style.setProperty("--dk-up",up+"px");H.classList.add("mkdock");grow(false);var r=st.getBoundingClientRect();D.style.left=r.left+"px";D.style.width=r.width+"px";D.style.top=(r.bottom+GAP)+"px";
+    var bs=real("bs"),has=!!bs&&!bs.hidden&&getComputedStyle(bs).display!=="none",pr=!!bs&&bs.getAttribute("aria-pressed")==="true";var bd=D.querySelector('[data-k="bs"]'),kd=D.querySelector('[data-k="kat"]');if(kd)mirror(kd);if(bd){bd.hidden=!has;bd.classList.toggle("on",pr);mirror(bd)}}
+  else{H.classList.remove("mkdock");H.style.setProperty("--dk-up","0px");closeAll();grow(!port&&(Math.min(W,Hh)<600||TOUCH.matches))}}
+build();(function tick(){place();requestAnimationFrame(tick)})();
+})();</script>
 <!-- the secret magnet (a tool for playing through quickly): while the game is on, M toggles it and Shift+M toggles SUPER (pulls from anywhere on the planet). While it is on, a small yellow line at the top says MAGNET MODE or SUPER MAGNET MODE. It is redrawn only when the magnet or the game is switched, no loop -->
 <div id="ptT" style="position:fixed;left:50%;top:max(96px,calc(env(safe-area-inset-top) + 96px));transform:translateX(-50%);z-index:2147483647;display:none;max-width:calc(100vw - 16px);padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#ffd84a;font:700 10px ui-monospace,monospace;letter-spacing:.04em;text-align:center;pointer-events:none"></div>
 <script>(function(){var bar=document.getElementById("ptT"),g=document.getElementById("game");
