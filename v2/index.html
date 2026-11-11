@@ -2441,7 +2441,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function twCkGap(){var C=twRu.ck,v=twRuSpd*(1+(twRu.t<C.bE?C.bS*Math.min(3,Math.sqrt(ballR/R0)):0)),r=v/2.3;return {v:v,r:r,lo:Math.min(28,Math.max(10+ballR*1.2,v*0.9+r))}} /* how far the next gate must be: about 0.9 s at the speed you will have (boosted, if the boost is on), plus one turn width, up to 28 (the planet is only about 80 across the curve to the far side); at full speed you turn about 2.3 radians a second, so r is how wide you turn */
   function twCkFood(o,pd,G){if(o.dead||o.abs||o.tw||o.still||o.tops||o.mine||o.ckL||o.g.userData.belt||o.g.userData.roam||ballR<o.req||o.foot>=1.4)return false;var r=pd.angleTo(o.dir)*SR,tn=twCxTan(pd,o.dir),cs=tn?tn.dot(twCkHd()):1,sn=Math.sqrt(Math.max(0,1-cs*cs));if(cs<0.35)return false;return r>G.lo+G.r*1.4*sn+2&&r<Math.min(50,G.lo+14+ballR*2)} /* loose food you can roll up now, less than 70 degrees off where you are heading, and far enough that you can turn onto it: further when it is more to the side (1.4 turn widths times the sine of the angle), and further the faster you go */
   function twCkAim(pd,w,far){var G=twCkGap(),F=props.filter(function(o){return twCkFood(o,pd,G)}),i,j,k,best=[];if(F.length<3)return null; /* too little left, see twCkLate */
-    F.forEach(function(o){var tn=twCxTan(pd,o.dir);o.ckS=(tn?tn.dot(twCkHd()):0)*1.5+Math.random()*0.4});F.sort(function(a,b){return b.ckS-a.ckS});best=F.slice(0,20); /* the ones most ahead of you */
+    F.forEach(function(o){var tn=twCxTan(pd,o.dir);o.ckS=(tn?tn.dot(twCkHd()):0)*1.5+Math.random()*0.4+(twCkSeen({c:o.dir})?0.4:0)});F.sort(function(a,b){return b.ckS-a.ckS});best=F.slice(0,20); /* the ones most ahead of you */
     best.forEach(function(o){var n=0;for(j=0;j<F.length;j++)if(F[j]!==o&&F[j].dir.angleTo(o.dir)*SR<8)n++;o.ckS+=Math.min(n,8)*0.15});best.sort(function(a,b){return b.ckS-a.ckS}); /* and with the most food round them */
     for(k=0;k<best.length;k++){var o=best[k],tn2=twCxTan(o.dir,pd);if(!tn2)continue;var c=o.dir.clone().addScaledVector(tn2,(3+w*0.3)/SR).normalize();if(twCkOk(c,w*0.6)&&far(c))return {d:c,T:o,P:o.dir,F:F}}return null} /* the gate stands about 3 in front of it, on your side, so going through takes you onto the food */
   function twCkMov(o){return !(o.dead||o.abs||o.tw||o.still||o.tops||o.mine||o.ckL||o.g.userData.belt||o.g.userData.roam||ballR<o.req||o.foot>=1.4)} /* a loose piece you can roll up now, that can be moved into a line */
@@ -2459,6 +2459,23 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     var O=A.F.filter(function(o){return o!==A.T&&o.dir.angleTo(A.P)*SR<(A.T?14:20)}).sort(function(a,b){return a.dir.angleTo(A.P)-b.dir.angleTo(A.P)});L=L.concat(O.slice(0,n-1)); /* the food nearest it, up to 4 pieces in all (3 on the slowest two quality tiers) */
     for(j=0;j<L.length;j++){var o=L[j];s+=o.foot+0.5;var q=d.clone().addScaledVector(aw,s/SR).normalize(),tr=0;while(!twCkOk(q,o.foot)&&tr++<3){s+=1.2;q=d.clone().addScaledVector(aw,s/SR).normalize()}if(tr>3)break;s+=o.foot+0.3+ballR*0.3;
       o.ckL=1;o.ckF={a:o.dir.clone(),b:q,t0:u.t+0.15+j*0.09}}} /* lines them up one behind another, straight on from the gate, each hopping over to its place in turn */
+  /* GATES AHEAD, WITH A POINTER: the next gate is placed as released (ahead of you, within 70 degrees of the way you are going, far enough to turn onto it, further when boosted),
+     with a small bonus for spots on screen right now; when it is off screen, the pointer at the screen edge shows the way. The camera never turns with the maki, so a gate ahead can still be off screen */
+  function twCkRay(o,dv,R){var b=o.dot(dv),c=o.lengthSq()-R*R,q=b*b-c;if(q<0)return -1;var t=-b-Math.sqrt(q);return t>0?t:-1} /* how far along a ray (from o, unit direction dv) it first meets a ball of radius R round the planet centre; -1 if it misses */
+  function twCkSeen(q){if(typeof cam==="undefined"||!cam)return true;var P=q.c.clone().multiplyScalar(lmGround(q.c)+(q.h||2.6)*0.5),p=P.clone().project(cam);if(!(p.z<1&&Math.abs(p.x)<1&&Math.abs(p.y)<1))return false;
+    var dv=P.clone().sub(cam.position),L=dv.length();dv.divideScalar(L);var t=twCkRay(cam.position,dv,SR*0.97);return t<0||t>L-0.5} /* the middle of the gate is in the picture and not behind the planet's curve */
+  /* THE WAY TO THE GATE: while the gate standing now is off screen or behind the planet's curve, a small checkered barricade (the Phosphor barricade icon, MIT, with its stripes swapped for a checker: one shape, one colour, the open squares cut out) at the edge of the screen, with a triangle beside it pointing the way, shows where it is; it fades out once the gate is in view.
+     Hidden for photos, and whenever GRAND PRIX isn't running (it hides itself once nothing has updated it for 0.2 s) */
+  function twCkArrow(C){var g=document.getElementById("game");if(!g||typeof cam==="undefined"||!cam)return;var el=document.getElementById("mkCkArr");
+    if(!el){el=document.createElement("div");el.id="mkCkArr";el.setAttribute("aria-hidden","true");el.style.cssText="position:absolute;left:0;top:0;width:0;height:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .25s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))";
+      el.innerHTML='<svg viewBox="0 0 256 256" width="30" height="30" style="position:absolute;left:-15px;top:-15px"><path fill="rgba(255,255,255,.92)" fill-rule="evenodd" d="M224,64H32A16,16,0,0,0,16,80v72a16,16,0,0,0,16,16H56v32a8,8,0,0,0,16,0V168H184v32a8,8,0,0,0,16,0V168h24a16,16,0,0,0,16-16V80A16,16,0,0,0,224,64ZM64 80h32v36h-32ZM128 80h32v36h-32ZM192 80h32v36h-32ZM32 116h32v36h-32ZM96 116h32v36h-32ZM160 116h32v36h-32Z"/></svg><svg class="tri" viewBox="0 0 12 14" width="12" height="14" style="position:absolute;left:-6px;top:-7px"><path d="M1 1 L11 7 L1 13 Z" fill="rgba(255,255,255,.92)"/></svg>';g.appendChild(el);
+      (function tk(){requestAnimationFrame(tk);if(performance.now()-(+el.dataset.t||0)>200)el.style.opacity="0"})()}
+    el.dataset.t=performance.now();var q=null;for(var i=0;i<C.g.length;i++)if(C.g[i].go==null&&!C.g[i].hit)q=C.g[i];
+    if(!q||(typeof twPh!=="undefined"&&twPh&&twPh.on)||twCkSeen(q)){el.style.opacity="0";return}
+    var W=g.clientWidth||innerWidth,H=g.clientHeight||innerHeight,P=q.c.clone().multiplyScalar(lmGround(q.c)+(q.h||2.6)*0.5).applyMatrix4(cam.matrixWorldInverse),x=P.x,y=P.y;
+    if(P.z>0){x=-x;y=-y} /* behind the camera: point the other way */
+    var a=Math.atan2(y,x),cx=Math.cos(a),cy=Math.sin(a),mx=W/2-44,myT=H/2-90,myB=H/2-150,my=cy>0?myT:myB,s=Math.min(Math.abs(cx)>1e-4?mx/Math.abs(cx):1e9,Math.abs(cy)>1e-4?my/Math.abs(cy):1e9); /* clear of the top line and the bottom controls */
+    el.style.transform="translate("+(W/2+cx*s).toFixed(1)+"px,"+(H/2-cy*s).toFixed(1)+"px)";var tr=el.querySelector(".tri");if(tr)tr.style.transform="translate("+(cx*24).toFixed(1)+"px,"+(-cy*24).toFixed(1)+"px) rotate("+(-a*180/Math.PI).toFixed(1)+"deg)";el.style.opacity="1"} /* the gate sign stays upright; the triangle sits beside it on the side of the gate, turned toward it */
   var twCkV={
     flag:{
       init:function(R){var u=twRu;u.ck.g=[];u.ck.ch=0;u.ck.lg=-99;u.ck.bE=0;u.ck.bS=0;u.ck.tex=twCkTex(8,2);u.ck.n=1} /* one gate at a time, like a trail of rings: the next stands up as you go through this one */,
@@ -2468,10 +2485,10 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
         if(!d){C.sx=u.t+0.25;return}var tw=twCxTan(d,pd),t=new THREE.Vector3().crossVectors(d,tw).normalize(),G=new THREE.Group(),pm=new THREE.MeshStandardMaterial({color:0xcfcfcf,roughness:0.6,flatShading:true});
         [-1,1].forEach(function(s){var p=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.13,h,6),pm);p.position.set(s*w/2,h/2,0);G.add(p)});
         var bm=new THREE.MeshBasicMaterial({map:C.tex,side:THREE.DoubleSide,transparent:true,fog:false,toneMapped:false}),b=new THREE.Mesh(new THREE.PlaneGeometry(w,w/4),bm);b.position.y=h-w/8;G.add(b);
-        G.position.copy(d).multiplyScalar(lmGround(d));twCkFace(G,d,t);G.scale.setScalar(0.001);scene.add(G);u.ms.push(G);C.g.push({G:G,b:b,pm:pm,c:d,t:t,n:tw,w:w,t0:u.t,sb:null,go:null});if(A)twCkLine(A,pd)}, /* two posts and a checkered banner, 3.2 wide plus 1.1 for each unit the maki has grown */
+        G.position.copy(d).multiplyScalar(lmGround(d));twCkFace(G,d,t);G.scale.setScalar(0.001);scene.add(G);u.ms.push(G);C.g.push({G:G,b:b,pm:pm,c:d,t:t,n:tw,w:w,t0:u.t,sb:null,go:null,h:h});if(A)twCkLine(A,pd)}, /* two posts and a checkered banner, 3.2 wide plus 1.1 for each unit the maki has grown */
       gone:function(q){var u=twRu;q.G.traverse(function(n){if(n.geometry)n.geometry.dispose()});q.pm.dispose();q.b.material.dispose();if(q.G.parent)q.G.parent.remove(q.G);var i=u.ms.indexOf(q.G);if(i>=0)u.ms.splice(i,1)},
       move:function(dt,pd,pull){var u=twRu,C=u.ck,X=twCkV.flag,i,v=new THREE.Vector3();
-        if(C.g.filter(function(q){return q.go==null}).length<C.n&&!(C.sx>u.t))X.spawn(pd);
+        if(C.g.filter(function(q){return q.go==null}).length<C.n&&!(C.sx>u.t)&&u.t>1)X.spawn(pd); /* the first gate waits 1 s, until the camera has settled after the start */
         for(i=C.g.length-1;i>=0;i--){var q=C.g[i];
           if(q.go!=null){var x=(u.t-q.go)/0.5;if(x>=1){X.gone(q);C.g.splice(i,1);continue}q.G.scale.setScalar(1+x*(q.hit?0.35:-0.9));q.b.material.opacity=1-x;continue} /* a gate you went through swells and fades; one that is left goes small */
           var x0=Math.min(1,(u.t-q.t0)/0.18);q.G.scale.setScalar(x0<1?1-(1-x0)*(1-x0):1); /* it pops up at once, in under a fifth of a second, fast then settling */
@@ -2479,7 +2496,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
           if(q.sb!=null&&(b>0)!==(q.sb>0)&&Math.abs(a)<q.w/2&&Math.abs(b)<3){q.hit=true;q.go=u.t;C.ch=u.t-C.lg<=10?C.ch+1:1;C.lg=u.t;C.bS=Math.min(1,0.5+0.15*(C.ch-1));C.bE=u.t+Math.min(5,3+0.5*(C.ch-1));twLast=C.ch>1?"CHECKERED FLAG x"+C.ch:"CHECKERED FLAG";twLastT=twNow;twCkRing(pd)} /* through, between the posts, either way */
           else{var dn=pd.angleTo(q.c)*SR;if(q.d0==null)q.d0=dn;if(u.t-q.t0>30||u.t-q.t0>4&&dn>Math.max(q.d0,40)+8)q.go=u.t}q.sb=b} /* a missed gate goes after 30 s, or once you are well past where it stood up (8 further than it was then, and not in its first 4 s) */
         if(u.t<C.bE&&hopT<=0&&Math.abs(vel)>0.02){var ax=new THREE.Vector3().crossVectors(up,fwd);if(ax.lengthSq()>1e-10){var f=Math.min(1,(C.bE-u.t)/0.6);pPos.applyAxisAngle(ax.normalize(),(twRuSpd/SR)*dt*vel*C.bS*f*Math.min(3,Math.sqrt(ballR/R0)))}twRulePuff(dt)} /* the boost, rolling forward or backing up: 50% faster for 3 s, then 15% faster and 0.5 s longer for each gate in the run (up to twice as fast for 5 s), and more as the maki grows (the square root of how many times its starting size it is, up to 3 times), so a big maki feels it as much; easing off at the end; white dust kicks up behind you */
-        twCkRings()}}};
+        twCkArrow(C);twCkRings()}}};
   twRuX.checker={
     init:function(R){var u=twRu;u.ck={rg:[]};twCkV.flag.init(R)},
     move:function(dt,pd,pull){twCkV.flag.move(dt,pd,pull)},
@@ -3486,7 +3503,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-10e",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-11a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
