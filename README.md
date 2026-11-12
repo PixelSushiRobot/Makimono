@@ -26,9 +26,9 @@ On iPhone or iPad, load your seed first, then use Share → **Add to Home Screen
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | **The player** (the site). The minted v1 piece with the viewer fixes (including flat full frames, so iPhone Safari draws no seams), **B-SIDE** (an optional alternate take on each token, see [`v2/CHANGES.md`](v2/CHANGES.md)), v2's Katamaki with touch controls and adaptive quality, a seed field, a ⋯ menu, keyboard shortcuts, and the page and browser bar filled with the piece's background colour (the art alone sits at the bottom in portrait). With B-SIDE off, the art is exactly the minted art. Not for minting: it loads three.js and Space Mono from the web. |
+| `index.html` | **The player** (the site). The minted v1 piece with the viewer fixes (including flat full frames, so iPhone Safari draws no seams), **B-SIDE** (an optional alternate take on each token, see [`v2/CHANGES.md`](v2/CHANGES.md)), v2's Katamaki with touch controls and adaptive quality, a seed field, a ⋯ menu, keyboard shortcuts, a notice when the game is updated (it reads `version.json` beside the page), and the page and browser bar filled with the piece's background colour (the art alone sits at the bottom in portrait). With B-SIDE off, the art is exactly the minted art. Not for minting: it loads three.js and Space Mono from the web. |
 | [`v1/`](v1/) | **Minted.** The exact files of the collection on Aleatory. Frozen: never edit. Known issues in [`v1/NOTES.md`](v1/NOTES.md). Also tagged in git as `v1-minted`. |
-| [`v2/`](v2/) | **Not released.** A possible future edition (`makimono.html` and its mint build): all fixes plus new Mono and lookalike rules, which change some seeds' art. Its `index.html` is the player's staging copy: try changes there first, then copy it to the root. See [`v2/CHANGES.md`](v2/CHANGES.md). |
+| [`v2/`](v2/) | **Not released.** A standalone edition, ready to mint if v1 ever can't carry on (`makimono.html` and its mint build): the v2 art rules (all fixes plus new Mono and lookalike rules, which change some seeds' art) and the full current Katamaki. Its `index.html` is the player's staging copy: try changes there first, then copy it to the root. The edition is built from it. See [`v2/CHANGES.md`](v2/CHANGES.md). |
 
 Each file is self-contained: there are no image or script files next to them (the player's default icons aside). The minted files embed the font. The only outside resources are the three.js CDN script, and in the player also Space Mono from Google Fonts (plus just the `#` from Space Grotesk, which sits at cap height, for the wallet list).
 
@@ -40,7 +40,7 @@ Each file is self-contained: there are no image or script files next to them (th
 | `makimono.mint.html` | Mint build: the source with comments and the local seed harness removed. **This is the file on Aleatory.** |
 | `index.html` | The original public demo: the source plus the three.js CDN script. |
 
-`v2/` has the same `makimono.html` and `makimono.mint.html`. Its `index.html` is the player's staging copy (see Making changes).
+`v2/` has the same `makimono.html` and `makimono.mint.html`, both built from its `index.html`, the player's staging copy (see Making changes).
 
 ## Controls
 
@@ -79,20 +79,19 @@ Reach the goal size before the clock runs out to earn Bronze, Silver or Gold, th
 
 ## Making changes
 
-- **Player:** edit `v2/index.html` first, check it at `makimono.psr.fyi/v2/`, then copy it to `index.html` and change two lines back: the header comment, and the icon tags (the root keeps `href="apple-touch-icon.png"` and `href="favicon.png"` as the default icons). Keep the art code (everything that turns a seed into the minted picture) identical to `v1/makimono.html`, so every token still shows its minted art with B-SIDE off.
+- **Player:** edit `v2/index.html` first, check it at `makimono.psr.fyi/v2/`, then copy it to `index.html` and change two lines back: the header comment, and the icon tags (the root keeps `href="apple-touch-icon.png"` and `href="favicon.png"` as the default icons). Then copy `v2/version.json` over `version.json`, so open pages offer the refresh. Keep the art code (everything that turns a seed into the minted picture) identical to `v1/makimono.html`, so every token still shows its minted art with B-SIDE off.
 - **v1:** don't edit.
-- **v2 edition:** edit `v2/makimono.html`, then rebuild `v2/makimono.mint.html`:
-  - Remove every comment: `<!-- -->` in HTML, `/* */` in CSS, and `/* */` and `//` in scripts. Keep `//` inside strings and CSS `url(...)` (e.g. `"http://www.w3.org/2000/svg"` and the embedded font data).
-  - Right-trim lines that had a comment removed, and drop blank lines (the game's `<script>` keeps its own blank lines).
-  - Remove the local seed harness: the `if (!window.$alea) { … }` block. Aleatory supplies `$alea` on chain.
-- **The player's code (`v2/index.html`, then `index.html`):** Its Katamaki is v2's: a game change made in `v2/makimono.html` goes here too, inside `mkmnGame()`. The game starts only once three.js has loaded (the loader script after the B-SIDE generator), so nothing outside `mkmnGame()` can use `THREE`. The B-SIDE rules live in the `MKMN_ALT` generator script.
+- **v2 edition:** don't edit `v2/makimono.html` by hand. It is built from `v2/index.html` after each player release:
+  - The art's rules become the v2 edition's. The site-only parts are removed: B-SIDE, the seed field and the token / wallet lookup, the wallet list, the home-screen icon, the three.js loader, the update check and Google Fonts. three.js is declared for Aleatory, Space Mono is embedded, and the shortcuts card drops `B`, `V` and `N`. Each change is found by its text and counted, so if a player change moves one of them, the build stops and says which.
+  - Then `v2/makimono.mint.html`: remove every comment (`<!-- -->` in HTML, `/* */` in CSS, `/* */` and `//` in scripts; keep `//` inside strings and CSS `url(...)`, such as `"http://www.w3.org/2000/svg"` and the font data). Right-trim lines that had a comment removed and drop blank lines (except inside a template string). Keep the local seed harness (`if (!window.$alea) { … }`): Aleatory's guide asks for it, and on chain it does nothing.
+- **The player's code (`v2/index.html`, then `index.html`):** game changes go here, inside `mkmnGame()`; the v2 edition gets them when it is rebuilt. On the site the game starts only once three.js has loaded (the loader script after the B-SIDE generator), so nothing outside `mkmnGame()` can use `THREE`; in the edition it starts at the end of the page. The B-SIDE rules live in the `MKMN_ALT` generator script.
 
 Use three.js **0.160.1**: the game reads the global `THREE`, and 0.160.1 is the last release with the classic (non-module) build.
 
 ## Minting (v2, if released)
 
 1. Upload `v2/makimono.mint.html`.
-2. Tick the **three.js** library box. The mint UI adds `<meta name="alea:library" content="three@0.160.1">`, and the renderer supplies three.js. Don't add a three.js script tag or a second library tag yourself: the network is blocked on chain.
+2. Tick the **three.js** library box. The mint UI adds the library tag and the renderer supplies three.js. The file has no library tag of its own (ticking the box would add a second), and never add a three.js script tag: the network is blocked on chain.
 3. In the preview, check that the art renders, then press `G` and play a round. On a phone, check the touch controls too.
 
-The v2 mint build is about 135 KB, over the 32 KB that fits in one Tezos operation, so Aleatory publishes it in chunks (several signatures).
+The v2 mint build is about 371 KB before Aleatory gzips it, well over the 32 KB that fits in one Tezos operation, so Aleatory publishes it in chunks (several signatures).

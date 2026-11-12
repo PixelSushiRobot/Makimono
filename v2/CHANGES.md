@@ -94,7 +94,7 @@ The traits use the new wave names (Wave, Short Wave) on both sides.
 
 ### Katamaki on this page
 
-In `v2/index.html`, and since 11 Nov in the v2 edition (`makimono.html`, `makimono.mint.html`), which is built from it. The root player gets them when `v2/index.html` is copied there.
+In `v2/index.html`, and since 11 Nov in the v2 edition (`makimono.html`, `makimono.mint.html`), which is built from it. Live on the site root (`index.html`) since 12 Nov.
 
 **Things to roll up**
 - **A belt of plates:** a ring of conveyor-belt sushi plates. The plates and the sushi on them can be rolled up, and so can the belt's slats once you're big enough. The belt runs by the Direction trait: Forward the way the maki faces at the start, Reverse the other way (Text pieces are always Reverse). Before, it ran the same way on every piece.
