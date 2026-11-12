@@ -6,6 +6,8 @@
 
 **Same seed, different art.** Changes 5 and 6 change how a seed is turned into traits, so many seeds produce different art in v2 than their v1 token. To see a seed as minted, open it in the player at the site root (`makimono.psr.fyi/?seed=<hex>`).
 
+**The edition files (from 11 Nov).** `makimono.html` and `makimono.mint.html` are now built from the player page (`v2/index.html`), so the edition has the full current Katamaki: everything under **Katamaki on this page**, below, plus every later fix. What the edition has that the page doesn't: the v2 art rules above, and MAKIMONO 2.0 on the traits view and the photo card. What it leaves out: B-SIDE, the seed field and token / wallet lookup, the wallet list, the home-screen icon, the update notice and every network load. The bar reads KATAMAKI · ⋯, and the ⋯ menu holds Download SVG, Download GIF and Keyboard Shortcuts. The shortcuts card lists `I`, `M`, `E`, `Shift`+`E`, the game's keys and `G`, `Esc`, `?`. The older edition files are archived outside the repo.
+
 ### Fixes
 - **Held keys act once:** holding R on the restart question no longer restarts at once; holding G no longer flips between art and game (P, T and Enter too).
 - **Launching:** pressing KATAMAKI twice, or leaving while it loads, no longer starts two games or a hidden one. I, M and Esc on the art do nothing while the game is open.
@@ -83,7 +85,7 @@ The traits use the new wave names (Wave, Short Wave) on both sides.
 - **Buttons:** KATAMAKI · B-SIDE · ⋯. B-SIDE is a toggle (it stays pressed while on) and adds `&art=b` to the address, so a shared link opens on the B-side. A new seed starts on its minted art. ⋯ opens a menu: Download SVG, Download GIF, View Seed (opens the seed field) and Random Seed, each with its key.
 - **Keyboard shortcuts:** the v2 edition's keys (above), plus `B` B-side, `V` view seed and `N` new seed. The shortcuts card lists them all.
 - **Phones and small windows** (touch screens, or a window whose shorter side is under 600 px): with the traits shown, the buttons move from the top right of the poster to a bar just below the traits, as wide as them. Labels are the trait values' size. KATAMAKI fills the bar (with B-SIDE beside it); with a wallet list, the wallet name fills it instead. The ⋯ menu and the wallet list open upward. Larger windows keep the buttons inside the poster.
-- **Katamaki** starts from the v2 edition's game (keys, hints, scoreboard and end-screen lines above) and adds the changes in **Katamaki on this page**, below. The v2 edition (`makimono.html`, the mint build) keeps the game as described above.
+- **Katamaki** starts from the v2 edition's game (keys, hints, scoreboard and end-screen lines above) and adds the changes in **Katamaki on this page**, below. Since 11 Nov the v2 edition (`makimono.html`, the mint build) is built from this page, so it has the same game.
 - **Lighter page:** three.js loads after the art is drawn, so the piece never waits for the game's library. Pressing `G` or KATAMAKI before it has arrived marks the button as loading, and the game opens as soon as it's ready. Space Mono comes from Google Fonts instead of being embedded (the mint build still embeds it), and only its regular weight is used.
 - **Find your token without the seed:** the seed field also takes a token number (`51` or `#51`), an Aleatory or objkt link, or a wallet address or `.tez` name, which lists the wallet's pieces with thumbnails. A button with the wallet's name (.tez names in full, addresses shortened in the middle) then sits before KATAMAKI to reopen the list, for this tab; Random Seed or entering anything else removes it. Lookups use TzKT. `?token=51` in the address opens that token.
 - **Share a wallet:** `?wallet=name.tez` (or an address) in a link looks the wallet up and shows its button; on its own it opens the wallet's first piece and its list, and with `&token=` or `&seed=` it keeps that piece. While a wallet is active the address carries `?wallet=` too, so copying it shares the wallet.
@@ -92,7 +94,7 @@ The traits use the new wave names (Wave, Short Wave) on both sides.
 
 ### Katamaki on this page
 
-Only in `v2/index.html` for now: the v2 edition (`makimono.html`, `makimono.mint.html`) and the root player are unchanged.
+In `v2/index.html`, and since 11 Nov in the v2 edition (`makimono.html`, `makimono.mint.html`), which is built from it. The root player gets them when `v2/index.html` is copied there.
 
 **Things to roll up**
 - **A belt of plates:** a ring of conveyor-belt sushi plates. The plates and the sushi on them can be rolled up, and so can the belt's slats once you're big enough. The belt runs by the Direction trait: Forward the way the maki faces at the start, Reverse the other way (Text pieces are always Reverse). Before, it ran the same way on every piece.
