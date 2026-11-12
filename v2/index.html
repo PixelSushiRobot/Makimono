@@ -1756,6 +1756,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     var aO=0.34,aC=Math.asin(Math.min(0.9,r*1.05/L)),hs=lmGround(U)+L*Math.cos(aO),hp=ball.position.length()+L*Math.cos(aC);
     /* the opening shot: the top of the planet with the roll low in the frame and room above it for the monster to fall into */
     var vf=cam.fov*Math.PI/360,lo=ball.position.length()-r-SR*0.12,hi=hs+L*0.2,Cf=(lo+hi*1.25)*0.5,Df=Math.max(SR*1.6,(hi*1.25-lo)*0.55/Math.tan(vf));
+    if(window.MKPT_MAGL)window.MKPT_MAG=window.MKPT_MAGL=false; /* a loop magnet goes off when the chopsticks come (the rainbow trail's clock stops here) */
     twEnd={M:M,t:rp?4:pre?2.2:-1.6,d0:pre?-2.2:1.6,rp:rp,l0:l0,gd0:pre?pre.g.position.clone().normalize():null,gq0:pre?pre.g.quaternion.clone():null,gtq:tq,U:U,F:F,Sd:Sd,Y:Y,Pv:Pv,Wd:Wd,q0:Pv.quaternion.clone(),CS:CS,arms:arms,L:L,r:r,b0:ball.position.clone(),c0:cam.position.clone(),u0:cam.up.clone(),aO:aO,aW:0.42,aC:aC,hs:hs,hp:hp,Cf:Cf,Df:Df,spin:0,
       mode:!rp&&false?"mess":"restore",it:null,pile:{},hud:false};
     if(keyLight)keyLight.castShadow=false};
@@ -2380,9 +2381,9 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
       if(!(T.cd>u.t)&&!(T.kn>u.t)&&hopT<=0)for(i=L.length-1;i>=0;i--){var q=L[i];if(u.t-q.t<=2.5||!q.aw||L.length-1-i<6||q.d.dot(pd)<=cT)continue;var big=false;for(var j=i+1;j<L.length&&!big;j++)if(L[j].d.dot(q.d)<cM)big=true;if(!big)continue; /* and the loop has to be a real one, at least 2 across (a little more as the maki grows, so a big maki turning hard still makes one), not a tiny circle */
         T.cd=u.t+0.6;T.wv.push({t0:u.t,id:q.id});X.magOn();break} /* crossing your own track (any part more than 2.5 s old) closes a loop: the newest part you cross, so it is the loop you just drew, not one reaching back to an old crossing. Each crossing is its own loop, so a figure 8 makes two, and they all work. Its colours flow and magnet mode comes on for 5 s (another loop starts the 5 s again) */
       X.magTick()},
-    magOn:function(){var u=twRu,T=u.tl;if(T.mgE!=null){T.mgE=u.t+5;return}if(window.MKPT_MAG)return;T.mgE=u.t+5;window.MKPT_MAG=true;twLast="MAGNET";twLastT=twNow}, /* turns the magnet on, unless you already had it on (with the M key), and says so on the GOT line */
-    magTick:function(){var u=twRu,T=u.tl;if(T.mgE==null)return;if(window.MKPT_MAG!==true){T.mgE=null;return}if(u.t>=T.mgE){window.MKPT_MAG=false;T.mgE=null}}, /* off again after 5 s; if you change the magnet yourself in the meantime, yours wins */
-    clear:function(){var T=twRu&&twRu.tl;if(T&&T.mgE!=null&&window.MKPT_MAG===true)window.MKPT_MAG=false}, /* the round ends: a magnet the loop turned on goes off */
+    magOn:function(){var u=twRu,T=u.tl;if(twEnd||twSpec)return;if(T.mgE!=null){T.mgE=u.t+5;return}if(window.MKPT_MAG)return;T.mgE=u.t+5;window.MKPT_MAG=true;window.MKPT_MAGL=true;twLast="MAGNET";twLastT=twNow}, /* turns the magnet on, unless you already had it on (with the M key), and says so on the GOT line; marked as the loop one (MKPT_MAGL), so the yellow MAGNET MODE line stays for yours. None once the giant chopsticks have the maki */
+    magTick:function(){var u=twRu,T=u.tl;if(T.mgE==null)return;if(!window.MKPT_MAGL||window.MKPT_MAG!==true){T.mgE=null;window.MKPT_MAGL=false;return}if(u.t>=T.mgE){window.MKPT_MAG=window.MKPT_MAGL=false;T.mgE=null}}, /* off again after 5 s; if you change the magnet yourself in the meantime, yours wins */
+    clear:function(){var T=twRu&&twRu.tl;if(window.MKPT_MAGL)window.MKPT_MAG=window.MKPT_MAGL=false;if(T)T.mgE=null}, /* the round ends: a magnet the loop turned on goes off */
     settle:function(L){var n=L.length,W=[1,6,15,20,15,6,1],k,j,s=new THREE.Vector3();for(k=Math.max(0,n-5);k<n;k++){s.set(0,0,0);for(j=-3;j<=3;j++)s.addScaledVector(L[Math.min(n-1,Math.max(0,k+j))].d,W[j+3]);L[k].s=s.clone().normalize()} /* the path smoothed, worked out once as each point is laid (only the newest few change), so a tight corner turns as a round bend */
       for(k=Math.max(0,n-6);k<n;k++){var q=L[k],a=L[Math.max(0,k-2)].s||q.s,b=L[Math.min(n-1,k+2)].s||q.s,tg=b.clone().sub(a);tg.addScaledVector(q.s,-tg.dot(q.s));if(tg.lengthSq()<1e-14)tg.copy(twRuleBasis(q.s)[0]);q.tg=tg.normalize();q.sd=new THREE.Vector3().crossVectors(q.s,q.tg).normalize();
         q.hh=Math.max(L[Math.max(0,k-1)].h,q.h,L[Math.min(n-1,k+1)].h)}},
@@ -3506,7 +3507,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-11b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-12a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
@@ -3555,12 +3556,12 @@ html.dkbox .export-bar .mkmenu .mi.tk canvas{width:calc(var(--scale-unit)*56);he
 html.dkbox .export-bar .mkmenu.wlm{left:0;right:auto}
 </style>
 <script>(function(){var H=document.documentElement,T=matchMedia("(hover:none) and (pointer:coarse)");function on(){H.classList.toggle("dkbox",Math.min(innerWidth,innerHeight)<600||T.matches)}on();addEventListener("resize",on);if(T.addEventListener)T.addEventListener("change",on)})();</script> <!-- larger windows keep the bar inside the poster, as released -->
-<!-- the secret magnet (a tool for playing through quickly): while the game is on, M toggles it and Shift+M toggles SUPER (pulls from anywhere on the planet). While it is on, a small yellow line at the top says MAGNET MODE or SUPER MAGNET MODE. It is redrawn only when the magnet or the game is switched, no loop -->
+<!-- the secret magnet (a tool for playing through quickly): while the game is on, M toggles it and Shift+M toggles SUPER (pulls from anywhere on the planet). While it is on, a small yellow line at the top says MAGNET MODE or SUPER MAGNET MODE (not for the rainbow trail's 5 s loop magnet, MKPT_MAGL). It is redrawn only when the magnet or the game is switched, no loop -->
 <div id="ptT" style="position:fixed;left:50%;top:max(96px,calc(env(safe-area-inset-top) + 96px));transform:translateX(-50%);z-index:2147483647;display:none;max-width:calc(100vw - 16px);padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#ffd84a;font:700 10px ui-monospace,monospace;letter-spacing:.04em;text-align:center;pointer-events:none"></div>
 <script>(function(){var bar=document.getElementById("ptT"),g=document.getElementById("game");
-function draw(){var m=window.MKPT_MAG,on=!!(g&&g.classList.contains("on")&&m);bar.style.display=on?"block":"none";if(on)bar.textContent=m==="super"?"SUPER MAGNET MODE":"MAGNET MODE"}
+function draw(){var m=window.MKPT_MAGL?false:window.MKPT_MAG,on=!!(g&&g.classList.contains("on")&&m);bar.style.display=on?"block":"none";if(on)bar.textContent=m==="super"?"SUPER MAGNET MODE":"MAGNET MODE"}
 if(g)new MutationObserver(draw).observe(g,{attributes:true,attributeFilter:["class"]});
 window.addEventListener("keydown",function(e){if(!g||!g.classList.contains("on"))return;if(e.metaKey||e.ctrlKey||e.altKey||e.repeat)return;if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
-if(e.key==="m"||e.key==="M"||e.code==="KeyM"){e.preventDefault();e.stopImmediatePropagation();window.MKPT_MAG=e.shiftKey?(window.MKPT_MAG==="super"?false:"super"):(window.MKPT_MAG?false:true);draw()}},true)})();</script>
+if(e.key==="m"||e.key==="M"||e.code==="KeyM"){e.preventDefault();e.stopImmediatePropagation();var c=window.MKPT_MAGL?false:window.MKPT_MAG;window.MKPT_MAGL=false;window.MKPT_MAG=e.shiftKey?(c==="super"?false:"super"):(c?false:true);draw()}},true)})();</script>
 </body>
 </html>
