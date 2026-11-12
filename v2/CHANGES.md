@@ -7,6 +7,10 @@
 **Same seed, different art.** Changes 5 and 6 change how a seed is turned into traits, so many seeds produce different art in v2 than their v1 token. To see a seed as minted, open it in the player at the site root (`makimono.psr.fyi/?seed=<hex>`).
 
 ### Fixes
+- **Held keys act once:** holding R on the restart question no longer restarts at once; holding G no longer flips between art and game (P, T and Enter too).
+- **Launching:** pressing KATAMAKI twice, or leaving while it loads, no longer starts two games or a hidden one. I, M and Esc on the art do nothing while the game is open.
+- **Same at 60 and 120 Hz:** the hill pop, the TREMORS camera shake and the end view's camera height now ease by time, not by frame. The first frame after start or resume only sets the clock.
+- **Lighter:** the art stops animating behind the game, the update notice checks 4 times a second instead of every frame, and the GRAND PRIX pointer's check runs only while it is shown. Restarting or loading new art now frees the old 3D world and its WebGL context, so many restarts in one visit stay smooth.
 
 1. **Edge bleed on scrolling patterns.** The scrolling filling layer is wrapped in a fixed clip, so no sliver of filling shows past the art's right edge in the detailed view. ([v1 issue 1](../v1/NOTES.md#1-edge-bleed-on-scrolling-patterns-in-the-detailed-view))
 2. **Mobile tap opens the traits band.** Taps are detected from pointer/touch events instead of waiting for a `click` that iOS Safari never sends. Timing uses `e.timeStamp`, since Aleatory freezes `Date.now()`. ([v1 issue 2](../v1/NOTES.md#2-tapping-the-art-doesnt-open-the-traits-band-on-mobile))

@@ -485,7 +485,7 @@ perfEl.addEventListener("change",function(){store("gt2-perf",perfEl.checked?"1":
 $("#again").addEventListener("click",run);
 /* the version this page was built from, and the one on the site (version.json beside index.html): if they differ, the game has moved on and this page should be rebuilt */
 /* the game version, for what Copy puts on the clipboard: the one on the site (version.json beside index.html), or the one this page was built from */
-var GV0="2026-11-11a",VER="";
+var GV0="2026-11-11b",VER="";
 try{fetch("version.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.game)VER=j.game}).catch(function(){})}catch(e){}
 /* the cards, commonest first and rarest last, by the chance the trait rules give each pattern (a pattern's weight within each profile's pattern list) */
 function chance(p){var T=MK.RAMP.reduce(function(a,r){return a+r[1]},0);return MK.RAMP.reduce(function(a,r){var l=MK.patList(r[0]),s=l.reduce(function(b,x){return b+x[1]},0),m=l.filter(function(x){return x[0]===p})[0];return a+(m?r[1]/T*m[1]/s:0)},0)}

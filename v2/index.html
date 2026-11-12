@@ -556,7 +556,7 @@ window.MKMN_RESEED=function(s){alea.seed=alea.hash=s;mkmnRender();if(!hopOn)appl
   window.addEventListener("keydown",function(e){
     if(e.target&&(e.target.isContentEditable||/^(INPUT|TEXTAREA)$/.test(e.target.tagName)))return;
     if(e.metaKey||e.ctrlKey||e.altKey)return;
-    if(e.key==="i"||e.key==="I"){e.preventDefault();if(stage)stage.classList.toggle("show")}
+    var gm=document.getElementById("game");if(gm&&gm.classList.contains("on"))return;if(e.key==="i"||e.key==="I"){e.preventDefault();if(stage)stage.classList.toggle("show")}
     else if(e.key==="m"||e.key==="M"){e.preventDefault();hopOn=!hopOn;if(hopOn){if(artBox)artBox.innerHTML=curSvg}else applyHop()}/* hop off: rest pose, fills keep running. hop on: re-inject the svg so hop and fills restart together from t=0 */
     else if(e.key==="Escape"&&stage)stage.classList.remove("show");
   });
@@ -1136,7 +1136,7 @@ function mkmnGame(){ /* the game: started by the three.js loader further down, o
      (flat chips and a triangle in the piece's colours) poking out between the layers and one ant standing on top */
   /* a rolled-up anthill shrinks onto the roll: no bigger than 1.2 times the roll's size (an ANTS hill is 15-20, so it hid the whole roll), easing down over about a third of a second, and sitting snug rather than buried */
 function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ballR*1.2;return g.scale.x>m?m:0}
-  function twHillEase(g,k){var c=g.scale.x+(k.gs-g.scale.x)*0.15;if(Math.abs(c-k.gs)<0.01){c=k.gs;k.gs=0}g.scale.setScalar(c)}
+  function twHillEase(g,k){var c=g.scale.x+(k.gs-g.scale.x)*twDamp(0.15);if(Math.abs(c-k.gs)<0.01){c=k.gs;k.gs=0}g.scale.setScalar(c)}
   function twHill2(c,dk,K,p,lr){var g=new THREE.Group(),N=7,H=0.62,R=0.6,lt=c.clone().lerp(new THREE.Color(1,1,1),0.18),y=0;var sk=new THREE.Mesh(new THREE.CylinderGeometry(R*0.98,R*1.04,0.5,8),twM(dk));sk.position.y=-0.24;g.add(sk); /* a skirt reaching half its size into the ground, so the hill sits in the land on a slope */
     for(var i=0;i<N;i++){var f=i/N,r=R*Math.sqrt(Math.max(0.05,1-f*f))*(0.94+lr()*0.12),th=H/N*(1.05+lr()*0.3),ge=new THREE.CylinderGeometry(r*0.9,r,th,8),pa=ge.attributes.position;
       for(var v=0;v<pa.count;v++){var x=pa.getX(v),z=pa.getZ(v),a=Math.round(Math.atan2(z,x)/(Math.PI/4)),k=0.82+((Math.sin(a*12.9898+i*78.233)*43758.5453)%1+1)%1*0.32;pa.setX(v,x*k);pa.setZ(v,z*k)}ge.computeVertexNormals();
@@ -1998,7 +1998,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
      the land under it plus a margin, eased so it rises smoothly over a hill */
   var twSZ=1,twSZT=1,twSDm=0;
   function twSZoom(dt){twSZ+=(twSZT-twSZ)*(1-Math.pow(0.00005,dt));if(Math.abs(twSZT-twSZ)<1e-3)twSZ=twSZT;var k=(1-twSZ)/(1-ZMIN);k=Math.max(0,Math.min(1,k));return 1-Math.pow(1-k,2)}
-  function twSDist(z,zk){var m=Math.max(SR+RELIEF*0.6+4,surfaceR(z)+6);twSDm=twSDm?twSDm+(m-twSDm)*0.08:m;var d0=twSC.d;return d0+(Math.min(d0,twSDm)-d0)*zk}
+  function twSDist(z,zk){var m=Math.max(SR+RELIEF*0.6+4,surfaceR(z)+6);twSDm=twSDm?twSDm+(m-twSDm)*twDamp(0.08):m;var d0=twSC.d;return d0+(Math.min(d0,twSDm)-d0)*zk}
   /* PHOTO: C (or the camera button on touch) takes a polaroid of the world as it is on screen: the game's 3D view and the layers drawn over it
      (puffs, the glitch), but not the HUD, the buttons or their text. A playing round pauses while the photo is up, and Back carries on.
      The photo copies the art's poster with the traits shown, at the GIF's 1040 square: the shot fills the whole square, as the art fills the poster, and
@@ -2157,7 +2157,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
     if(twRC("skid")&&skid)twRulePuff(dt);twRuleLeanAim(pull)}
   function twRuleLeanAim(pull){var sd=new THREE.Vector3().crossVectors(up,fwd).normalize(),k=twRC("lean")&&twRC("slip")?Math.max(-0.22,Math.min(0.22,pull.dot(sd)*0.05)):0;twSl.lean+=(k-twSl.lean)*0.12} /* how far the roll tips sideways, eased; only on slippery ground (the wind alone does not tip it) */
   function twRuleLean(){if(twRu&&!twSpec&&Math.abs(twSl.lean)>1e-3)ball.rotateZ(-twSl.lean)} /* LEAN: the roll tips the way it's pulled (applied after the roll is turned to face its way) */
-  function twRuleCam(){var X=twRu&&!twSpec&&twRuX[twRu.k];if(X&&X.late)X.late(); /* a condition can draw last thing in the frame, once the roll is where it is drawn */if(twShk<=0||twRM())return;var a=twShk*0.5;cam.position.x+=(Math.random()-0.5)*a;cam.position.y+=(Math.random()-0.5)*a;cam.position.z+=(Math.random()-0.5)*a;twShk=Math.max(0,twShk-0.016)} /* the aftershock's small shake */
+  function twRuleCam(){var X=twRu&&!twSpec&&twRuX[twRu.k];if(X&&X.late)X.late(); /* a condition can draw last thing in the frame, once the roll is where it is drawn */if(twShk<=0||twRM())return;var a=twShk*0.5;cam.position.x+=(Math.random()-0.5)*a;cam.position.y+=(Math.random()-0.5)*a;cam.position.z+=(Math.random()-0.5)*a;twShk=Math.max(0,twShk-twDt*0.96)} /* the aftershock's small shake */
   function twRulePuff(dt){if(!twRuFx){var g=new THREE.BoxGeometry(0.22,0.22,0.22);twRuFx={m:new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.4,depthWrite:false}),24),p:[],k:0};twRuFx.m.frustumCulled=false;scene.add(twRuFx.m);for(var i=0;i<24;i++)twRuFx.p.push({a:9})}
     if(twRuFx.m.parent!==scene)scene.add(twRuFx.m);twSl.pk-=dt;if(twSl.pk>0)return;twSl.pk=0.06;var P=twRuFx.p[twRuFx.k=(twRuFx.k+1)%24],pd=pPos.clone().normalize(),sd=new THREE.Vector3().crossVectors(up,fwd).normalize();
     P.a=0;P.pos=pd.clone().multiplyScalar(surfaceR(pd)+0.15).addScaledVector(sd,(Math.random()-0.5)*ballR*1.2).addScaledVector(fwd,-ballR*0.5);P.v=pd.clone().multiplyScalar(1.2+Math.random()).addScaledVector(fwd,-1-Math.random()).addScaledVector(sd,(Math.random()-0.5)*1.5)} /* SKID: little white dust cubes kicked up behind the roll's foot */
@@ -2469,8 +2469,8 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function twCkArrow(C){var g=document.getElementById("game");if(!g||typeof cam==="undefined"||!cam)return;var el=document.getElementById("mkCkArr");
     if(!el){el=document.createElement("div");el.id="mkCkArr";el.setAttribute("aria-hidden","true");el.style.cssText="position:absolute;left:0;top:0;width:0;height:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .25s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))";
       el.innerHTML='<svg viewBox="0 0 256 256" width="30" height="30" style="position:absolute;left:-15px;top:-15px"><path fill="rgba(255,255,255,.92)" fill-rule="evenodd" d="M224,64H32A16,16,0,0,0,16,80v72a16,16,0,0,0,16,16H56v32a8,8,0,0,0,16,0V168H184v32a8,8,0,0,0,16,0V168h24a16,16,0,0,0,16-16V80A16,16,0,0,0,224,64ZM64 80h32v36h-32ZM128 80h32v36h-32ZM192 80h32v36h-32ZM32 116h32v36h-32ZM96 116h32v36h-32ZM160 116h32v36h-32Z"/></svg><svg class="tri" viewBox="0 0 12 14" width="12" height="14" style="position:absolute;left:-6px;top:-7px"><path d="M1 1 L11 7 L1 13 Z" fill="rgba(255,255,255,.92)"/></svg>';g.appendChild(el);
-      (function tk(){requestAnimationFrame(tk);if(performance.now()-(+el.dataset.t||0)>200)el.style.opacity="0"})()}
-    el.dataset.t=performance.now();var q=null;for(var i=0;i<C.g.length;i++)if(C.g[i].go==null&&!C.g[i].hit)q=C.g[i];
+      }
+    el.dataset.t=performance.now();if(!el.w){el.w=1;(function tk(){if(performance.now()-(+el.dataset.t||0)>200){el.style.opacity="0";el.w=0;return}requestAnimationFrame(tk)})()}var q=null; /* the fade-out check runs only while GRAND PRIX is updating it, and stops itself */for(var i=0;i<C.g.length;i++)if(C.g[i].go==null&&!C.g[i].hit)q=C.g[i];
     if(!q||(typeof twPh!=="undefined"&&twPh&&twPh.on)||twCkSeen(q)){el.style.opacity="0";return}
     var W=g.clientWidth||innerWidth,H=g.clientHeight||innerHeight,P=q.c.clone().multiplyScalar(lmGround(q.c)+(q.h||2.6)*0.5).applyMatrix4(cam.matrixWorldInverse),x=P.x,y=P.y;
     if(P.z>0){x=-x;y=-y} /* behind the camera: point the other way */
@@ -2671,11 +2671,12 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function twBackOn(){if(PQ.tier<3||twEnd||phase!=="play"||(twPh&&twPh.on)){twBackAll();return false}clump.updateWorldMatrix(true,false);clump.getWorldQuaternion(twBQ);twBC.copy(cam.position).sub(ball.position).normalize();return true}
   function twBack(g){var k=g.userData.stick,m=-Math.min(0.9,0.45+(k.gs||g.userData.skw||g.scale.x)/Math.max(ballR,1e-3)),h=twBV.copy(k.rd).applyQuaternion(twBQ).dot(twBC)<m;if(h!==!!g.userData.bh){g.userData.bh=h;g.visible=!h;if(h)twBAny=true}}
   function placeStuck(g,s){var k=g.userData.stick;if(k.gs)twHillEase(g,k);g.position.set(k.xf*R0*0.85*s*twLenK(),0,0).addScaledVector(k.rd,R0*0.98*s*twRadK()-k.sink)} // on the current (scaled) roll surface
-  var twSub=0;function step(t){if(!running)return;perfSample(t,t-lastT);var T=Math.min(200,t-lastT),n=twEnd||!(T>50)?1:Math.ceil(T/50-1e-6);if(n>1){var t0=t-T;lastT=t0;twSub=1;for(var si=1;si<n&&running;si++)stepOne(t0+T*si/n);twSub=0;if(!running)return}stepOne(t)} /* on a slow frame (under 20 fps) the game runs a few shorter steps and draws only the last, so it keeps real speed instead of going slow motion; each step is still at most 0.05 s, so nothing is skipped through. A wait of more than 0.2 s (a stall) only moves the game on by 0.2 s */
+  var twSub=0;function step(t){if(!running)return;if(lastT<0){lastT=t;raf=requestAnimationFrame(step);return}perfSample(t,t-lastT);var T=Math.min(200,t-lastT),n=twEnd||!(T>50)?1:Math.ceil(T/50-1e-6);if(n>1){var t0=t-T;lastT=t0;twSub=1;for(var si=1;si<n&&running;si++)stepOne(t0+T*si/n);twSub=0;if(!running)return}stepOne(t)} /* on a slow frame (under 20 fps) the game runs a few shorter steps and draws only the last, so it keeps real speed instead of going slow motion; each step is still at most 0.05 s, so nothing is skipped through. A wait of more than 0.2 s (a stall) only moves the game on by 0.2 s */
+  var twDt=1/60;function twDamp(f){return 1-Math.pow(1-f,twDt*60)} /* the share of the way an easing covers this step: f at 60 fps, the same per second at any frame rate */
   function stepOne(t){
     if(!running)return;
     if(!twSub)raf=requestAnimationFrame(step);
-    var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;if(twEnd){twEndStep(dt);return}if(twSpec)dt*=twSpecPre(dt);
+    var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;twDt=dt||1/60;if(twEnd){twEndStep(dt);return}if(twSpec)dt*=twSpecPre(dt);
     up.copy(pPos).normalize();
     fwd.addScaledVector(up,-fwd.dot(up));if(fwd.lengthSq()<1e-6)fwd.set(up.z,up.x,up.y);fwd.normalize();
     var turn=2.2,mv=0,SPEED=7.5,heavy=1-0.25*Math.abs(vel); // turning is a quarter heavier at full speed
@@ -2838,13 +2839,13 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
 
   var builtMsg=""; // the art's message + seed when the world was built; a changed Message cell (or, in the preview, a new seed) forces a rebuild
   function artMsg(){return (window.MAKI_TXT&&window.MAKI_TXT.msg)||""}
-  async function launch(skipIntro){
+  var lId=0;async function launch(skipIntro){
     if(running)return;
-    if(built&&artMsg()+"|"+$alea.seed+"|"+!!window.MKMN_BSIDE!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[]} // art changed since last build
+    if(built&&artMsg()+"|"+$alea.seed+"|"+!!window.MKMN_BSIDE!==builtMsg){freeRoll=false;built=false;phase="welcome";cancelAnimationFrame(raf);if(renderer)twFreeWorld();props=[];enemies=[];ants=[]} // art changed since last build
     GAME.classList.add("on");
     if(built&&(phase==="pause"||phase==="confirm"||phase==="end")){if(phase==="confirm")cancelRestart();return} // back from the art: stay on the pause (or end) screen, no welcome
     overlays(skipIntro?null:HUD.start);phase="welcome";
-    if(!built){builtMsg=artMsg()+"|"+$alea.seed+"|"+!!window.MKMN_BSIDE;var tr=readTraits();var cells=await readGrid();try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
+    if(!built){builtMsg=artMsg()+"|"+$alea.seed+"|"+!!window.MKMN_BSIDE;var tr=readTraits();var my=++lId,cells=await readGrid();if(my!==lId||!GAME.classList.contains("on"))return;try{build(tr,cells)}catch(e){HUD.start.classList.remove("hidden");HUD.desc.textContent="Our chef dropped the roll. Try refreshing! ";var es=document.createElement("small");es.style.cssText="font-size:10px;opacity:.6";es.textContent="("+e.message+")";HUD.desc.appendChild(es);return}}
     if(skipIntro)begin();else welStart();
   }
   // welcome title: KATAMAKI built from the same cube letters as the sky banner (buildBanner), coloured like a custom message on this piece
@@ -2871,9 +2872,11 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   function welStop(){if(!wel)return;cancelAnimationFrame(wel.raf);wel.r.domElement.remove();
     wel.T.g.traverse(function(o){if(o.isMesh){o.geometry.dispose();[].concat(o.material).forEach(function(m){m.dispose()})}}); // the title's cubes are this screen's own; the roll is a shared-geometry clone, left alone
     wel.r.forceContextLoss&&wel.r.forceContextLoss();wel.r.dispose();wel=null} // frees the extra WebGL context before play
-  function begin(){welStop();if(!built)return;overlays(null);phase="play";running=true;lastT=performance.now();PQ.skip=-1;PQ.ws=0;perfApply();raf=requestAnimationFrame(step)}
-  function restart(){freeRoll=false;built=false;running=false;phase="welcome";cancelAnimationFrame(raf);if(renderer){renderer.domElement.remove();renderer.dispose&&renderer.dispose()}props=[];enemies=[];ants=[];launch(true)} // straight back into a fresh round, no welcome screen
-  function exit(){welStop();pauseGame();running=false;cancelAnimationFrame(raf);keys={};releaseStick();GAME.classList.remove("on")} // leaving mid-round always pauses it
+  function begin(){welStop();if(!built)return;overlays(null);phase="play";running=true;lastT=-1;PQ.skip=-1;PQ.ws=0;perfApply();raf=requestAnimationFrame(step)}
+  function twFreeWorld(){var G=new Set(),M=new Set(),X=new Set();if(scene){scene.traverse(function(o){if(o.geometry)G.add(o.geometry);[].concat(o.material||[]).forEach(function(m){if(!m)return;M.add(m);for(var k in m){var v=m[k];if(v&&v.isTexture)X.add(v)}});if(o.isInstancedMesh&&o.dispose)o.dispose()});if(scene.background&&scene.background.isTexture)X.add(scene.background)}
+    G.forEach(function(g){g.dispose()});M.forEach(function(m){m.dispose()});X.forEach(function(t){t.dispose()});renderer.domElement.remove();renderer.forceContextLoss&&renderer.forceContextLoss();renderer.dispose&&renderer.dispose()} /* leaving a world for a new one (restart, or new art): every geometry, material and texture in it is let go once, and the WebGL context is released, as the start screen already does. Pieces shared with the next world are simply uploaded again when drawn */
+  function restart(){freeRoll=false;built=false;running=false;phase="welcome";cancelAnimationFrame(raf);if(renderer)twFreeWorld();props=[];enemies=[];ants=[];launch(true)} // straight back into a fresh round, no welcome screen
+  function exit(){lId++;welStop();pauseGame();running=false;cancelAnimationFrame(raf);keys={};releaseStick();GAME.classList.remove("on")} // leaving mid-round always pauses it
   window.KATAMAKI_LAUNCH=function(){if(!GAME.classList.contains("on"))launch()}; // KATAMAKI button in the art's top bar
 
   GAME.querySelector(".go").addEventListener("click",begin);
@@ -2886,7 +2889,7 @@ function twHillGs(g){if(!g.userData||g.userData.nm!=="ANTHILL")return 0;var m=ba
   GAME.addEventListener("click",function(e){e.stopPropagation()});
   window.addEventListener("keydown",function(e){
     var t=e.target;if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA)$/.test(t.tagName)))return;
-    var on=GAME.classList.contains("on"),k=e.key.length===1?e.key.toLowerCase():e.key;
+    var on=GAME.classList.contains("on"),k=e.key.length===1?e.key.toLowerCase():e.key;if(e.repeat&&/^(g|r|p|t|Enter)$/.test(k))return; /* a held key acts once: holding R can't go from the restart question to a restart, holding G doesn't flip art and game */
     if(k==="t"&&on&&phase==="play"){e.preventDefault();twThrowAll();return} /* T: secret, throws away everything collected */
     if(k==="g"){e.preventDefault();if(on)exit();else launch();return}                 // G: art <-> game (pauses a live round)
     if(!on)return;                                                                   // everything below is game-only; Esc on the art does nothing
@@ -3503,7 +3506,7 @@ window.MKMN_GEN2=function(s){var t=window.MAKI_TXT,p=window.MAKI_PAL;try{return 
 @media (prefers-reduced-motion:reduce){#mkUp.in{animation:none}}
 </style>
 <div id="mkUp" role="status"><span>The chef updated the menu</span><button type="button">Refresh</button></div>
-<script>(function(){var MKMN_GV="2026-11-11a",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
+<script>(function(){var MKMN_GV="2026-11-11b",T=document.getElementById("mkUp"),B=T.querySelector("button"),nv=null,key="",lastU=-1e9,busy=false,lastQ=-1e9;
 var SS=(function(){try{var s=window.sessionStorage;s.setItem("mkUpX","1");s.removeItem("mkUpX");return s}catch(e){return null}})(); /* storage can be refused (a page opened from a file, some private modes): then it just isn't used */
 var live=/^https?:$/.test(location.protocol);
 function ask(){if(!live||busy||!window.fetch)return;var n=performance.now();if(n-lastQ<20000)return;lastQ=n;busy=true; /* at most once every 20 s */
@@ -3512,10 +3515,14 @@ ask();document.addEventListener("visibilitychange",function(){if(document.visibi
 function go(){var g=document.getElementById("game");if(SS&&g&&g.classList.contains("on"))SS.setItem("mkUpGo","1");try{var u=new URL(location.href);u.searchParams.set("v",nv||Math.random().toString(36).slice(2,8));location.replace(u.toString())}catch(e){location.reload()}}
 ["pointerdown","mousedown","touchstart","click"].forEach(function(e){T.addEventListener(e,function(ev){ev.stopPropagation()})});
 B.addEventListener("pointerup",function(e){if(e.pointerType!=="mouse"){lastU=e.timeStamp;go()}});B.addEventListener("click",function(ev){ev.stopPropagation();if(ev.timeStamp-lastU>=700)go()}); /* on a touch screen it reacts to the finger lifting, not only to the click the browser may or may not send after it */
-(function tick(){requestAnimationFrame(tick);var g=document.getElementById("game"),gon=g&&g.classList.contains("on"),ov=gon&&g.querySelector(".overlay:not(.hidden)"),where=!gon?"art":!ov?"play":"menu",on=!!nv;
+(function tick(){setTimeout(tick,250);var g=document.getElementById("game"),gon=g&&g.classList.contains("on"),ov=gon&&g.querySelector(".overlay:not(.hidden)"),where=!gon?"art":!ov?"play":"menu",on=!!nv;
   if(SS&&SS.getItem("mkUpGo")==="1"){var kb=document.querySelector('.export-bar a[aria-label="Play Katamaki"]');if(kb&&!kb.classList.contains("loading")&&!kb.getAttribute("aria-busy")){SS.removeItem("mkUpGo");setTimeout(function(){kb.click()},300)}} /* refreshed from the game: open it again once the KATAMAKI button is ready */
   var k=on+"|"+where;if(k===key)return;key=k;if(!on||where==="play"){T.classList.remove("in");return} /* hidden while a round is played; back as soon as any screen is up, or on the art */
   if(!T.classList.contains("in")){T.classList.add("in");if(T._seen)T.classList.add("seen");T._seen=1}})()})();</script>
+<!-- ART PAUSED BEHIND THE GAME: while the game is open the art (hidden under it) stops animating, so slow phones only draw the game; it carries on from the same moment on the way back -->
+<script>(function(){var G=document.getElementById("game");if(!G||!window.MutationObserver)return;var was=false;
+function sync(){var on=G.classList.contains("on");if(on===was)return;was=on;document.querySelectorAll(".art-box svg").forEach(function(s){try{if(on)s.pauseAnimations();else s.unpauseAnimations()}catch(_){}})}
+new MutationObserver(sync).observe(G,{attributes:true,attributeFilter:["class"]})})();</script>
 <!-- ART PAGE BUTTONS UNDER THE TRAITS (released 2026-11-10e): phones, touch screens and small windows (shorter side under 600 px) only
      With the traits shown, the poster's own bar moves out of the frame to just below it: as wide as the frame, the same gap as the colour chips' padding,
        and the same gap again to the poster's edge. The poster grows by that much (the art and traits keep their size; the whole poster shrinks a little to fit).
